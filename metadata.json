@@ -1,0 +1,6 @@
+{
+  "name": "PP Raw 數據分析儀表板 v2.0",
+  "description": "精準讀取每一行第 22 欄位 (FYC Final) 彙總，支援多維度篩選與深度 Leader/Agent 戰績分析",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

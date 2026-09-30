@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLD YEARLY AWARDS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Reading and Multi-Sheet Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js for Visual Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .sort-icon { display: inline-block; transition: transform 0.2s; }
+    </style>
+</head>
+<body class="h-full text-slate-800 antialiased flex flex-col bg-slate-50/50">
+
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-sky-500/20">
+                    <i class="fa-solid fa-chart-line text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        PLD YEARLY AWARDS
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold px-2 py-0.5 rounded-full">v2.0 第22欄 Column V 模式</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-400">精準讀取每一行第 22 欄位 (FYC Final) 彙總，支援多維度篩選與深度 Leader/Agent 戰績分析</p>
+                </div>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-2">
+                <button onclick="clearAllData(true)" class="px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-trash-can text-rose-400"></i>
+                    <span class="hidden sm:inline">清空所有數據</span>
+                </button>
+                <button onclick="exportComprehensiveReport()" class="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>匯出全套完整 Excel 報表</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Excel File Dropzone & Headcount Dual Uploader -->
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 transition-all">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+                
+                <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleFileSelect(event)">
+                <input type="file" id="headcountFileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleHeadcountFileSelect(event)">
+                
+                <div id="dropZone" onclick="triggerFileInput()" class="lg:col-span-6 border-2 border-dashed border-slate-300 hover:border-sky-500 bg-slate-50/50 hover:bg-sky-50/30 rounded-xl p-3.5 text-center cursor-pointer transition-all flex flex-col sm:flex-row items-center justify-between gap-3 group">
+                    <div class="flex items-center space-x-3 text-left">
+                        <div class="p-2.5 bg-white text-sky-600 rounded-xl shadow-sm border border-slate-200 group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span id="currentFileName" class="text-xs font-bold text-slate-900 truncate max-w-[200px]">尚未上載檔案</span>
+                                <span id="rowCountBadge" class="text-[10px] bg-sky-100 text-sky-800 font-semibold px-2 py-0.5 rounded-full">0 筆記錄</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">PP Raw (第22欄 Col V FYC Final)</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-sky-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200 font-semibold">上載 PP Raw</span>
+                </div>
+
+                <!-- Headcount File Uploader Card -->
+                <div onclick="triggerHeadcountFileInput()" class="lg:col-span-3 border-2 border-dashed border-purple-200 hover:border-purple-500 bg-purple-50/30 hover:bg-purple-50/60 rounded-xl p-3.5 cursor-pointer transition-all flex items-center justify-between gap-2 group">
+                    <div class="flex items-center space-x-2.5 text-left">
+                        <div class="p-2 bg-white text-purple-600 rounded-lg shadow-xs border border-purple-100 group-hover:scale-105 transition-transform">
+                            <i class="fa-solid fa-user-plus text-base"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <span id="headcountFileName" class="text-xs font-bold text-purple-950 truncate max-w-[120px]">尚未上載檔案</span>
+                                <span id="headcountBadge" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded-full">0 筆</span>
+                            </div>
+                            <p id="headcountSubtext" class="text-[10px] text-purple-700/80">LIS 日期/Team 自由篩選模式</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-purple-700 bg-white px-2 py-1 rounded-lg border border-purple-200 font-bold">上載 Headcount</span>
+                </div>
+
+                <!-- Sheet Switcher Dropdown -->
+                <div class="lg:col-span-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 flex flex-col justify-center space-y-1">
+                    <label for="sheetSelector" class="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                        <span><i class="fa-solid fa-layer-group text-slate-400 mr-1"></i> Issue 工作表</span>
+                        <span class="text-[9px] text-sky-600 font-normal">自動偵測</span>
+                    </label>
+                    <select id="sheetSelector" onchange="onSheetChanged(this.value)" class="w-full text-xs font-semibold bg-white border border-slate-300 rounded-lg p-1.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="">尚未載入工作表</option>
+                    </select>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-filter text-sky-600"></i>
+                    <h2 class="text-sm font-extrabold text-slate-900">多選進階篩選面板 (Multi-Select Filter Grid)</h2>
+                    <span class="text-xs text-slate-400 font-normal hidden lg:inline">(含 Issue 保單與 Headcount LIS 年/月/Team 獨立篩選)</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span id="filteredMatchInfo" class="text-xs text-sky-700 font-semibold bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">已選定 0/0 筆</span>
+                    <button onclick="resetAllFilters()" class="text-xs text-slate-500 hover:text-sky-600 font-medium flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-rotate-left"></i> 重置所有篩選
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter Controls Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+
+                <!-- 1. Submit Year -->
+                <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+                        <span>Submit Year</span>
+                        <span id="badgeSubmitYear" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mb-2 border-b border-slate-200/60 pb-1">
+                        <button onclick="toggleSelectAll('SubmitYear', true)" class="hover:text-sky-600 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleSelectAll('SubmitYear', false)" class="hover:text-sky-600 font-semibold">取消</button>
+                    </div>
+                    <div id="containerSubmitYear" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 2. Submit Month -->
+                <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+                        <span>Submit Month</span>
+                        <span id="badgeSubmitMonth" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mb-2 border-b border-slate-200/60 pb-1">
+                        <button onclick="toggleSelectAll('SubmitMonth', true)" class="hover:text-sky-600 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleSelectAll('SubmitMonth', false)" class="hover:text-sky-600 font-semibold">取消</button>
+                    </div>
+                    <div id="containerSubmitMonth" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 3. Issue Year -->
+                <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+                        <span>Issue Year</span>
+                        <span id="badgeIssueYear" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mb-2 border-b border-slate-200/60 pb-1">
+                        <button onclick="toggleSelectAll('IssueYear', true)" class="hover:text-sky-600 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleSelectAll('IssueYear', false)" class="hover:text-sky-600 font-semibold">取消</button>
+                    </div>
+                    <div id="containerIssueYear" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 4. Issue Month -->
+                <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+                        <span>Issue Month</span>
+                        <span id="badgeIssueMonth" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mb-2 border-b border-slate-200/60 pb-1">
+                        <button onclick="toggleSelectAll('IssueMonth', true)" class="hover:text-sky-600 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleSelectAll('IssueMonth', false)" class="hover:text-sky-600 font-semibold">取消</button>
+                    </div>
+                    <div id="containerIssueMonth" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 5. Leader Name -->
+                <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
+                        <span>Leader Name</span>
+                        <span id="badgeLeaderName" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1 border-b border-slate-200/60 pb-1">
+                        <button onclick="toggleSelectAll('LeaderName', true)" class="hover:text-sky-600 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleSelectAll('LeaderName', false)" class="hover:text-sky-600 font-semibold">取消</button>
+                    </div>
+                    <input type="text" id="leaderSearch" onkeyup="filterListSearch('LeaderName', 'leaderSearch')" placeholder="搜尋 Leader..." class="w-full text-[10px] p-1 mb-1 border border-slate-300 rounded focus:ring-1 focus:ring-sky-500 focus:outline-none">
+                    <div id="containerLeaderName" class="max-h-20 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 6. Headcount LIS Year Multi-Select -->
+                <div class="bg-purple-50/60 rounded-xl border border-purple-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-purple-900 mb-1">
+                        <span><i class="fa-solid fa-calendar-days text-purple-600 mr-1"></i>LIS Year</span>
+                        <span id="badgeLisYear" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-purple-600 mb-2 border-b border-purple-200/60 pb-1">
+                        <button onclick="toggleLisYearAll(true)" class="hover:text-purple-900 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleLisYearAll(false)" class="hover:text-purple-900 font-semibold">取消</button>
+                    </div>
+                    <div id="containerLisYear" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 7. Headcount LIS Month Multi-Select -->
+                <div class="bg-purple-50/60 rounded-xl border border-purple-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-purple-900 mb-1">
+                        <span><i class="fa-solid fa-calendar-week text-purple-600 mr-1"></i>LIS Month</span>
+                        <span id="badgeLisMonth" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-purple-600 mb-2 border-b border-purple-200/60 pb-1">
+                        <button onclick="toggleLisMonthAll(true)" class="hover:text-purple-900 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleLisMonthAll(false)" class="hover:text-purple-900 font-semibold">取消</button>
+                    </div>
+                    <div id="containerLisMonth" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+                <!-- 8. Headcount Team Multi-Select -->
+                <div class="bg-purple-50/60 rounded-xl border border-purple-200/80 p-2.5">
+                    <div class="flex items-center justify-between text-xs font-bold text-purple-900 mb-1">
+                        <span><i class="fa-solid fa-users-viewfinder text-purple-600 mr-1"></i>Headcount Team</span>
+                        <span id="badgeHeadcountTeam" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] text-purple-600 mb-2 border-b border-purple-200/60 pb-1">
+                        <button onclick="toggleHeadcountTeamAll(true)" class="hover:text-purple-900 font-semibold">全選</button>
+                        <span>|</span>
+                        <button onclick="toggleHeadcountTeamAll(false)" class="hover:text-purple-900 font-semibold">取消</button>
+                    </div>
+                    <div id="containerHeadcountTeam" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-sky-300 transition-colors">
+                <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                    <span>Total FYC Final</span>
+                    <i class="fa-solid fa-dollar-sign text-sky-500"></i>
+                </div>
+                <div id="kpiTotalFYC" class="text-xl font-black text-sky-900">$0</div>
+                <div class="text-[10px] text-slate-400 mt-1">第22欄 (Column V) 精準計算</div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-emerald-300 transition-colors">
+                <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                    <span>Total FYP Final</span>
+                    <i class="fa-solid fa-vault text-emerald-500"></i>
+                </div>
+                <div id="kpiTotalFYP" class="text-xl font-black text-emerald-900">$0</div>
+                <div class="text-[10px] text-slate-400 mt-1">生效保費總計</div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-amber-300 transition-colors">
+                <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                    <span>FYC Final Case 1</span>
+                    <i class="fa-solid fa-chart-pie text-amber-500"></i>
+                </div>
+                <div id="kpiTotalCase1" class="text-xl font-black text-amber-900">$0</div>
+                <div class="text-[10px] text-slate-400 mt-1">Case 1 階段總和</div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-purple-300 transition-colors">
+                <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                    <span>總保單件數</span>
+                    <i class="fa-solid fa-file-contract text-purple-500"></i>
+                </div>
+                <div id="kpiPolicyCount" class="text-xl font-black text-purple-900">0</div>
+                <div class="text-[10px] text-slate-400 mt-1">Total Policies Issued</div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-indigo-300 transition-colors">
+                <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                    <span>活躍顧問人數</span>
+                    <i class="fa-solid fa-user-check text-indigo-500"></i>
+                </div>
+                <div id="kpiAgentCount" class="text-xl font-black text-indigo-900">0</div>
+                <div class="text-[10px] text-slate-400 mt-1">Active Agents</div>
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div class="flex items-center justify-between bg-slate-100/60 p-3 rounded-xl border border-slate-200/60">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-award text-amber-500 text-lg"></i>
+                    <h2 class="text-sm font-extrabold text-slate-900">Agent 個人排行榜 & 招募主管榜 (Performance & Recruitment Rankings)</h2>
+                </div>
+                <!-- Top N Selector -->
+                <div class="flex items-center space-x-2">
+                    <label for="topNSelect" class="text-xs font-semibold text-slate-600">顯示筆數：</label>
+                    <select id="topNSelect" onchange="changeTopN(this.value)" class="text-xs bg-white border border-slate-300 rounded-lg px-2.5 py-1 font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <option value="5">Top 5</option>
+                        <option value="10" selected>Top 10</option>
+                        <option value="20">Top 20</option>
+                        <option value="100">全部顧問</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <!-- 表格 1：Agent FYC Final -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-3.5 border-b border-slate-100 bg-gradient-to-r from-sky-50/90 to-white flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-sky-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                1
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-slate-900">
+                                    Agent FYC Final Top 榜
+                                </h3>
+                                <p class="text-[10px] text-slate-500">第22欄 (Column V) 排序</p>
+                            </div>
+                        </div>
+                        <button onclick="exportTableSummary('table1')" class="px-2 py-1 text-[11px] font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-download text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 border-b border-slate-200/70 font-bold uppercase">
+                                    <th class="p-2.5 w-8 text-center">排名</th>
+                                    <th class="p-2.5">Agent 顧問</th>
+                                    <th class="p-2.5 text-right">FYC Final ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table1Body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 表格 2：Agent FYP Final -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-3.5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/90 to-white flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                2
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-slate-900">
+                                    Agent FYP Final Top 榜
+                                </h3>
+                                <p class="text-[10px] text-slate-500">依據 生效保費 排序</p>
+                            </div>
+                        </div>
+                        <button onclick="exportTableSummary('table2')" class="px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-download text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 border-b border-slate-200/70 font-bold uppercase">
+                                    <th class="p-2.5 w-8 text-center">排名</th>
+                                    <th class="p-2.5">Agent 顧問</th>
+                                    <th class="p-2.5 text-right">FYP Final ($)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table2Body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 表格 3：Agent Case1 Top 榜 -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-3.5 border-b border-slate-100 bg-gradient-to-r from-amber-50/90 to-white flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                3
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-slate-900">
+                                    Agent Case1 Top 榜
+                                </h3>
+                                <p class="text-[10px] text-slate-500">依據 Case1 指標排序</p>
+                            </div>
+                        </div>
+                        <button onclick="exportTableSummary('table3')" class="px-2 py-1 text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all flex items-center gap-1">
+                            <i class="fa-solid fa-download text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 border-b border-slate-200/70 font-bold uppercase">
+                                    <th class="p-2.5 w-8 text-center">排名</th>
+                                    <th class="p-2.5">Agent 顧問</th>
+                                    <th class="p-2.5 text-right">Case</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table3Body" class="divide-y divide-slate-100 font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 表格 4：TOP NEW RECRUIT -->
+                <div class="bg-white rounded-2xl border border-purple-200/80 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-3.5 border-b border-purple-100 bg-gradient-to-r from-purple-50 to-white flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                4
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-purple-950 flex items-center gap-1">
+                                    TOP NEW RECRUIT
+                                </h3>
+                                <p id="table4Subtext" class="text-[10px] text-purple-700/80">依據 LIS 年/月 & ARA/Upline Manager 加總</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
+                    </div>
+
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-purple-50/50 text-purple-900 border-b border-purple-100 font-bold uppercase">
+                                    <th class="p-2.5 w-8 text-center">排名</th>
+                                    <th class="p-2.5">主管 / ARA 姓名</th>
+                                    <th class="p-2.5 text-right">新招募人數</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table4Body" class="divide-y divide-purple-50 font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <div id="detailModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex justify-end transition-opacity">
+        <div class="bg-white w-full max-w-2xl h-full shadow-2xl flex flex-col overflow-hidden animate-slide-left">
+            <div class="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center font-bold text-lg">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-sm font-bold text-white">Agent / Leader 戰績詳情</h3>
+                        <p id="modalSubtitle" class="text-xs text-slate-400">個人數據深度分析</p>
+                    </div>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar">
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-sky-50 border border-sky-100 rounded-xl p-3 text-center">
+                        <p class="text-[10px] text-sky-700 font-bold uppercase">FYC Final (Col V)</p>
+                        <p id="modalKpiFYC" class="text-lg font-black text-sky-900 mt-0.5">$0</p>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                        <p class="text-[10px] text-emerald-700 font-bold uppercase">FYP Final</p>
+                        <p id="modalKpiFYP" class="text-lg font-black text-emerald-900 mt-0.5">$0</p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
+                        <p class="text-[10px] text-amber-700 font-bold uppercase">保單件數 Cases</p>
+                        <p id="modalKpiCases" class="text-lg font-black text-amber-900 mt-0.5">0 件</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-sky-600"></i>
+                        旗下保單列表 (Policies Breakdown)
+                    </h4>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                                    <th class="p-2">Submit</th>
+                                    <th class="p-2">Issue</th>
+                                    <th class="p-2">Policy No</th>
+                                    <th class="p-2">險種 Product</th>
+                                    <th class="p-2 text-right">FYC Final</th>
+                                    <th class="p-2 text-right">FYP Final</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalPolicyBody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t border-slate-200 text-right">
+                <button onclick="closeDetailModal()" class="px-4 py-1.5 text-xs font-semibold bg-slate-800 text-white rounded-lg hover:bg-slate-700">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        let rawWorkbook = null;
+        let headcountWorkbook = null;
+        let activeSheetName = 'Issue';
+        let allSheetData = [];          // All parsed rows from selected sheet
+        let filteredRows = [];          // Filtered by criteria
+        let headcountRows = [];         // Raw parsed headcount records
+        let filteredHeadcountRows = []; // Filtered headcount records
+
+        // Multi-Select Filter Options for Issue Data
+        let filterOptions = {
+            SubmitYear: [],
+            SubmitMonth: [],
+            IssueYear: [],
+            IssueMonth: [],
+            LeaderName: []
+        };
+
+        let selectedFilters = {
+            SubmitYear: new Set(),
+            SubmitMonth: new Set(),
+            IssueYear: new Set(),
+            IssueMonth: new Set(),
+            LeaderName: new Set()
+        };
+
+        // Headcount Filters: LIS Year, LIS Month, Team
+        let headcountLisYears = [];
+        let selectedLisYears = new Set();
+        let headcountLisMonths = [];
+        let selectedLisMonths = new Set();
+        let headcountTeams = [];
+        let selectedHeadcountTeams = new Set();
+
+        // Agent Top N Rankings
+        let currentTopN = 10;
+        let table1Rankings = [];
+        let table2Rankings = [];
+        let table3Rankings = [];
+        let table4RecruitRankings = [];
+
+        // Column Mappings for Issue Raw Data
+        const COLUMN_MAPPINGS = {
+            submitYear: ['submit year', 'submityear', 'submit_year', 'submission year', 'sub year', '提交年份', '遞交年份', '投保年份', 's_year'],
+            submitMonth: ['submit month', 'submitmonth', 'submit_month', 'submission month', 'sub month', '提交月份', '遞交月份', '投保月份', 's_month'],
+            issueYear: ['issue year', 'issueyear', 'issue_year', 'issued year', '出單年份', '生效年份', '發單年份', '批核年份', 'i_year'],
+            issueMonth: ['issue month', 'issuemonth', 'issue_month', 'issued month', '出單月份', '生效月份', '發單月份', '批核月份', 'i_month'],
+            leader: ['leader name', 'leadername', 'leader_name', 'upline manager name', 'upline name', 'manager name', 'team leader name', 'unit manager name', '主管姓名', '上線主管姓名', '團隊主管', '主管', 'leader', 'manager'],
+            agent: ['agent name', 'agentname', 'agent_name', 'writing agent name', 'producing agent name', 'selling agent name', 'servicing agent name', 'advisor name', 'consultant name', 'producer name', 'fc name', '顧問姓名', '代理人姓名', '業務員姓名', '理財顧問姓名', '姓名', '代理人', 'agent'],
+            policyNo: ['policy no', 'policyno', 'policy_no', 'policy number', '保單編號', '保單號碼', 'pol_no'],
+            product: ['product name', 'product_name', 'productname', 'plan name', 'product', '險種', '產品名稱', 'prod_name'],
+            fycFinal: ['fyc final', 'fyc_final', 'fycfinal', 'final fyc', 'column v', 'col v', 'col 22'],
+            fypFinal: ['fyp final', 'fyp_final', 'fypfinal', 'final fyp', 'afyp final', 'fyp', 'afyp', 'ape', 'annualized premium'],
+            fycFinalCase1: ['fyc finalcase1', 'fyc final case1', 'fyc final case 1', 'fyc_finalcase1', 'fyc_final_case1', 'case1', 'case 1', 'fyc case 1', 'fyc case1'],
+            status: ['policy status', 'status', '保單狀態', '狀態']
+        };
+
+        // Column Mappings for Headcount File
+        const HEADCOUNT_MAPPINGS = {
+            productionStartDate: ['production start date (lis)', 'production start date', 'production_start_date_(lis)', 'lis date', 'lis start date', '入職日期', 'start date'],
+            uplineManager: ['upline manager full name', 'upline full name', 'upline manager name', 'upline_manager_name', 'upline name', 'direct upline name', 'recruiting manager name', 'manager full name', 'manager name', '上線主管全名', '上線主管姓名', '主管全名', '主管姓名', 'upline manager', '上線主管', 'upline'],
+            araName: ['ara full name', 'ara name', 'ara_name', 'ara manager name', 'ara leader name', 'recruiter full name', 'recruiter name', 'ara 全名', 'ara 姓名', 'ara姓名', 'ara'],
+            team: ['team name', 'team', '組別', '團隊', 'unit'],
+            agentName: ['agent full name', 'staff full name', 'full name', 'agent name', 'staff name', 'new recruit', '顧問全名', '顧問姓名', '新人姓名', '姓名'],
+            agentCode: ['agent code', 'staff code', 'advisor code', 'producer code', '顧問編號', '代理人編號', '編號']
+        };
+
+        function triggerFileInput() {
+            const input = document.getElementById('fileInput');
+            if (input) input.click();
+        }
+
+        function triggerHeadcountFileInput() {
+            const input = document.getElementById('headcountFileInput');
+            if (input) input.click();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupDragAndDrop();
+            clearAllData(false);
+        });
+
+        function setupDragAndDrop() {
+            const dropZone = document.getElementById('dropZone');
+            if (!dropZone) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => {
+                dropZone.addEventListener(eName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+            });
+
+            ['dragenter', 'dragover'].forEach(eName => {
+                dropZone.addEventListener(eName, () => dropZone.classList.add('border-sky-500', 'bg-sky-50/50'), false);
+            });
+
+            ['dragleave', 'drop'].forEach(eName => {
+                dropZone.addEventListener(eName, () => dropZone.classList.remove('border-sky-500', 'bg-sky-50/50'), false);
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) processFile(files[0]);
+            }, false);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) processFile(files[0]);
+            e.target.value = '';
+        }
+
+        function handleHeadcountFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) processHeadcountFile(files[0]);
+            e.target.value = '';
+        }
+
+        function isValidPersonName(val) {
+            if (val === undefined || val === null) return false;
+            const s = String(val).trim();
+            if (!s) return false;
+            const upper = s.toUpperCase();
+            if (['N/A', '#N/A', 'NA', 'NIL', 'NONE', 'NULL', '-', '--', '---', '0', 'Y', 'N', 'YES', 'NO', 'TRUE', 'FALSE', 'TBD'].includes(upper)) return false;
+            if (/^[0-9]+$/.test(s)) return false;
+            if (/^[A-Z0-9_-]+$/i.test(s) && /\d{3,}/.test(s)) return false;
+            return /[a-zA-Z\u4e00-\u9fa5]{2,}/.test(s);
+        }
+
+        function cleanPersonName(val) {
+            if (!val) return '';
+            let s = String(val).trim();
+            // Strip leading agent/manager code prefix if formatted like "012345 - CHAN TAI MAN" or "(012345) CHAN TAI MAN"
+            s = s.replace(/^(?:\([A-Z0-9_-]{3,}\)|[A-Z0-9_-]*\d{3,}[A-Z0-9_-]*)\s*[-:\/|]\s*/i, '').trim();
+            return s;
+        }
+
+        function parseHeadcountMatrix(rawMatrix) {
+            if (!rawMatrix || rawMatrix.length === 0) return [];
+
+            let headerIdx = -1;
+            let colMap = {};
+
+            const isCodeHeader = (text) => {
+                return /\b(code|id|no|num|number|level|grade|rank|title|rate|share|split|status|type|club|ind|flag)\b/i.test(text) ||
+                       /(編號|號碼|職級|級別|比例|狀態)/.test(text);
+            };
+
+            // Find header row by matching keywords
+            for (let r = 0; r < Math.min(rawMatrix.length, 15); r++) {
+                const row = rawMatrix[r];
+                if (!Array.isArray(row)) continue;
+
+                let matches = 0;
+                const tempMap = {};
+
+                for (const [key, aliases] of Object.entries(HEADCOUNT_MAPPINGS)) {
+                    for (const alias of aliases) {
+                        let foundIdx = -1;
+                        // Pass 1: exact match
+                        for (let cIdx = 0; cIdx < row.length; cIdx++) {
+                            if (!row[cIdx]) continue;
+                            const text = String(row[cIdx]).trim().toLowerCase().replace(/\s+/g, ' ');
+                            if ((key === 'uplineManager' || key === 'araName' || key === 'agentName') && isCodeHeader(text)) continue;
+                            if (key === 'uplineManager' && text.includes('ara')) continue;
+                            if (key === 'agentName' && (text.includes('upline') || text.includes('manager') || text.includes('ara') || text.includes('leader'))) continue;
+                            if (text === alias) {
+                                foundIdx = cIdx;
+                                break;
+                            }
+                        }
+                        // Pass 2: substring match
+                        if (foundIdx === -1) {
+                            for (let cIdx = 0; cIdx < row.length; cIdx++) {
+                                if (!row[cIdx]) continue;
+                                const text = String(row[cIdx]).trim().toLowerCase().replace(/\s+/g, ' ');
+                                if ((key === 'uplineManager' || key === 'araName' || key === 'agentName') && isCodeHeader(text)) continue;
+                                if (key === 'uplineManager' && text.includes('ara')) continue;
+                                if (key === 'agentName' && (text.includes('upline') || text.includes('manager') || text.includes('ara') || text.includes('leader'))) continue;
+                                if (text.includes(alias)) {
+                                    foundIdx = cIdx;
+                                    break;
+                                }
+                            }
+                        }
+                        if (foundIdx !== -1) {
+                            tempMap[key] = foundIdx;
+                            matches++;
+                            break;
+                        }
+                    }
+                }
+
+                if (matches >= 2) {
+                    headerIdx = r;
+                    colMap = tempMap;
+                    break;
+                }
+            }
+
+            if (headerIdx === -1) {
+                headerIdx = 0;
+                colMap = {
+                    productionStartDate: 0,
+                    uplineManager: 1,
+                    araName: 2,
+                    team: 3,
+                    agentName: 4
+                };
+            }
+
+            const headerRow = rawMatrix[headerIdx] || [];
+            const sampleRows = rawMatrix.slice(headerIdx + 1, Math.min(rawMatrix.length, headerIdx + 30)).filter(r => Array.isArray(r) && r.length > 0);
+
+            // Collect all candidate name columns for Upline Manager, ARA, and Agent so we always pick the Full Name column
+            const findCandidateNameCols = (primaryCol, keywordCheck) => {
+                const cols = new Set();
+                if (primaryCol !== undefined) cols.add(primaryCol);
+
+                headerRow.forEach((cell, cIdx) => {
+                    const text = String(cell || '').trim().toLowerCase().replace(/\s+/g, ' ');
+                    if (!text) return;
+                    if (keywordCheck(text) && !isCodeHeader(text) && !text.includes('date') && !text.includes('team') && !text.includes('unit')) {
+                        cols.add(cIdx);
+                    }
+                });
+
+                // If primaryCol contains codes and primaryCol + 1 is a Name column, add primaryCol + 1
+                if (primaryCol !== undefined && primaryCol + 1 < headerRow.length) {
+                    const nextHeader = String(headerRow[primaryCol + 1] || '').trim().toLowerCase();
+                    if (!nextHeader || nextHeader.includes('name') || nextHeader.includes('姓名') || nextHeader.includes('full')) {
+                        cols.add(primaryCol + 1);
+                    }
+                }
+
+                // Rank candidate columns by average valid person-name length (longest = Full Name)
+                return Array.from(cols).sort((a, b) => {
+                    const hA = String(headerRow[a] || '').toLowerCase();
+                    const hB = String(headerRow[b] || '').toLowerCase();
+                    const bonusA = (hA.includes('full') || hA.includes('全名')) ? 50 : (hA.includes('name') || hA.includes('姓名')) ? 20 : 0;
+                    const bonusB = (hB.includes('full') || hB.includes('全名')) ? 50 : (hB.includes('name') || hB.includes('姓名')) ? 20 : 0;
+
+                    const avgLen = (colIdx) => {
+                        const validNames = sampleRows.map(r => cleanPersonName(r[colIdx])).filter(isValidPersonName);
+                        if (validNames.length === 0) return -100;
+                        const totalLen = validNames.reduce((sum, n) => sum + n.length, 0);
+                        return totalLen / validNames.length;
+                    };
+
+                    return (avgLen(b) + bonusB) - (avgLen(a) + bonusA);
+                });
+            };
+
+            const uplineCandidateCols = findCandidateNameCols(
+                colMap.uplineManager,
+                t => (t.includes('upline') || t.includes('manager') || t.includes('上線') || t.includes('主管')) && !t.includes('ara')
+            );
+            const araCandidateCols = findCandidateNameCols(
+                colMap.araName,
+                t => t.includes('ara') || t.includes('recruiter') || t.includes('招募')
+            );
+            const agentCandidateCols = findCandidateNameCols(
+                colMap.agentName,
+                t => (t.includes('agent') || t.includes('staff') || t.includes('recruit') || t.includes('full name') || t.includes('顧問') || t.includes('新人') || t === 'name' || t === '姓名') &&
+                     !t.includes('upline') && !t.includes('manager') && !t.includes('ara') && !t.includes('leader')
+            );
+
+            const pickFullestNameFromRow = (row, candidateCols, fallbackCol) => {
+                let bestName = '';
+                for (const cIdx of candidateCols) {
+                    if (cIdx === undefined || row[cIdx] === undefined || row[cIdx] === null) continue;
+                    const cleaned = cleanPersonName(row[cIdx]);
+                    if (isValidPersonName(cleaned)) {
+                        if (cleaned.length > bestName.length) {
+                            bestName = cleaned;
+                        }
+                    }
+                }
+                if (bestName) return bestName;
+                if (fallbackCol !== undefined && row[fallbackCol] !== undefined && row[fallbackCol] !== null) {
+                    const raw = cleanPersonName(row[fallbackCol]);
+                    return isValidPersonName(raw) ? raw : '';
+                }
+                return '';
+            };
+
+            const result = [];
+            for (let r = headerIdx + 1; r < rawMatrix.length; r++) {
+                const row = rawMatrix[r];
+                if (!row || row.length === 0) continue;
+
+                const getVal = (key) => {
+                    const idx = colMap[key];
+                    return (idx !== undefined && row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
+                };
+
+                const startDateRaw = getVal('productionStartDate');
+                const uplineManager = pickFullestNameFromRow(row, uplineCandidateCols, colMap.uplineManager);
+                const araName = pickFullestNameFromRow(row, araCandidateCols, colMap.araName);
+                const team = getVal('team') || 'Unassigned';
+                const agentName = pickFullestNameFromRow(row, agentCandidateCols, colMap.agentName);
+                const agentCode = getVal('agentCode');
+
+                if (!startDateRaw && !uplineManager && !agentName && !araName) continue;
+
+                let parsedDate = null;
+                if (startDateRaw) {
+                    if (!isNaN(startDateRaw) && Number(startDateRaw) > 20000) {
+                        parsedDate = new Date(Math.round((Number(startDateRaw) - (25567 + 2)) * 86400 * 1000));
+                    } else {
+                        parsedDate = new Date(startDateRaw);
+                    }
+                }
+
+                result.push({
+                    productionStartDate: (parsedDate && !isNaN(parsedDate.getTime())) ? parsedDate : null,
+                    uplineManager: uplineManager || 'Unassigned Manager',
+                    araName: araName,
+                    team: team,
+                    agentName: agentName || 'New Recruit',
+                    agentCode: agentCode
+                });
+            }
+
+            return result;
+        }
+
+        function processFile(file) {
+            if (!file) return;
+
+            document.getElementById('currentFileName').innerText = `${file.name}`;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    rawWorkbook = XLSX.read(data, { type: 'array' });
+
+                    const sheetSelector = document.getElementById('sheetSelector');
+                    sheetSelector.innerHTML = '';
+
+                    let targetSheet = rawWorkbook.SheetNames[0];
+
+                    rawWorkbook.SheetNames.forEach(name => {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.textContent = `${name} (工作表)`;
+                        sheetSelector.appendChild(option);
+
+                        if (name.toLowerCase().includes('issue')) {
+                            targetSheet = name;
+                        }
+                    });
+
+                    sheetSelector.value = targetSheet;
+                    activeSheetName = targetSheet;
+
+                    loadWorksheetData(targetSheet);
+
+                    const headcountSheetName = rawWorkbook.SheetNames.find(n => n.toLowerCase().includes('headcount'));
+                    if (headcountSheetName) {
+                        const hcSheet = rawWorkbook.Sheets[headcountSheetName];
+                        const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
+                        if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
+                        const hcMatrix = XLSX.utils.sheet_to_json(hcSheet, {
+                            header: 1,
+                            defval: '',
+                            ...(hcRange ? { range: hcRange } : {})
+                        });
+                        headcountRows = parseHeadcountMatrix(hcMatrix);
+                        document.getElementById('headcountFileName').innerText = `Sheet: ${headcountSheetName}`;
+                        document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
+                        buildHeadcountFilters();
+                        computeTopNewRecruits();
+                    }
+
+                    showToast(`成功讀取 Excel！已開啓工作表：${targetSheet}`, 'success');
+
+                } catch (err) {
+                    console.error("Excel Error:", err);
+                    showToast("讀取 Excel 發生錯誤，請確認格式是否正確！", "error");
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processHeadcountFile(file) {
+            if (!file) return;
+
+            document.getElementById('headcountFileName').innerText = `${file.name}`;
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    headcountWorkbook = XLSX.read(data, { type: 'array' });
+                    const targetSheet = headcountWorkbook.SheetNames[0];
+                    const hcSheet = headcountWorkbook.Sheets[targetSheet];
+                    const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
+                    if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
+                    const rawMatrix = XLSX.utils.sheet_to_json(hcSheet, {
+                        header: 1,
+                        defval: '',
+                        ...(hcRange ? { range: hcRange } : {})
+                    });
+
+                    headcountRows = parseHeadcountMatrix(rawMatrix);
+                    document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
+                    buildHeadcountFilters();
+                    computeTopNewRecruits();
+                    showToast(`已成功載入 Headcount Excel (${headcountRows.length} 筆記錄)！`, 'success');
+                } catch (err) {
+                    console.error("Headcount Excel Error:", err);
+                    showToast("讀取 Headcount Excel 發生錯誤，請確認格式！", "error");
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function onSheetChanged(sheetName) {
+            activeSheetName = sheetName;
+            if (rawWorkbook && rawWorkbook.Sheets[sheetName]) {
+                loadWorksheetData(sheetName);
+            }
+        }
+
+        function loadWorksheetData(sheetName) {
+            if (!rawWorkbook || !rawWorkbook.Sheets[sheetName]) return;
+
+            const sheet = rawWorkbook.Sheets[sheetName];
+            const sheetRange = sheet['!ref'] ? XLSX.utils.decode_range(sheet['!ref']) : null;
+            if (sheetRange && sheetRange.s.c > 0) {
+                sheetRange.s.c = 0; // Ensure Column A is always index 0
+            }
+            const rawMatrix = XLSX.utils.sheet_to_json(sheet, {
+                header: 1,
+                defval: '',
+                ...(sheetRange ? { range: sheetRange } : {})
+            });
+
+            if (!rawMatrix || rawMatrix.length === 0) {
+                allSheetData = [];
+                applyFilters();
+                return;
+            }
+
+            let headerIdx = -1;
+            let colMap = {};
+            const reservedCols = new Set([21, 25, 29]); // Col V (21), Col Z (25), Col AD (29)
+
+            const isCodeOrIdHeader = (text) => {
+                return /\b(code|id|no|num|number|level|grade|rank|title|rate|share|split|status|type|club)\b/i.test(text) ||
+                       /(編號|號碼|職級|級別|比例|狀態)/.test(text);
+            };
+
+            for (let r = 0; r < Math.min(rawMatrix.length, 15); r++) {
+                const row = rawMatrix[r];
+                if (!Array.isArray(row)) continue;
+
+                let matches = 0;
+                const tempMap = {};
+                const exactMatchedKeys = new Set();
+
+                // Pass 1: Exact header match or high-specificity name match
+                row.forEach((cell, cIdx) => {
+                    if (!cell) return;
+                    const text = String(cell).trim().toLowerCase().replace(/\s+/g, ' ');
+
+                    for (const [key, aliases] of Object.entries(COLUMN_MAPPINGS)) {
+                        if (exactMatchedKeys.has(key)) continue;
+                        if (key !== 'fycFinal' && key !== 'agent' && key !== 'submitYear' && reservedCols.has(cIdx)) continue;
+                        if ((key === 'agent' || key === 'leader') && isCodeOrIdHeader(text)) continue;
+
+                        if (aliases.some(alias => text === alias)) {
+                            tempMap[key] = cIdx;
+                            exactMatchedKeys.add(key);
+                            matches++;
+                        }
+                    }
+                });
+
+                // Pass 2: Substring match for remaining keys (respecting alias priority order)
+                for (const [key, aliases] of Object.entries(COLUMN_MAPPINGS)) {
+                    if (tempMap[key] !== undefined) continue;
+
+                    for (const alias of aliases) {
+                        let foundIdx = -1;
+                        for (let cIdx = 0; cIdx < row.length; cIdx++) {
+                            if (key !== 'fycFinal' && key !== 'agent' && key !== 'submitYear' && reservedCols.has(cIdx)) continue;
+                            const cell = row[cIdx];
+                            if (!cell) continue;
+                            const text = String(cell).trim().toLowerCase().replace(/\s+/g, ' ');
+
+                            if ((key === 'agent' || key === 'leader') && isCodeOrIdHeader(text)) continue;
+                            if (key === 'agent' && (text.includes('leader') || text.includes('manager') || text.includes('upline') || text.includes('ara'))) continue;
+                            if (key === 'fycFinal' && text.includes('case')) continue;
+                            if (key === 'fypFinal' && text.includes('fyc')) continue;
+
+                            if (text.includes(alias)) {
+                                foundIdx = cIdx;
+                                break;
+                            }
+                        }
+                        if (foundIdx !== -1) {
+                            tempMap[key] = foundIdx;
+                            matches++;
+                            break;
+                        }
+                    }
+                }
+
+                if (matches >= 2) {
+                    headerIdx = r;
+                    colMap = tempMap;
+                    break;
+                }
+            }
+
+            if (headerIdx === -1) headerIdx = 0;
+
+            // Strictly enforce specified columns when present in the worksheet:
+            // Column V (index 21) = FYC Final
+            // Column Z (index 25) = Agent Name (Agent 顧問)
+            // Column AD (index 29) = Submit Year
+            const maxCols = rawMatrix.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
+            if (maxCols > 21) colMap.fycFinal = 21;
+            if (maxCols > 25) colMap.agent = 25;
+            if (maxCols > 29) colMap.submitYear = 29;
+
+            const parseYearValue = (rawVal, fallbackYear) => {
+                if (rawVal === undefined || rawVal === null || String(rawVal).trim() === '') return fallbackYear;
+                const s = String(rawVal).trim();
+                const directNum = parseInt(s, 10);
+                if (!isNaN(directNum) && directNum >= 2000 && directNum <= 2100 && String(directNum).length === 4) {
+                    return directNum;
+                }
+                const yearMatch = s.match(/\b(20\d{2})\b/);
+                if (yearMatch) {
+                    return parseInt(yearMatch[1], 10);
+                }
+                if (!isNaN(s) && Number(s) > 20000 && Number(s) < 70000) {
+                    const excelDate = new Date(Math.round((Number(s) - 25569) * 86400 * 1000));
+                    if (!isNaN(excelDate.getTime())) return excelDate.getUTCFullYear();
+                }
+                return fallbackYear;
+            };
+
+            const rows = [];
+            for (let r = headerIdx + 1; r < rawMatrix.length; r++) {
+                const row = rawMatrix[r];
+                if (!row || row.length === 0) continue;
+
+                const getVal = (key) => {
+                    const idx = colMap[key];
+                    return (idx !== undefined && row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
+                };
+
+                const getNum = (key) => {
+                    const val = getVal(key);
+                    if (!val) return 0;
+                    const cleaned = val.replace(/[^0-9.-]/g, '');
+                    const num = parseFloat(cleaned);
+                    return isNaN(num) ? 0 : num;
+                };
+
+                const rawAgent = getVal('agent');
+                const rawPolNo = getVal('policyNo');
+                const rawSubYr = getVal('submitYear');
+                const fycVal = getNum('fycFinal');
+                const fypVal = getNum('fypFinal');
+                const case1Val = getNum('fycFinalCase1');
+
+                // Skip empty rows or total summary rows without agent/policy info
+                if (!rawAgent && !rawPolNo && fycVal === 0 && fypVal === 0 && case1Val === 0) continue;
+                if (!rawAgent && !rawSubYr && (String(row[0] || '').toLowerCase().includes('total') || String(row[0] || '').includes('合計') || String(row[0] || '').includes('總計'))) continue;
+
+                const subYr = parseYearValue(rawSubYr, 2026);
+                const subMth = parseInt(getVal('submitMonth')) || 1;
+                const issYr = parseYearValue(getVal('issueYear'), 2026);
+                const issMth = parseInt(getVal('issueMonth')) || 1;
+                const leader = getVal('leader') || 'Unassigned Leader';
+                const agent = rawAgent || 'Unknown Agent';
+                const polNo = rawPolNo || `POL-${r}`;
+                const prod = getVal('product') || 'General Product';
+
+                rows.push({
+                    submitYear: subYr,
+                    submitMonth: subMth,
+                    issueYear: issYr,
+                    issueMonth: issMth,
+                    leaderName: leader,
+                    agentName: agent,
+                    policyNo: polNo,
+                    productName: prod,
+                    fycFinal: fycVal,
+                    fypFinal: fypVal,
+                    fycFinalCase1: case1Val,
+                    status: getVal('status') || 'Issued'
+                });
+            }
+
+            allSheetData = rows;
+            document.getElementById('rowCountBadge').innerText = `${allSheetData.length} 筆記錄`;
+
+            buildFilterOptionsAndDefaults();
+            applyFilters();
+        }
+
+        function isDefaultTargetLeaderOrTeam(val) {
+            if (!val) return false;
+            const upper = String(val).toUpperCase().trim().replace(/\s+/g, ' ');
+            if (upper === 'PAGGIE LAW' || upper === 'JERRY LO') return true;
+            if ((upper.includes('PAGGIE') && upper.includes('LAW')) || (upper.includes('JERRY') && upper.includes('LO'))) {
+                return true;
+            }
+            return false;
+        }
+
+        function buildFilterOptionsAndDefaults() {
+            if (allSheetData.length === 0) {
+                filterOptions = {
+                    SubmitYear: [2024, 2025, 2026],
+                    SubmitMonth: [],
+                    IssueYear: [],
+                    IssueMonth: [],
+                    LeaderName: ['JERRY LO', 'PAGGIE LAW']
+                };
+            } else {
+                const extractedSubmitYears = [...new Set(allSheetData.map(r => r.submitYear).filter(y => y === 2024 || y === 2025 || y === 2026 || (y >= 2000 && y <= 2100)))].sort((a,b)=>a-b);
+                const extractedLeaders = [...new Set(allSheetData.map(r => r.leaderName).filter(Boolean))];
+                if (!extractedLeaders.some(l => String(l).toUpperCase().includes('PAGGIE') && String(l).toUpperCase().includes('LAW'))) {
+                    extractedLeaders.push('PAGGIE LAW');
+                }
+                if (!extractedLeaders.some(l => String(l).toUpperCase().includes('JERRY') && String(l).toUpperCase().includes('LO'))) {
+                    extractedLeaders.push('JERRY LO');
+                }
+                filterOptions = {
+                    SubmitYear: extractedSubmitYears.length > 0 ? [...new Set([2024, 2025, 2026, ...extractedSubmitYears])].sort((a,b)=>a-b) : [2024, 2025, 2026],
+                    SubmitMonth: [...new Set(allSheetData.map(r => r.submitMonth))].sort((a,b)=>a-b),
+                    IssueYear: [...new Set(allSheetData.map(r => r.issueYear))].sort((a,b)=>a-b),
+                    IssueMonth: [...new Set(allSheetData.map(r => r.issueMonth))].sort((a,b)=>a-b),
+                    LeaderName: extractedLeaders.sort()
+                };
+            }
+
+            selectedFilters = {
+                SubmitYear: new Set(filterOptions.SubmitYear),
+                SubmitMonth: new Set(filterOptions.SubmitMonth),
+                IssueYear: new Set(filterOptions.IssueYear),
+                IssueMonth: new Set(filterOptions.IssueMonth),
+                LeaderName: new Set(filterOptions.LeaderName.filter(isDefaultTargetLeaderOrTeam))
+            };
+
+            renderFilterCheckboxes();
+        }
+
+        function renderFilterCheckboxes() {
+            renderCheckboxList('SubmitYear', filterOptions.SubmitYear, v => `${v} 年`);
+            renderCheckboxList('SubmitMonth', filterOptions.SubmitMonth, v => `${v} 月`);
+            renderCheckboxList('IssueYear', filterOptions.IssueYear, v => `${v} 年`);
+            renderCheckboxList('IssueMonth', filterOptions.IssueMonth, v => `${v} 月`);
+            renderCheckboxList('LeaderName', filterOptions.LeaderName, v => v);
+        }
+
+        function renderCheckboxList(filterKey, options, formatFn) {
+            const container = document.getElementById(`container${filterKey}`);
+            const badge = document.getElementById(`badge${filterKey}`);
+            if (!container) return;
+
+            container.innerHTML = '';
+            const selectedSet = selectedFilters[filterKey];
+
+            options.forEach(opt => {
+                const isChecked = selectedSet.has(opt);
+                const item = document.createElement('label');
+                item.className = "flex items-center space-x-2 text-slate-700 hover:text-sky-700 cursor-pointer text-xs py-0.5 select-none filter-item";
+                item.setAttribute('data-value', String(opt).toLowerCase());
+                item.innerHTML = `
+                    <input type="checkbox" value="${escapeHtml(opt)}" ${isChecked ? 'checked' : ''} onchange="onFilterCheckboxChange('${filterKey}', this)" class="rounded text-sky-600 focus:ring-sky-500 h-3.5 w-3.5">
+                    <span class="truncate">${escapeHtml(formatFn(opt))}</span>
+                `;
+                container.appendChild(item);
+            });
+
+            if (badge) {
+                badge.innerText = `${selectedSet.size}/${options.length}`;
+            }
+        }
+
+        function onFilterCheckboxChange(filterKey, checkbox) {
+            const val = filterKey.includes('Year') || filterKey.includes('Month') ? parseInt(checkbox.value) : checkbox.value;
+            if (checkbox.checked) {
+                selectedFilters[filterKey].add(val);
+            } else {
+                selectedFilters[filterKey].delete(val);
+            }
+
+            const badge = document.getElementById(`badge${filterKey}`);
+            if (badge) {
+                badge.innerText = `${selectedFilters[filterKey].size}/${filterOptions[filterKey].length}`;
+            }
+
+            applyFilters();
+        }
+
+        function toggleSelectAll(filterKey, selectAll) {
+            if (selectAll) {
+                selectedFilters[filterKey] = new Set(filterOptions[filterKey]);
+            } else {
+                selectedFilters[filterKey].clear();
+            }
+            renderCheckboxList(filterKey, filterOptions[filterKey], filterKey.includes('Year') ? v => `${v} 年` : filterKey.includes('Month') ? v => `${v} 月` : v => v);
+            applyFilters();
+        }
+
+        function filterListSearch(filterKey, inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const query = input.value.toLowerCase().trim();
+            const container = document.getElementById(`container${filterKey}`);
+            if (!container) return;
+
+            const items = container.querySelectorAll('.filter-item');
+            items.forEach(item => {
+                const val = item.getAttribute('data-value') || '';
+                if (val.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function buildHeadcountFilters() {
+            const yearsSet = new Set([2026]);
+            const monthsSet = new Set();
+            const teamsSet = new Set();
+
+            headcountRows.forEach(r => {
+                if (r.productionStartDate && !isNaN(new Date(r.productionStartDate).getTime())) {
+                    const d = new Date(r.productionStartDate);
+                    yearsSet.add(d.getFullYear());
+                    monthsSet.add(d.getMonth() + 1);
+                }
+                if (r.team) teamsSet.add(r.team);
+            });
+
+            const extractedTeams = [...teamsSet];
+            if (!extractedTeams.some(t => String(t).toUpperCase().includes('PAGGIE') && String(t).toUpperCase().includes('LAW'))) {
+                extractedTeams.push('PAGGIE LAW');
+            }
+            if (!extractedTeams.some(t => String(t).toUpperCase().includes('JERRY') && String(t).toUpperCase().includes('LO'))) {
+                extractedTeams.push('JERRY LO');
+            }
+
+            headcountLisYears = [...yearsSet].sort((a,b) => a-b);
+            headcountLisMonths = [...monthsSet].sort((a,b) => a-b);
+            headcountTeams = extractedTeams.sort();
+
+            selectedLisYears = new Set(headcountLisYears.filter(y => Number(y) === 2026));
+            selectedLisMonths = new Set(headcountLisMonths);
+            selectedHeadcountTeams = new Set(headcountTeams.filter(isDefaultTargetLeaderOrTeam));
+
+            renderHeadcountFilterCheckboxes();
+        }
+
+        function renderHeadcountFilterCheckboxes() {
+            renderGenericHeadcountCheckboxes('LisYear', headcountLisYears, val => `${val} 年`, selectedLisYears, onLisYearChange);
+            renderGenericHeadcountCheckboxes('LisMonth', headcountLisMonths, val => `${val} 月`, selectedLisMonths, onLisMonthChange);
+            renderGenericHeadcountCheckboxes('HeadcountTeam', headcountTeams, val => val, selectedHeadcountTeams, onHeadcountTeamChange);
+        }
+
+        function renderGenericHeadcountCheckboxes(key, options, formatFn, setRef, onChangeFn) {
+            const container = document.getElementById(`container${key}`);
+            const badge = document.getElementById(`badge${key}`);
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            options.forEach(opt => {
+                const isChecked = setRef.has(opt);
+                const item = document.createElement('label');
+                item.className = "flex items-center space-x-2 text-purple-900 hover:text-purple-700 cursor-pointer text-xs py-0.5 select-none";
+                item.innerHTML = `
+                    <input type="checkbox" value="${escapeHtml(opt)}" ${isChecked ? 'checked' : ''} onchange="${onChangeFn.name}(this)" class="rounded text-purple-600 focus:ring-purple-500 h-3.5 w-3.5">
+                    <span class="truncate">${formatFn(opt)}</span>
+                `;
+                container.appendChild(item);
+            });
+
+            if (badge) {
+                badge.innerText = `${setRef.size}/${options.length}`;
+            }
+        }
+
+        function onLisYearChange(checkbox) {
+            const val = parseInt(checkbox.value);
+            if (checkbox.checked) selectedLisYears.add(val);
+            else selectedLisYears.delete(val);
+            const badge = document.getElementById('badgeLisYear');
+            if (badge) badge.innerText = `${selectedLisYears.size}/${headcountLisYears.length}`;
+            computeTopNewRecruits();
+        }
+
+        function onLisMonthChange(checkbox) {
+            const val = parseInt(checkbox.value);
+            if (checkbox.checked) selectedLisMonths.add(val);
+            else selectedLisMonths.delete(val);
+            const badge = document.getElementById('badgeLisMonth');
+            if (badge) badge.innerText = `${selectedLisMonths.size}/${headcountLisMonths.length}`;
+            computeTopNewRecruits();
+        }
+
+        function onHeadcountTeamChange(checkbox) {
+            const val = checkbox.value;
+            if (checkbox.checked) selectedHeadcountTeams.add(val);
+            else selectedHeadcountTeams.delete(val);
+            const badge = document.getElementById('badgeHeadcountTeam');
+            if (badge) badge.innerText = `${selectedHeadcountTeams.size}/${headcountTeams.length}`;
+            computeTopNewRecruits();
+        }
+
+        function toggleLisYearAll(selectAll) {
+            if (selectAll) selectedLisYears = new Set(headcountLisYears);
+            else selectedLisYears.clear();
+            renderHeadcountFilterCheckboxes();
+            computeTopNewRecruits();
+        }
+
+        function toggleLisMonthAll(selectAll) {
+            if (selectAll) selectedLisMonths = new Set(headcountLisMonths);
+            else selectedLisMonths.clear();
+            renderHeadcountFilterCheckboxes();
+            computeTopNewRecruits();
+        }
+
+        function toggleHeadcountTeamAll(selectAll) {
+            if (selectAll) selectedHeadcountTeams = new Set(headcountTeams);
+            else selectedHeadcountTeams.clear();
+            renderHeadcountFilterCheckboxes();
+            computeTopNewRecruits();
+        }
+
+        function buildFullNameResolver() {
+            const fullNamesPool = new Set();
+
+            // Collect full names from PP Raw (Column Z agentName & leaderName)
+            allSheetData.forEach(r => {
+                if (isValidPersonName(r.agentName) && r.agentName !== 'Unknown Agent') {
+                    fullNamesPool.add(r.agentName.trim());
+                }
+                if (isValidPersonName(r.leaderName) && r.leaderName !== 'Unassigned Leader') {
+                    fullNamesPool.add(r.leaderName.trim());
+                }
+            });
+
+            // Collect full names from Headcount rows (agentName, uplineManager, araName)
+            headcountRows.forEach(r => {
+                if (isValidPersonName(r.agentName) && r.agentName !== 'New Recruit') {
+                    fullNamesPool.add(r.agentName.trim());
+                }
+                if (isValidPersonName(r.uplineManager) && r.uplineManager !== 'Unassigned Manager') {
+                    fullNamesPool.add(r.uplineManager.trim());
+                }
+                if (isValidPersonName(r.araName)) {
+                    fullNamesPool.add(r.araName.trim());
+                }
+            });
+
+            const tokenizeName = (nameStr) => {
+                return String(nameStr || '')
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9\u4e00-\u9fa5\s]/g, ' ')
+                    .split(/\s+/)
+                    .filter(Boolean);
+            };
+
+            const poolEntries = Array.from(fullNamesPool).map(fullName => ({
+                fullName,
+                tokens: tokenizeName(fullName)
+            }));
+
+            const cache = new Map();
+
+            return function resolveToFullName(rawName) {
+                if (!rawName) return '';
+                const trimmed = cleanPersonName(rawName);
+                if (!trimmed || trimmed === 'Unassigned Manager') return trimmed;
+                if (cache.has(trimmed.toUpperCase())) return cache.get(trimmed.toUpperCase());
+
+                const inputTokens = tokenizeName(trimmed);
+                if (inputTokens.length === 0) return trimmed;
+
+                // Find candidate full names in the pool that contain all tokens of trimmed and are longer/fuller
+                let bestMatch = trimmed;
+                let bestTokenCount = inputTokens.length;
+                let bestCharLen = trimmed.length;
+
+                for (const entry of poolEntries) {
+                    if (entry.tokens.length < inputTokens.length) continue;
+                    const allTokensMatch = inputTokens.every(t => entry.tokens.includes(t));
+                    if (allTokensMatch) {
+                        if (entry.tokens.length > bestTokenCount || (entry.tokens.length === bestTokenCount && entry.fullName.length > bestCharLen)) {
+                            bestMatch = entry.fullName;
+                            bestTokenCount = entry.tokens.length;
+                            bestCharLen = entry.fullName.length;
+                        }
+                    }
+                }
+
+                cache.set(trimmed.toUpperCase(), bestMatch);
+                return bestMatch;
+            };
+        }
+
+        function computeTopNewRecruits() {
+            filteredHeadcountRows = headcountRows.filter(r => {
+                if (!r.productionStartDate) return false;
+                const d = new Date(r.productionStartDate);
+                if (isNaN(d.getTime())) return false;
+
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+
+                const matchYear = selectedLisYears.has(year);
+                const matchMonth = selectedLisMonths.has(month);
+                const matchTeam = selectedHeadcountTeams.has(r.team) ||
+                    Array.from(selectedHeadcountTeams).some(sel => String(sel).toUpperCase().trim() === String(r.team || '').toUpperCase().trim());
+
+                return matchYear && matchMonth && matchTeam;
+            });
+
+            const resolveToFullName = buildFullNameResolver();
+            const recruitMap = {};
+
+            filteredHeadcountRows.forEach(r => {
+                let targetName = '';
+
+                if (isValidPersonName(r.araName)) {
+                    targetName = resolveToFullName(r.araName);
+                } else if (isValidPersonName(r.uplineManager) && r.uplineManager.trim() !== 'Unassigned Manager') {
+                    targetName = resolveToFullName(r.uplineManager);
+                }
+
+                if (!targetName) targetName = "Unassigned Manager";
+
+                const mapKey = targetName.toUpperCase();
+                if (!recruitMap[mapKey]) {
+                    recruitMap[mapKey] = {
+                        name: targetName,
+                        recruitsCount: 0,
+                        teams: new Set(),
+                        recruitsList: []
+                    };
+                } else if (targetName.length > recruitMap[mapKey].name.length) {
+                    recruitMap[mapKey].name = targetName;
+                }
+
+                recruitMap[mapKey].recruitsCount += 1;
+                if (r.team) recruitMap[mapKey].teams.add(r.team);
+                recruitMap[mapKey].recruitsList.push({
+                    agentName: resolveToFullName(r.agentName) || r.agentName,
+                    startDate: r.productionStartDate,
+                    team: r.team,
+                    uplineManager: resolveToFullName(r.uplineManager) || r.uplineManager,
+                    araName: isValidPersonName(r.araName) ? resolveToFullName(r.araName) : ''
+                });
+            });
+
+            table4RecruitRankings = Object.values(recruitMap).sort((a, b) => b.recruitsCount - a.recruitsCount);
+            renderTable4TopNewRecruits();
+        }
+
+        function renderTable4TopNewRecruits() {
+            const tbody = document.getElementById('table4Body');
+            const subtext = document.getElementById('table4Subtext');
+            if (!tbody) return;
+
+            if (subtext) {
+                const yrStr = selectedLisYears.size > 0 ? Array.from(selectedLisYears).join(',') : '無';
+                const mthStr = selectedLisMonths.size > 0 ? Array.from(selectedLisMonths).join(',') : '無';
+                subtext.innerText = `LIS 年: ${yrStr} | 月: ${mthStr} (${filteredHeadcountRows.length} 筆)`;
+            }
+
+            if (table4RecruitRankings.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center py-6 text-purple-400">當前篩選範圍內無符合條件的新招募記錄</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const top5List = table4RecruitRankings.slice(0, 5);
+
+            tbody.innerHTML = top5List.map((item, idx) => {
+                const teamString = Array.from(item.teams).join(', ');
+                return `
+                    <tr class="hover:bg-purple-50/60 transition-colors cursor-pointer" onclick="openRecruitDetail('${escapeJsString(item.name)}')">
+                        <td class="p-2.5 text-center font-black ${idx === 0 ? 'text-amber-500 font-extrabold text-sm' : idx === 1 ? 'text-slate-400 font-extrabold' : idx === 2 ? 'text-amber-700 font-extrabold' : 'text-slate-400'}">${idx + 1}</td>
+                        <td class="p-2.5">
+                            <div class="font-bold text-slate-900 break-words leading-snug">${escapeHtml(item.name)}</div>
+                            <div class="text-[10px] text-purple-700">${escapeHtml(teamString)}</div>
+                        </td>
+                        <td class="p-2.5 text-right font-black text-purple-800 text-sm whitespace-nowrap">
+                            ${item.recruitsCount} <span class="text-[10px] font-medium text-slate-500">位</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function clearAllData(showNotification = false) {
+            rawWorkbook = null;
+            headcountWorkbook = null;
+            activeSheetName = '';
+            allSheetData = [];
+            filteredRows = [];
+            headcountRows = [];
+            filteredHeadcountRows = [];
+
+            document.getElementById('currentFileName').innerText = "尚未上載檔案";
+            document.getElementById('rowCountBadge').innerText = "0 筆記錄";
+            document.getElementById('headcountFileName').innerText = "尚未上載檔案";
+            document.getElementById('headcountBadge').innerText = "0 筆";
+
+            const sheetSelector = document.getElementById('sheetSelector');
+            if (sheetSelector) {
+                sheetSelector.innerHTML = `<option value="">尚未載入工作表</option>`;
+            }
+
+            buildFilterOptionsAndDefaults();
+            buildHeadcountFilters();
+            applyFilters();
+
+            if (showNotification) {
+                showToast("已清空所有數據，請上載 Excel 檔案！", "info");
+            }
+        }
+
+        function resetAllFilters() {
+            buildFilterOptionsAndDefaults();
+            buildHeadcountFilters();
+            applyFilters();
+            showToast("已重置所有篩選條件", "info");
+        }
+
+        function applyFilters() {
+            filteredRows = allSheetData.filter(row => {
+                const matchSubmitYear = selectedFilters.SubmitYear ? selectedFilters.SubmitYear.has(row.submitYear) : true;
+                const matchSubmitMonth = selectedFilters.SubmitMonth ? selectedFilters.SubmitMonth.has(row.submitMonth) : true;
+                const matchIssueYear = selectedFilters.IssueYear ? selectedFilters.IssueYear.has(row.issueYear) : true;
+                const matchIssueMonth = selectedFilters.IssueMonth ? selectedFilters.IssueMonth.has(row.issueMonth) : true;
+                const matchLeader = selectedFilters.LeaderName
+                    ? (selectedFilters.LeaderName.has(row.leaderName) ||
+                       Array.from(selectedFilters.LeaderName).some(sel => String(sel).toUpperCase().trim() === String(row.leaderName || '').toUpperCase().trim()))
+                    : true;
+
+                return matchSubmitYear && matchSubmitMonth && matchIssueYear && matchIssueMonth && matchLeader;
+            });
+
+            document.getElementById('filteredMatchInfo').innerText = `已選定 ${filteredRows.length}/${allSheetData.length} 筆`;
+
+            updateKPICards();
+            computeAgentRankings();
+            computeTopNewRecruits();
+        }
+
+        function openRecruitDetail(leaderOrAraName) {
+            const targetGroup = table4RecruitRankings.find(item => item.name === leaderOrAraName);
+            if (!targetGroup) return;
+
+            document.getElementById('modalTitle').innerText = `招募主管 / ARA: ${leaderOrAraName}`;
+            document.getElementById('modalSubtitle').innerText = `團隊: ${Array.from(targetGroup.teams).join(', ')} | 新招募明細`;
+            document.getElementById('modalKpiFYC').innerText = `${targetGroup.recruitsCount} 位`;
+            document.getElementById('modalKpiFYP').innerText = `LIS 人數`;
+            document.getElementById('modalKpiCases').innerText = `新招募總數`;
+
+            const tbody = document.getElementById('modalPolicyBody');
+            if (tbody) {
+                tbody.innerHTML = targetGroup.recruitsList.map(r => {
+                    const dateStr = r.startDate ? new Date(r.startDate).toISOString().slice(0, 10) : 'N/A';
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-2 font-mono text-purple-700 font-bold">${dateStr}</td>
+                            <td class="p-2 font-semibold text-slate-800">${escapeHtml(r.agentName)}</td>
+                            <td class="p-2 text-slate-600">${escapeHtml(r.team)}</td>
+                            <td class="p-2 text-slate-500">${escapeHtml(r.uplineManager)}</td>
+                            <td class="p-2 text-right font-bold text-purple-700">${escapeHtml(r.araName || '-')}</td>
+                            <td class="p-2 text-right font-medium text-slate-400">LIS Active</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function updateKPICards() {
+            const totalFYC = filteredRows.reduce((sum, r) => sum + (r.fycFinal || 0), 0);
+            const totalFYP = filteredRows.reduce((sum, r) => sum + (r.fypFinal || 0), 0);
+            const totalCase1 = filteredRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
+
+            const agentsSet = new Set(filteredRows.map(r => r.agentName));
+
+            const setElemText = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = text;
+            };
+
+            setElemText('kpiTotalFYC', `$${Math.round(totalFYC).toLocaleString()}`);
+            setElemText('kpiTotalFYP', `$${Math.round(totalFYP).toLocaleString()}`);
+            setElemText('kpiTotalCase1', `${Math.round(totalCase1).toLocaleString()}`);
+            setElemText('kpiPolicyCount', filteredRows.length);
+            setElemText('kpiAgentCount', agentsSet.size);
+        }
+
+        function computeAgentRankings() {
+            const agentMap = {};
+
+            filteredRows.forEach(row => {
+                const aName = row.agentName || 'Unknown Agent';
+                if (!agentMap[aName]) {
+                    agentMap[aName] = {
+                        agentName: aName,
+                        leaderName: row.leaderName,
+                        totalFYC: 0,
+                        totalFYP: 0,
+                        totalCase1: 0,
+                        cases: 0
+                    };
+                }
+                agentMap[aName].totalFYC += row.fycFinal || 0;
+                agentMap[aName].totalFYP += row.fypFinal || 0;
+                agentMap[aName].totalCase1 += row.fycFinalCase1 || 0;
+                agentMap[aName].cases += 1;
+            });
+
+            const agentList = Object.values(agentMap);
+
+            table1Rankings = [...agentList].sort((a, b) => b.totalFYC - a.totalFYC);
+            table2Rankings = [...agentList].sort((a, b) => b.totalFYP - a.totalFYP);
+            table3Rankings = [...agentList].sort((a, b) => b.totalCase1 - a.totalCase1);
+
+            renderAgentRankingsTables();
+        }
+
+        function renderAgentRankingsTables() {
+            const limit = currentTopN === 100 ? 9999 : currentTopN;
+
+            renderSingleAgentTable('table1Body', table1Rankings.slice(0, limit), 'totalFYC', 'text-sky-700', '$');
+            renderSingleAgentTable('table2Body', table2Rankings.slice(0, limit), 'totalFYP', 'text-emerald-700', '$');
+            renderSingleAgentTable('table3Body', table3Rankings.slice(0, limit), 'totalCase1', 'text-amber-700', '');
+        }
+
+        function renderSingleAgentTable(elementId, data, metricKey, colorClass, prefix = '$') {
+            const tbody = document.getElementById(elementId);
+            if (!tbody) return;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center py-4 text-slate-400">無數據</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, idx) => `
+                <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="openAgentDetail('${escapeJsString(item.agentName)}')">
+                    <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}</td>
+                    <td class="p-2.5">
+                        <div class="font-bold text-slate-800">${escapeHtml(item.agentName)}</div>
+                        <div class="text-[10px] text-slate-400">${escapeHtml(item.leaderName)}</div>
+                    </td>
+                    <td class="p-2.5 text-right font-black ${colorClass}">
+                        ${prefix}${Math.round(item[metricKey]).toLocaleString()}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function changeTopN(val) {
+            currentTopN = parseInt(val) || 10;
+            renderAgentRankingsTables();
+        }
+
+        function openAgentDetail(agentName) {
+            const records = filteredRows.filter(r => r.agentName === agentName);
+            if (records.length === 0) return;
+
+            const totalFYC = records.reduce((sum, r) => sum + (r.fycFinal || 0), 0);
+            const totalFYP = records.reduce((sum, r) => sum + (r.fypFinal || 0), 0);
+
+            document.getElementById('modalTitle').innerText = `Agent: ${agentName}`;
+            document.getElementById('modalSubtitle').innerText = `隸屬 Leader: ${records[0].leaderName} | 共 ${records.length} 筆保單`;
+            document.getElementById('modalKpiFYC').innerText = `$${Math.round(totalFYC).toLocaleString()}`;
+            document.getElementById('modalKpiFYP').innerText = `$${Math.round(totalFYP).toLocaleString()}`;
+            document.getElementById('modalKpiCases').innerText = `${records.length} 件`;
+
+            renderModalPoliciesTable(records);
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function renderModalPoliciesTable(records) {
+            const tbody = document.getElementById('modalPolicyBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = records.map(r => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-2 font-mono text-slate-500">${r.submitYear}/${r.submitMonth}</td>
+                    <td class="p-2 font-mono text-slate-500">${r.issueYear}/${r.issueMonth}</td>
+                    <td class="p-2 font-semibold text-slate-800">${escapeHtml(r.policyNo)}</td>
+                    <td class="p-2 text-slate-600 truncate max-w-[150px]">${escapeHtml(r.productName)}</td>
+                    <td class="p-2 text-right font-bold text-sky-700">$${Math.round(r.fycFinal || 0).toLocaleString()}</td>
+                    <td class="p-2 text-right font-semibold text-slate-700">$${Math.round(r.fypFinal || 0).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function exportComprehensiveReport() {
+            if (filteredRows.length === 0) {
+                showToast("當前無篩選數據可供匯出！", "warning");
+                return;
+            }
+
+            try {
+                const wb = XLSX.utils.book_new();
+
+                const rawExportData = filteredRows.map(r => ({
+                    "Submit Year": r.submitYear,
+                    "Submit Month": r.submitMonth,
+                    "Issue Year": r.issueYear,
+                    "Issue Month": r.issueMonth,
+                    "Leader Name": r.leaderName,
+                    "Agent Name": r.agentName,
+                    "Policy No": r.policyNo,
+                    "Product Name": r.productName,
+                    "FYC Final (Col V)": r.fycFinal,
+                    "FYP Final": r.fypFinal,
+                    "FYC Final Case1": r.fycFinalCase1,
+                    "Status": r.status
+                }));
+                const rawWs = XLSX.utils.json_to_sheet(rawExportData);
+                XLSX.utils.book_append_sheet(wb, rawWs, "Filtered Raw Data");
+
+                const recruitExportData = table4RecruitRankings.map((item, idx) => ({
+                    "Rank": idx + 1,
+                    "Leader / ARA Name": item.name,
+                    "Recruits Count": item.recruitsCount,
+                    "Teams": Array.from(item.teams).join(', ')
+                }));
+                const recruitWs = XLSX.utils.json_to_sheet(recruitExportData);
+                XLSX.utils.book_append_sheet(wb, recruitWs, "Top New Recruits");
+
+                XLSX.writeFile(wb, `PP_Raw_Comprehensive_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
+                showToast("已成功匯出完整 Excel 分析報表！", "success");
+            } catch (err) {
+                console.error("Export error:", err);
+                showToast("匯出 Excel 時發生錯誤", "error");
+            }
+        }
+
+        function exportTableSummary(tableType) {
+            exportComprehensiveReport();
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function escapeJsString(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const bgColors = {
+                success: 'bg-emerald-600 text-white',
+                error: 'bg-rose-600 text-white',
+                warning: 'bg-amber-500 text-white',
+                info: 'bg-slate-800 text-white'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-2.5 rounded-xl shadow-lg font-semibold text-xs transition-all transform translate-y-2 opacity-0 flex items-center gap-2 ${bgColors[type] || bgColors.info} pointer-events-auto`;
+            toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
