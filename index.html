@@ -890,24 +890,14 @@
                 }
             }
 
-            // Build known person names set from PP Raw (Col Z) and Headcount Col K / Col N to deterministically identify Agent Name column
+            // Build known person names set from PP Raw (Col Z) to deterministically identify Agent Name column
             const knownNamesUpper = new Set();
             if (Array.isArray(allSheetData)) {
                 allSheetData.forEach(r => {
                     const c = cleanPersonName(r.agentName).toUpperCase();
-                    if (c && c !== 'UNKNOWN AGENT') knownNamesUpper.add(c);
+                    if (c && c !== 'UNKNOWN AGENT' && !isDefaultTargetLeaderOrTeam(c)) knownNamesUpper.add(c);
                 });
             }
-            dataRows.forEach(r => {
-                if (colMap.uplineManager !== undefined) {
-                    const u = cleanPersonName(r[colMap.uplineManager]).toUpperCase();
-                    if (isValidPersonName(u)) knownNamesUpper.add(u);
-                }
-                if (colMap.araName !== undefined) {
-                    const a = cleanPersonName(r[colMap.araName]).toUpperCase();
-                    if (isValidPersonName(a)) knownNamesUpper.add(a);
-                }
-            });
 
             const isNonAgentRoleHeader = (t) => {
                 return t.includes('upline') || t.includes('manager') || isAraHeader(t) || t.includes('leader') ||
@@ -958,36 +948,53 @@
                 return isValidPersonName(cleaned) ? cleaned : '';
             };
 
-            const pickBestAgentNameFromRow = (row, candidateCols, primaryCol) => {
+            const pickBestAgentNameFromRow = (row, candidateCols, primaryCol, rowUpline, rowAra, rowTeam) => {
+                const rowForbiddenUpper = new Set(
+                    [rowUpline, rowAra, rowTeam]
+                        .filter(Boolean)
+                        .map(s => cleanPersonName(s).toUpperCase())
+                );
+                const isAllowedAgentVal = (val) => {
+                    if (!val) return false;
+                    const u = val.toUpperCase();
+                    if (rowForbiddenUpper.has(u) || isDefaultTargetLeaderOrTeam(u)) return false;
+                    return true;
+                };
+
                 const rowNames = [];
+                const primaryVal = pickDirectRoleName(row, primaryCol);
+                if (primaryVal && isAllowedAgentVal(primaryVal)) {
+                    rowNames.push(primaryVal);
+                }
                 for (const cIdx of candidateCols) {
                     const cleaned = pickDirectRoleName(row, cIdx);
-                    if (cleaned && !rowNames.includes(cleaned)) {
+                    if (cleaned && isAllowedAgentVal(cleaned) && !rowNames.includes(cleaned)) {
                         rowNames.push(cleaned);
                     }
                 }
-                const primaryVal = pickDirectRoleName(row, primaryCol);
-                if (primaryVal && !rowNames.includes(primaryVal)) {
-                    rowNames.unshift(primaryVal);
-                }
-                // Also scan any other non-role columns (and adjacent Surname+GivenName pairs) for matches against known PP Raw agents
-                const roleCols = new Set([colMap.uplineManager, colMap.araName, 10, 13, colMap.team].filter(c => c !== undefined));
+                // Also scan other non-role columns (and adjacent Surname+GivenName pairs) for matches against known PP Raw agents
                 for (let c = 0; c < row.length; c++) {
-                    if (roleCols.has(c)) continue;
+                    if (excludedAgentCols.has(c)) continue;
+                    const hText = String(headerRow[c] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                    if (isNonAgentRoleHeader(hText) || isCodeHeader(hText) || hText.includes('date') || hText.includes('month') || hText.includes('year')) continue;
+
                     const single = pickDirectRoleName(row, c);
-                    if (single && knownNamesUpper.has(single.toUpperCase()) && !rowNames.includes(single)) {
-                        rowNames.unshift(single);
+                    if (single && isAllowedAgentVal(single) && knownNamesUpper.has(single.toUpperCase()) && !rowNames.includes(single)) {
+                        rowNames.push(single);
                     }
-                    if (c + 1 < row.length && !roleCols.has(c + 1) && row[c] && row[c + 1]) {
-                        const combined = cleanPersonName(`${String(row[c]).trim()} ${String(row[c + 1]).trim()}`);
-                        if (isValidPersonName(combined) && knownNamesUpper.has(combined.toUpperCase()) && !rowNames.includes(combined)) {
-                            rowNames.unshift(combined);
+                    if (c + 1 < row.length && !excludedAgentCols.has(c + 1) && row[c] && row[c + 1]) {
+                        const nextH = String(headerRow[c + 1] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                        if (!isNonAgentRoleHeader(nextH) && !isCodeHeader(nextH)) {
+                            const combined = cleanPersonName(`${String(row[c]).trim()} ${String(row[c + 1]).trim()}`);
+                            if (isValidPersonName(combined) && isAllowedAgentVal(combined) && knownNamesUpper.has(combined.toUpperCase()) && !rowNames.includes(combined)) {
+                                rowNames.push(combined);
+                            }
                         }
                     }
                 }
                 const knownMatch = rowNames.find(n => knownNamesUpper.has(n.toUpperCase()));
                 if (knownMatch) return { bestName: knownMatch, rowNames };
-                return { bestName: rowNames[0] || '', rowNames };
+                return { bestName: rowNames[0] || primaryVal || '', rowNames };
             };
 
             const parseExcelOrStrDate = (raw) => {
@@ -1031,7 +1038,7 @@
                 const uplineManager = pickDirectRoleName(row, colMap.uplineManager);
                 const araName = pickDirectRoleName(row, colMap.araName);
                 const team = getVal('team') || 'Unassigned';
-                const { bestName: agentName, rowNames: rowPersonNames } = pickBestAgentNameFromRow(row, agentCandidateCols, colMap.agentName);
+                const { bestName: agentName, rowNames: rowPersonNames } = pickBestAgentNameFromRow(row, agentCandidateCols, colMap.agentName, uplineManager, araName, team);
                 const agentCode = getVal('agentCode');
 
                 if (!startDateRaw && !uplineManager && !agentName && !araName) continue;
@@ -1387,26 +1394,13 @@
                 let rawUpline = getVal('uplineManager');
                 let uplineManager = isValidPersonName(cleanPersonName(rawUpline)) ? cleanPersonName(rawUpline) : '';
 
-                // If primary uplineManager is empty, self, or a top-level District Leader, look for a direct manager in uplineCandidateCols or other hierarchy columns
+                // If primary uplineManager is empty, self, or a top-level District Leader, look for a direct manager in uplineCandidateCols
                 if (!uplineManager || uplineManager.toUpperCase() === agentUpper || isDefaultTargetLeaderOrTeam(uplineManager)) {
                     for (const uCol of uplineCandidateCols) {
                         const cand = cleanPersonName(row[uCol]);
                         if (isValidPersonName(cand) && cand.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(cand)) {
                             uplineManager = cand;
                             rawUpline = String(row[uCol] || '');
-                            break;
-                        }
-                    }
-                }
-                if (!uplineManager || uplineManager.toUpperCase() === agentUpper || isDefaultTargetLeaderOrTeam(uplineManager)) {
-                    for (let cIdx = 0; cIdx < row.length; cIdx++) {
-                        if (cIdx === colMap.agent || reservedCols.has(cIdx)) continue;
-                        const hText = String(sheetHeaderRow[cIdx] || '').toLowerCase();
-                        if (hText.includes('ara') || hText.includes('client') || hText.includes('insured') || hText.includes('holder') || hText.includes('owner') || hText.includes('客戶') || hText.includes('受保') || hText.includes('投保')) continue;
-                        const cand = cleanPersonName(row[cIdx]);
-                        if (isValidPersonName(cand) && cand.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(cand) && sheetKnownAgentsUpper.has(cand.toUpperCase())) {
-                            uplineManager = cand;
-                            rawUpline = String(row[cIdx] || '');
                             break;
                         }
                     }
@@ -1661,6 +1655,7 @@
             const badge = document.getElementById('badgeLisYear');
             if (badge) badge.innerText = `${selectedLisYears.size}/${headcountLisYears.length}`;
             computeTopNewRecruits();
+            computeAgentRankings();
         }
 
         function onLisMonthChange(checkbox) {
@@ -1670,6 +1665,7 @@
             const badge = document.getElementById('badgeLisMonth');
             if (badge) badge.innerText = `${selectedLisMonths.size}/${headcountLisMonths.length}`;
             computeTopNewRecruits();
+            computeAgentRankings();
         }
 
         function onHeadcountTeamChange(checkbox) {
@@ -1679,6 +1675,7 @@
             const badge = document.getElementById('badgeHeadcountTeam');
             if (badge) badge.innerText = `${selectedHeadcountTeams.size}/${headcountTeams.length}`;
             computeTopNewRecruits();
+            computeAgentRankings();
         }
 
         function toggleLisYearAll(selectAll) {
@@ -1686,6 +1683,7 @@
             else selectedLisYears.clear();
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
+            computeAgentRankings();
         }
 
         function toggleLisMonthAll(selectAll) {
@@ -1693,6 +1691,7 @@
             else selectedLisMonths.clear();
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
+            computeAgentRankings();
         }
 
         function toggleHeadcountTeamAll(selectAll) {
@@ -1700,6 +1699,7 @@
             else selectedHeadcountTeams.clear();
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
+            computeAgentRankings();
         }
 
         function buildFullNameResolver() {
@@ -2314,7 +2314,78 @@
             };
 
             // Table 5: TEAM TOP PRODUCTIVITY
-            // Build unified roster of all members (from filteredRows + allSheetData + headcountRows)
+            // Strictly respect Multi-Select Filter Grid (especially selectedFilters.LeaderName, SubmitYear/Month, IssueYear/Month)
+            const matchesSelectedLeader = (leaderVal) => {
+                if (!selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) return false;
+                if (!leaderVal) return false;
+                if (selectedFilters.LeaderName.has(leaderVal)) return true;
+                const targetUpper = String(leaderVal).toUpperCase().trim();
+                return Array.from(selectedFilters.LeaderName).some(sel => String(sel).toUpperCase().trim() === targetUpper);
+            };
+
+            const isKnownFilterLeader = (leaderVal) => {
+                if (!leaderVal || !filterOptions.LeaderName) return false;
+                const targetUpper = String(leaderVal).toUpperCase().trim();
+                return filterOptions.LeaderName.some(l => String(l).toUpperCase().trim() === targetUpper);
+            };
+
+            // Map every person in allSheetData to their known Leader Name(s) so non-selected Leaders never leak in via headcountRows
+            const personLeadersMap = new Map();
+            const recordPersonLeader = (personName, leaderVal) => {
+                if (!personName || !leaderVal || leaderVal === 'Unassigned Leader') return;
+                const fullName = resolveToFullName(personName) || cleanPersonName(personName);
+                if (!fullName) return;
+                const k = fullName.toUpperCase();
+                if (!personLeadersMap.has(k)) personLeadersMap.set(k, new Set());
+                personLeadersMap.get(k).add(leaderVal);
+            };
+
+            allSheetData.forEach(r => {
+                if (r.leaderName) {
+                    recordPersonLeader(r.agentName, r.leaderName);
+                    if (r.uplineManager && !isDefaultTargetLeaderOrTeam(r.uplineManager)) {
+                        recordPersonLeader(r.uplineManager, r.leaderName);
+                    }
+                }
+            });
+
+            const getPersonKnownLeaders = (personName) => {
+                if (!personName) return [];
+                const fullName = resolveToFullName(personName) || cleanPersonName(personName);
+                const key = fullName.toUpperCase();
+                if (personLeadersMap.has(key)) return Array.from(personLeadersMap.get(key));
+                for (const [k, setVal] of personLeadersMap.entries()) {
+                    if (isSamePersonName(fullName, k)) return Array.from(setVal);
+                }
+                return [];
+            };
+
+            const isPersonAllowedByLeaderFilter = (personName, fallbackTeam) => {
+                if (!selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) return false;
+                if (fallbackTeam && fallbackTeam !== 'Unassigned' && isKnownFilterLeader(fallbackTeam)) {
+                    return matchesSelectedLeader(fallbackTeam);
+                }
+                if (agentList.some(a => isSamePersonName(a.agentName, personName))) {
+                    return true;
+                }
+                const knownLeaders = getPersonKnownLeaders(personName);
+                if (knownLeaders.length > 0) {
+                    return knownLeaders.some(l => matchesSelectedLeader(l));
+                }
+                if (fallbackTeam && fallbackTeam !== 'Unassigned') {
+                    return matchesSelectedLeader(fallbackTeam);
+                }
+                return false;
+            };
+
+            if (filteredRows.length === 0 || !selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) {
+                table5ProductivityRankings = [];
+                renderAgentRankingsTables();
+                renderTable5Productivity();
+                renderTable6ActiveElite();
+                return;
+            }
+
             const memberRosterMap = new Map();
 
             agentList.forEach(a => {
@@ -2337,7 +2408,7 @@
 
                 let effectiveUpline = hcUpline || a.uplineManager || '';
                 if (!effectiveUpline || isDefaultTargetLeaderOrTeam(effectiveUpline) || isSamePersonName(effectiveUpline, fullName)) {
-                    const sheetMatchWithDirectUpline = allSheetData.find(r =>
+                    const sheetMatchWithDirectUpline = filteredRows.find(r =>
                         isSamePersonName(r.agentName, fullName) &&
                         isValidPersonName(r.uplineManager) &&
                         !isSamePersonName(r.uplineManager, fullName) &&
@@ -2358,7 +2429,7 @@
                 });
             });
 
-            // Include Headcount members and link their Upline Manager (Column K) to roster entries
+            // Include Headcount members and link their Upline Manager (Column K) to roster entries ONLY if allowed by selectedFilters.LeaderName
             headcountRows.forEach(hc => {
                 const candidateNames = [hc.agentName, ...(Array.isArray(hc.rowPersonNames) ? hc.rowPersonNames : [])]
                     .filter(n => isValidPersonName(n) && n !== 'New Recruit');
@@ -2381,17 +2452,6 @@
                     }
                 }
 
-                const matchTeam = selectedHeadcountTeams.size === 0 ||
-                    hc.team === 'Unassigned' ||
-                    selectedHeadcountTeams.has(hc.team) ||
-                    Array.from(selectedHeadcountTeams).some(sel => String(sel).toUpperCase().trim() === String(hc.team || '').toUpperCase().trim());
-                const uplineInRoster = uplineFull && (
-                    memberRosterMap.has(uplineFull.toUpperCase()) ||
-                    Array.from(memberRosterMap.values()).some(m => isSamePersonName(uplineFull, m.name))
-                );
-
-                if (!existingKey && !matchTeam && !uplineInRoster) return;
-
                 if (existingKey) {
                     const existing = memberRosterMap.get(existingKey);
                     if (uplineFull && !isSamePersonName(uplineFull, existing.name)) {
@@ -2403,12 +2463,32 @@
                         existing.rank = getManagerRank(existing.name) || getManagerRank(fullName);
                     }
                 } else {
+                    // For non-producing Headcount members, strictly check Leader Name filter and whether their Upline Manager is in the active Leader roster
+                    if (hc.team && hc.team !== 'Unassigned' && isKnownFilterLeader(hc.team) && !matchesSelectedLeader(hc.team)) {
+                        return;
+                    }
+                    const knownAgentLeaders = getPersonKnownLeaders(fullName);
+                    if (knownAgentLeaders.length > 0 && !knownAgentLeaders.some(l => matchesSelectedLeader(l))) {
+                        return;
+                    }
+
+                    const uplineEntry = uplineFull
+                        ? (memberRosterMap.get(uplineFull.toUpperCase()) || Array.from(memberRosterMap.values()).find(m => isSamePersonName(uplineFull, m.name)))
+                        : null;
+                    const matchLeaderTeam = matchesSelectedLeader(hc.team);
+
+                    if (!matchLeaderTeam && !uplineEntry) return;
+                    if (uplineFull && !uplineEntry && !isPersonAllowedByLeaderFilter(uplineFull, hc.team)) return;
+
                     const mm = hc.manMonth > 0 ? hc.manMonth : calculateManMonthFromDates(hc.productionStartDate, hc.terminationDate);
                     if (mm > 0) {
+                        const effectiveLeaderName = (uplineEntry && uplineEntry.leaderName)
+                            ? uplineEntry.leaderName
+                            : (matchLeaderTeam ? hc.team : (knownAgentLeaders.find(l => matchesSelectedLeader(l)) || ''));
                         memberRosterMap.set(key, {
                             name: fullName,
                             rank: getManagerRank(fullName),
-                            leaderName: hc.team || '',
+                            leaderName: effectiveLeaderName,
                             uplineManager: uplineFull,
                             totalFYC: 0,
                             manMonth: mm
@@ -2417,29 +2497,27 @@
                 }
             });
 
-            // Ensure every member in memberRosterMap has their accurate FYC Final from agentList / Period-matched allSheetData
+            // Ensure every member in memberRosterMap has their accurate FYC Final strictly from filteredRows (respecting all 5 filters including LeaderName)
             for (const member of memberRosterMap.values()) {
                 if (!member.totalFYC || member.totalFYC === 0) {
                     const matchedAg = agentList.find(ag => isSamePersonName(ag.agentName, member.name));
                     if (matchedAg && matchedAg.totalFYC > 0) {
                         member.totalFYC = matchedAg.totalFYC;
                         if (matchedAg.manMonth > 0) member.manMonth = matchedAg.manMonth;
+                        if (matchedAg.leaderName) member.leaderName = matchedAg.leaderName;
                     } else {
-                        const periodRows = allSheetData.filter(r => {
-                            const matchSubYr = selectedFilters.SubmitYear ? selectedFilters.SubmitYear.has(r.submitYear) : true;
-                            const matchSubMth = selectedFilters.SubmitMonth ? selectedFilters.SubmitMonth.has(r.submitMonth) : true;
-                            const matchIssYr = selectedFilters.IssueYear ? selectedFilters.IssueYear.has(r.issueYear) : true;
-                            const matchIssMth = selectedFilters.IssueMonth ? selectedFilters.IssueMonth.has(r.issueMonth) : true;
-                            return matchSubYr && matchSubMth && matchIssYr && matchIssMth && isSamePersonName(r.agentName, member.name);
-                        });
-                        if (periodRows.length > 0) {
-                            member.totalFYC = periodRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+                        const memberFilteredRows = filteredRows.filter(r => isSamePersonName(r.agentName, member.name));
+                        if (memberFilteredRows.length > 0) {
+                            member.totalFYC = memberFilteredRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+                            if (!member.leaderName && memberFilteredRows[0].leaderName) {
+                                member.leaderName = memberFilteredRows[0].leaderName;
+                            }
                         }
                     }
                 }
             }
 
-            // Ensure every referenced Upline Manager also has a node in memberRosterMap
+            // Ensure every referenced Upline Manager (belonging to the selected Leader Name) also has a node in memberRosterMap
             const allRosterValues = Array.from(memberRosterMap.values());
             allRosterValues.forEach(m => {
                 if (!m.uplineManager) return;
@@ -2455,6 +2533,7 @@
                     }
                 }
                 if (!foundKey) {
+                    if (!isPersonAllowedByLeaderFilter(upFull, m.leaderName)) return;
                     const hcMatches = findHeadcountMatches(upFull);
                     const mm = (hcMatches.length > 0 && hcMatches[0].manMonth > 0)
                         ? hcMatches[0].manMonth
@@ -2477,11 +2556,13 @@
             // Calculation months (計算月份): matches the assessment months in the filtered period
             const calcMonths = Math.max(1, defaultFullTenureMonths);
 
-            // Compute Team Productivity for each Manager / Team Leader
+            // Compute Team Productivity for each Manager / Team Leader belonging to selectedFilters.LeaderName
             const rosterEntries = Array.from(memberRosterMap.values());
             const teamRankings = [];
 
             rosterEntries.forEach(manager => {
+                if (!isPersonAllowedByLeaderFilter(manager.name, manager.leaderName)) return;
+
                 // Find all direct and transitive downlines of this manager (Upline Manager belongs to this manager)
                 const teamMembers = [manager];
                 const visited = new Set([manager.name.toUpperCase()]);
@@ -2555,7 +2636,16 @@
 
         function renderTable5Productivity() {
             const tbody = document.getElementById('table5Body');
+            const subtext = document.getElementById('table5Subtext');
             if (!tbody) return;
+
+            if (subtext) {
+                const leadersArr = selectedFilters.LeaderName ? Array.from(selectedFilters.LeaderName) : [];
+                const leaderLabel = leadersArr.length > 0
+                    ? (leadersArr.length <= 2 ? leadersArr.join(', ') : `已選 ${leadersArr.length} 位 Leader`)
+                    : '未選擇 Leader';
+                subtext.innerText = `Leader: ${leaderLabel} | 團隊總 FYC / 總 Man Month`;
+            }
 
             if (table5ProductivityRankings.length === 0) {
                 tbody.innerHTML = `
@@ -2573,6 +2663,9 @@
                 const rankBadge = item.managerRank
                     ? `<span class="text-[9px] bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded font-bold ml-1">${escapeHtml(item.managerRank)}</span>`
                     : '';
+                const leaderBadge = item.leaderName
+                    ? `<span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-semibold ml-1">${escapeHtml(item.leaderName)}</span>`
+                    : '';
                 const mmNote = item.isBelowMinRequirement
                     ? `實際 ${item.actualTeamManMonth} MM → 按最低要求計 ${item.teamTotalManMonth} MM (${item.minReqHeadcount}人×${item.calcMonths}月)`
                     : `團隊 ${item.memberCount} 人 · 共 ${item.teamTotalManMonth} MM`;
@@ -2580,7 +2673,7 @@
                     <tr class="hover:bg-indigo-50/60 transition-colors cursor-pointer" onclick="openTeamProductivityDetail('${escapeJsString(item.managerName)}')">
                         <td class="p-2.5 text-center font-black ${idx === 0 ? 'text-amber-500 font-extrabold text-sm' : idx === 1 ? 'text-slate-400 font-extrabold' : idx === 2 ? 'text-amber-700 font-extrabold' : 'text-slate-400'}">${idx + 1}</td>
                         <td class="p-2.5">
-                            <div class="font-bold text-slate-900 break-words leading-snug flex items-center flex-wrap">${escapeHtml(item.managerName)}${rankBadge}</div>
+                            <div class="font-bold text-slate-900 break-words leading-snug flex items-center flex-wrap">${escapeHtml(item.managerName)}${rankBadge}${leaderBadge}</div>
                             <div class="text-[10px] text-indigo-700">${escapeHtml(mmNote)}</div>
                             <div class="text-[10px] text-slate-400 truncate max-w-[200px]" title="${escapeHtml(memberNamesPreview)}">總 FYC: $${Math.round(item.teamTotalFYC).toLocaleString()} | ${escapeHtml(memberNamesPreview)}</div>
                         </td>
