@@ -55,8 +55,59 @@
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Excel File Dropzone & Headcount Dual Uploader -->
-        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 transition-all">
+        <!-- Excel File Dropzone & Headcount Dual Uploader + Google Drive Auto-Preload -->
+        <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 sm:p-5 transition-all space-y-3.5">
+            <!-- Google Drive Cloud Preload Bar -->
+            <div class="bg-gradient-to-r from-emerald-50/90 via-teal-50/70 to-sky-50/90 border border-emerald-200/80 rounded-xl p-3 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-white border border-emerald-200 shadow-xs flex items-center justify-center text-emerald-600 shrink-0">
+                        <i class="fa-brands fa-google-drive text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-extrabold text-slate-900">Google Drive 雲端自動預載</span>
+                            <span id="gdriveStatusBadge" class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-circle-Notch fa-spin text-[9px]"></i> 準備從雲端載入...
+                            </span>
+                            <a id="gdriveFolderLink" href="https://drive.google.com/drive/folders/1d9k5SpBXItTqVYF2z3_6ZsKo5w4p8Tmn?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-[10px] text-sky-600 hover:text-sky-800 font-semibold underline flex items-center gap-1">
+                                <span>開啟主資料夾</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                            <a id="gdriveDdrFolderLink" href="https://drive.google.com/drive/folders/1pvxqsNTG8ur8V7InCaKVyelveDqMCMPS?usp=sharing" target="_blank" rel="noopener noreferrer" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold underline flex items-center gap-1">
+                                <span>開啟表格5 Direct District Report 資料夾</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                        </div>
+                        <p class="text-[11px] text-slate-600 mt-0.5">系統自動從 Google Drive 讀取 <span class="font-semibold text-slate-800">PP Raw</span>、<span class="font-semibold text-slate-800">HEADCOUNT BY AVA.xls</span> 及 <span class="font-semibold text-indigo-700">DIRECT DISTRICT REPORT (所有 Excel 加總計算表格 5)</span></p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-end">
+                    <input type="file" id="ddrFileInput" class="hidden" accept=".xlsx, .xls, .csv" multiple onchange="handleDdrFileSelect(event)">
+                    <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-indigo-200 text-xs">
+                        <span class="text-[10px] font-bold text-indigo-700">表格5 DDR:</span>
+                        <span id="gdriveDdrBadge" class="text-[11px] font-semibold text-indigo-900 truncate max-w-[160px]">載入中...</span>
+                        <button onclick="triggerDdrFileInput()" class="text-[10px] text-indigo-600 hover:text-indigo-800 font-bold underline ml-1 cursor-pointer" title="手動上載一個或多個 Direct District Report Excel 檔案">上載</button>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
+                        <span class="text-[10px] font-bold text-sky-700">雲端主檔:</span>
+                        <select id="gdrivePpSelect" onchange="onGdriveFileSelectChanged('pp', this.value)" class="text-[11px] font-semibold text-slate-800 bg-transparent focus:outline-none max-w-[140px] truncate">
+                            <option value="1cA3nldv2U9Csv1lOs4CWyrIWjVlkFG8n|file|PP Raw">PP Raw</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
+                        <span class="text-[10px] font-bold text-purple-700">雲端 HC:</span>
+                        <select id="gdriveHcSelect" onchange="onGdriveFileSelectChanged('hc', this.value)" class="text-[11px] font-semibold text-slate-800 bg-transparent focus:outline-none max-w-[160px] truncate">
+                            <option value="1ZIk8n5xbiJY1FEHuD4vCMGMkcQZYTGR0|file|HEADCOUNT BY AVA.xls">HEADCOUNT BY AVA.xls</option>
+                        </select>
+                    </div>
+                    <button id="gdriveSyncBtn" onclick="preloadFromGoogleDrive(true)" class="px-3 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all flex items-center gap-1.5 shadow-xs cursor-pointer">
+                        <i id="gdriveSyncIcon" class="fa-solid fa-cloud-arrow-down"></i>
+                        <span>從 Google Drive 重新載入</span>
+                    </button>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
                 
                 <input type="file" id="fileInput" class="hidden" accept=".xlsx, .xls, .csv" onchange="handleFileSelect(event)">
@@ -320,9 +371,9 @@
                             </div>
                             <div>
                                 <h3 class="text-xs font-extrabold text-slate-900">
-                                    Agent FYC Final Top 榜
+                                    TOP FYCC
                                 </h3>
-                                <p class="text-[10px] text-slate-500">第22欄 (Column V) 排序</p>
+                                <p class="text-[10px] text-slate-500">2027 MDRT C</p>
                             </div>
                         </div>
                         <button onclick="exportTableSummary('table1')" class="px-2 py-1 text-[11px] font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-lg transition-all flex items-center gap-1">
@@ -344,7 +395,7 @@
                     </div>
                 </div>
 
-                <!-- 表格 2：Agent FYP Final -->
+                <!-- 表格 2：TOP FYP -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
                     <div class="p-3.5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/90 to-white flex items-center justify-between gap-2">
                         <div class="flex items-center space-x-2">
@@ -353,9 +404,9 @@
                             </div>
                             <div>
                                 <h3 class="text-xs font-extrabold text-slate-900">
-                                    Agent FYP Final Top 榜
+                                    TOP FYP
                                 </h3>
-                                <p class="text-[10px] text-slate-500">依據 生效保費 排序</p>
+                                <p class="text-[10px] text-slate-500">2027 MDRT P</p>
                             </div>
                         </div>
                         <button onclick="exportTableSummary('table2')" class="px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all flex items-center gap-1">
@@ -377,7 +428,7 @@
                     </div>
                 </div>
 
-                <!-- 表格 3：Agent Case1 Top 榜 -->
+                <!-- 表格 3：Top Case -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm flex flex-col overflow-hidden">
                     <div class="p-3.5 border-b border-slate-100 bg-gradient-to-r from-amber-50/90 to-white flex items-center justify-between gap-2">
                         <div class="flex items-center space-x-2">
@@ -386,9 +437,9 @@
                             </div>
                             <div>
                                 <h3 class="text-xs font-extrabold text-slate-900">
-                                    Agent Case1 Top 榜
+                                    Top Case
                                 </h3>
-                                <p class="text-[10px] text-slate-500">依據 Case1 指標排序</p>
+                                <p class="text-[10px] text-slate-500">50Cases OR ABOVE</p>
                             </div>
                         </div>
                         <button onclick="exportTableSummary('table3')" class="px-2 py-1 text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all flex items-center gap-1">
@@ -426,7 +477,7 @@
                                 <h3 class="text-xs font-extrabold text-purple-950 flex items-center gap-1">
                                     TOP NEW RECRUIT
                                 </h3>
-                                <p id="table4Subtext" class="text-[10px] text-purple-700/80">依據 LIS 年/月 & ARA/Upline Manager 加總</p>
+                                <p id="table4Subtext" class="text-[10px] text-purple-700/80">4 OR ABOVE</p>
                             </div>
                         </div>
                         <span class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
@@ -446,7 +497,7 @@
                     </div>
                 </div>
 
-                <!-- 表格 5：TEAM TOP PRODUCTIVITY -->
+                <!-- 表格 5：TEAM TOP PRODUCTIVITY (Direct District Report) -->
                 <div class="bg-white rounded-2xl border border-indigo-200/80 shadow-sm flex flex-col overflow-hidden">
                     <div class="p-3.5 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-white flex items-center justify-between gap-2">
                         <div class="flex items-center space-x-2">
@@ -457,13 +508,22 @@
                                 <h3 class="text-xs font-extrabold text-indigo-950 flex items-center gap-1">
                                     TEAM TOP PRODUCTIVITY
                                 </h3>
-                                <p id="table5Subtext" class="text-[10px] text-indigo-700/80">團隊總 FYC Final / 團隊總 Man Month</p>
+                                <p id="table5Subtext" class="text-[10px] text-indigo-700/80">Direct District Report (Requested Month FYCC) / 總 Man Month</p>
                             </div>
                         </div>
-                        <span class="text-[10px] bg-indigo-100 text-indigo-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button id="table5ToggleAllBtn" onclick="toggleTable5ShowAll()" class="text-[10px] bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-extrabold px-2.5 py-1 rounded-full transition-colors cursor-pointer flex items-center gap-1 shadow-2xs" title="切換顯示 Top 5 或所有人">
+                                <span id="table5ToggleAllText">Top 5 · 查看全部</span>
+                                <i id="table5ToggleAllIcon" class="fa-solid fa-chevron-down text-[9px]"></i>
+                            </button>
+                            <button onclick="openAllTeamProductivityModal('table5')" class="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded-full transition-colors cursor-pointer flex items-center gap-1 shadow-2xs" title="彈窗檢視所有人的 TEAM TOP PRODUCTIVITY (Direct District Report)">
+                                <i class="fa-solid fa-table-list text-[9px]"></i>
+                                <span>所有人總覽</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="overflow-x-auto flex-1">
+                    <div id="table5ScrollContainer" class="overflow-x-auto flex-1">
                         <table class="w-full text-left text-xs border-collapse">
                             <thead>
                                 <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100 font-bold uppercase">
@@ -488,7 +548,7 @@
                                 <h3 class="text-xs font-extrabold text-rose-950 flex items-center gap-1">
                                     TOP ACTIVE ELITE
                                 </h3>
-                                <p id="table6Subtext" class="text-[10px] text-rose-700/80">依 Active Ratio 排序 (同分按 FYC Final)</p>
+                                <p id="table6Subtext" class="text-[10px] text-rose-700/80">FULLYEAR80%+ &amp; FYCC200,000+</p>
                             </div>
                         </div>
                         <span class="text-[10px] bg-rose-100 text-rose-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
@@ -504,6 +564,46 @@
                                 </tr>
                             </thead>
                             <tbody id="table6Body" class="divide-y divide-rose-50 font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 表格 7：TEAM TOP PRODUCTIVITY (PP Raw Data) -->
+                <div class="bg-white rounded-2xl border border-indigo-200/80 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-3.5 border-b border-indigo-100 bg-gradient-to-r from-indigo-50 to-white flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                7
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-indigo-950 flex items-center gap-1">
+                                    TEAM TOP PRODUCTIVITY
+                                </h3>
+                                <p id="table7Subtext" class="text-[10px] text-indigo-700/80">團隊總 FYC Final / 團隊總 Man Month</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button id="table7ToggleAllBtn" onclick="toggleTable7ShowAll()" class="text-[10px] bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-extrabold px-2.5 py-1 rounded-full transition-colors cursor-pointer flex items-center gap-1 shadow-2xs" title="切換顯示 Top 5 或所有人">
+                                <span id="table7ToggleAllText">Top 5 · 查看全部</span>
+                                <i id="table7ToggleAllIcon" class="fa-solid fa-chevron-down text-[9px]"></i>
+                            </button>
+                            <button onclick="openAllTeamProductivityModal('table7')" class="text-[10px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2 py-1 rounded-full transition-colors cursor-pointer flex items-center gap-1 shadow-2xs" title="彈窗檢視所有人的 TEAM TOP PRODUCTIVITY (PP Raw)">
+                                <i class="fa-solid fa-table-list text-[9px]"></i>
+                                <span>所有人總覽</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="table7ScrollContainer" class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-indigo-50/50 text-indigo-900 border-b border-indigo-100 font-bold uppercase">
+                                    <th class="p-2.5 w-8 text-center">排名</th>
+                                    <th class="p-2.5">NAME</th>
+                                    <th class="p-2.5 text-right">Productivity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table7Body" class="divide-y divide-indigo-50 font-medium text-slate-700"></tbody>
                         </table>
                     </div>
                 </div>
@@ -643,7 +743,14 @@
         let table3Rankings = [];
         let table4RecruitRankings = [];
         let table5ProductivityRankings = [];
+        let table5AllRankings = [];
+        let table5ShowAll = false;
+        let table7ProductivityRankings = [];
+        let table7AllRankings = [];
+        let table7ShowAll = false;
         let table6ActiveEliteRankings = [];
+        let directDistrictReportRows = [];
+        let ddrLoadedFileNames = [];
 
         // Minimum Required Team Headcount per Month by Manager Grade/Rank
         const MANAGER_MIN_HEADCOUNT = {
@@ -660,9 +767,9 @@
         function extractManagerRank(val) {
             if (!val) return '';
             const upper = String(val).toUpperCase().trim();
-            if (MANAGER_MIN_HEADCOUNT[upper]) return upper;
-            // Match rank codes with optional numeric level suffix (e.g. ADM1, DM2, SDM, BM, SBM, DD, SDD, EDD)
-            const match = upper.match(/(?:^|[^A-Z0-9])(EDD|SDD|DD|SBM|BM|SDM|ADM|DM)(?:\s*\d+)?(?:$|[^A-Z0-9])/);
+            if (MANAGER_MIN_HEADCOUNT[upper] || upper === 'SUM' || upper === 'UM') return upper;
+            // Match rank codes with optional numeric level suffix (e.g. ADM1, DM2, SDM, BM, SBM, DD, SDD, EDD, SUM, UM)
+            const match = upper.match(/(?:^|[^A-Z0-9])(EDD|SDD|DD|SBM|BM|SDM|ADM|DM|SUM|UM)(?:\s*\d+)?(?:$|[^A-Z0-9])/);
             if (match) return match[1];
             if (upper.includes('EXECUTIVE DISTRICT DIRECTOR')) return 'EDD';
             if (upper.includes('SENIOR DISTRICT DIRECTOR')) return 'SDD';
@@ -672,6 +779,8 @@
             if (upper.includes('SENIOR DISTRICT MANAGER')) return 'SDM';
             if (upper.includes('ASSISTANT DISTRICT MANAGER') || upper.includes('ASSOCIATE DISTRICT MANAGER')) return 'ADM';
             if (upper.includes('DISTRICT MANAGER')) return 'DM';
+            if (upper.includes('SENIOR UNIT MANAGER')) return 'SUM';
+            if (upper.includes('UNIT MANAGER')) return 'UM';
             return '';
         }
 
@@ -702,11 +811,12 @@
             terminationDate: ['termination date', 'term date', 'leave date', 'resign date', 'last date', '離職日期', '終止日期'],
             manMonth: ['man month', 'man_month', 'manmonth', 'man-month', 'active months', 'tenure months', 'service months', '在職月份', '在職月數', '在職月'],
             agentGrade: ['agent grade', 'agent rank', 'agent level', 'agent title', 'staff grade', 'current grade', 'grade', 'rank', 'level', 'title', 'position', 'designation', '職級', '級別', '職稱'],
-            uplineGrade: ['upline manager grade', 'upline manager rank', 'upline grade', 'upline rank', 'upline level', 'upline title', 'manager grade', 'manager rank', 'leader grade', '上線職級', '主管職級'],
+            uplineGrade: ['upline manager grade', 'upline_manager_grade', 'upline manager rank', 'upline grade', 'upline rank', 'upline level', 'upline title', 'manager grade', 'manager rank', 'leader grade', '上線職級', '主管職級'],
             uplineManager: ['upline manager name', 'upline_manager_name', 'upline manager full name', 'upline full name', 'upline name', 'direct upline name', 'recruiting manager name', '上線主管姓名', '上線主管全名', 'upline manager', '上線主管'],
             araName: ['ara name', 'ara_name', 'ara full name', 'ara manager name', 'ara leader name', 'recruiter name', 'ara 姓名', 'ara姓名', 'ara 全名', 'ara'],
-            team: ['team name', 'team', '組別', '團隊', 'unit'],
-            agentName: ['agent name', 'agent full name', 'agent english name', 'staff full name', 'staff name', 'advisor name', 'consultant name', 'producer name', 'fc name', 'english name', 'full name', 'new recruit', 'name', '顧問姓名', '顧問全名', '新人姓名', '姓名'],
+            team: ['team name', 'team', 'leader name', '組別', '團隊', 'unit'],
+            agentName: ['name (hkid)', 'name(hkid)', 'hkid name', 'agent name', 'agent full name', 'staff full name', 'staff name', 'advisor name', 'consultant name', 'producer name', 'fc name', 'full name', 'new recruit', 'name', '顧問姓名', '顧問全名', '新人姓名', '姓名'],
+            englishName: ['english name', 'english_name', 'eng name', 'nickname', '英文名', '英文姓名'],
             agentCode: ['agent code', 'staff code', 'advisor code', 'producer code', '顧問編號', '代理人編號', '編號']
         };
 
@@ -865,10 +975,11 @@
                 headerIdx = 0;
                 colMap = {
                     productionStartDate: 0,
+                    agentName: 3,
+                    englishName: 4,
                     uplineManager: 10,
-                    araName: 13,
-                    team: 3,
-                    agentName: 4
+                    uplineGrade: 11,
+                    araName: 13
                 };
             }
 
@@ -876,21 +987,44 @@
             const dataRows = rawMatrix.slice(headerIdx + 1).filter(r => Array.isArray(r) && r.length > 0);
             const maxHcCols = rawMatrix.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
 
-            // Strictly enforce Column K (index 10 = Upline Manager Name) and Column N (index 13 = ARA Name) when present
+            // Strictly enforce Headcount fixed columns when present:
+            // Column D (index 3 = Name (HKID))
+            // Column E (index 4 = English Name)
+            // Column K (index 10 = Upline Manager Name)
+            // Column L (index 11 = Upline Manager Grade)
+            // Column N (index 13 = ARA Name)
+            if (maxHcCols > 3) {
+                const colDHeader = String(headerRow[3] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                if (!colDHeader || colDHeader.includes('name') || colDHeader.includes('hkid') || colMap.agentName === undefined) {
+                    colMap.agentName = 3; // Column D: Name (HKID)
+                }
+            }
+            if (maxHcCols > 4) {
+                const colEHeader = String(headerRow[4] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                if (colEHeader.includes('english') || colMap.englishName === undefined) {
+                    colMap.englishName = 4; // Column E: English Name
+                }
+            }
             if (maxHcCols > 10) {
                 const colKHeader = String(headerRow[10] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
                 if (!colKHeader || colKHeader.includes('upline') || colKHeader.includes('manager') || colMap.uplineManager === undefined) {
-                    colMap.uplineManager = 10; // Column K
+                    colMap.uplineManager = 10; // Column K: Upline Manager Name
+                }
+            }
+            if (maxHcCols > 11) {
+                const colLHeader = String(headerRow[11] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                if (!colLHeader || colLHeader.includes('grade') || colLHeader.includes('rank') || colLHeader.includes('upline') || colMap.uplineGrade === undefined) {
+                    colMap.uplineGrade = 11; // Column L: Upline Manager Grade
                 }
             }
             if (maxHcCols > 13) {
                 const colNHeader = String(headerRow[13] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
                 if (!colNHeader || colNHeader.includes('ara') || colMap.araName === undefined) {
-                    colMap.araName = 13; // Column N
+                    colMap.araName = 13; // Column N: ARA Name
                 }
             }
 
-            // Build known person names set from PP Raw (Col Z) to deterministically identify Agent Name column
+            // Build known person names set from PP Raw (Col Z) and Headcount Col K to deterministically identify Agent Name column
             const knownNamesUpper = new Set();
             if (Array.isArray(allSheetData)) {
                 allSheetData.forEach(r => {
@@ -898,17 +1032,23 @@
                     if (c && c !== 'UNKNOWN AGENT' && !isDefaultTargetLeaderOrTeam(c)) knownNamesUpper.add(c);
                 });
             }
+            dataRows.forEach(r => {
+                if (colMap.uplineManager !== undefined) {
+                    const u = cleanPersonName(r[colMap.uplineManager]).toUpperCase();
+                    if (isValidPersonName(u) && !isDefaultTargetLeaderOrTeam(u)) knownNamesUpper.add(u);
+                }
+            });
 
             const isNonAgentRoleHeader = (t) => {
                 return t.includes('upline') || t.includes('manager') || isAraHeader(t) || t.includes('leader') ||
                        t.includes('team') || t.includes('unit') || t.includes('branch') || t.includes('district') ||
                        t.includes('division') || t.includes('region') || t.includes('agency') || t.includes('bdm') ||
                        t.includes('gm') || t.includes('dd') || t.includes('sdd') || t.includes('director') ||
-                       t.includes('supervisor') || t.includes('上線') || t.includes('主管') || t.includes('團隊') || t.includes('組別');
+                       t.includes('supervisor') || t.includes('english name') || t.includes('上線') || t.includes('主管') || t.includes('團隊') || t.includes('組別');
             };
 
             const excludedAgentCols = new Set(
-                [colMap.uplineManager, colMap.araName, 10, 13, colMap.team, colMap.productionStartDate, colMap.terminationDate, colMap.agentGrade, colMap.uplineGrade, colMap.agentCode]
+                [colMap.uplineManager, colMap.araName, colMap.englishName, 4, 10, 11, 13, colMap.team, colMap.productionStartDate, colMap.terminationDate, colMap.agentGrade, colMap.uplineGrade, colMap.agentCode]
                     .filter(c => c !== undefined)
             );
 
@@ -926,19 +1066,20 @@
                 const avgLen = validCells.reduce((s, v) => s + v.length, 0) / validCells.length;
 
                 let hBonus = 0;
-                if (cIdx === colMap.agentName) hBonus += 80;
-                if (hText === 'agent name' || hText === 'english name' || hText === 'full name' || hText === 'advisor name' || hText === 'staff name') hBonus += 120;
-                else if (hText.includes('agent') || hText.includes('english') || hText.includes('advisor') || hText.includes('consultant') || hText.includes('producer') || hText.includes('recruit') || hText.includes('staff') || hText.includes('顧問') || hText.includes('新人')) hBonus += 60;
-                else if (hText.includes('name') || hText.includes('姓名')) hBonus += 30;
+                if (cIdx === 3 || hText.includes('hkid')) hBonus += 300;
+                if (cIdx === colMap.agentName) hBonus += 120;
+                if (hText === 'name (hkid)' || hText === 'agent name' || hText === 'full name' || hText === 'advisor name' || hText === 'staff name') hBonus += 150;
+                else if (hText.includes('agent') || hText.includes('advisor') || hText.includes('consultant') || hText.includes('producer') || hText.includes('recruit') || hText.includes('staff') || hText.includes('顧問') || hText.includes('新人')) hBonus += 60;
+                else if (hText.includes('name') || hText.includes('姓名')) hBonus += 40;
 
-                const totalScore = (knownMatches * 500) + (englishMultiWordCount * 5) + hBonus + avgLen;
+                const totalScore = (knownMatches * 500) + (englishMultiWordCount * 10) + hBonus + avgLen;
                 if (hBonus > 0 || knownMatches > 0 || englishMultiWordCount >= Math.max(2, dataRows.length * 0.2)) {
                     candidateScoreMap.set(cIdx, totalScore);
                 }
             }
 
             const agentCandidateCols = Array.from(candidateScoreMap.keys()).sort((a, b) => (candidateScoreMap.get(b) || 0) - (candidateScoreMap.get(a) || 0));
-            if (agentCandidateCols.length > 0) {
+            if (agentCandidateCols.length > 0 && colMap.agentName === undefined) {
                 colMap.agentName = agentCandidateCols[0];
             }
 
@@ -949,52 +1090,25 @@
             };
 
             const pickBestAgentNameFromRow = (row, candidateCols, primaryCol, rowUpline, rowAra, rowTeam) => {
-                const rowForbiddenUpper = new Set(
-                    [rowUpline, rowAra, rowTeam]
-                        .filter(Boolean)
-                        .map(s => cleanPersonName(s).toUpperCase())
-                );
-                const isAllowedAgentVal = (val) => {
-                    if (!val) return false;
-                    const u = val.toUpperCase();
-                    if (rowForbiddenUpper.has(u) || isDefaultTargetLeaderOrTeam(u)) return false;
-                    return true;
-                };
-
                 const rowNames = [];
+                // Primary Column D: Name (HKID) - Note: an agent's own row can have their own name even if they are also a manager elsewhere, just not equal to THIS row's uplineManager unless self
                 const primaryVal = pickDirectRoleName(row, primaryCol);
-                if (primaryVal && isAllowedAgentVal(primaryVal)) {
+                const engVal = pickDirectRoleName(row, colMap.englishName);
+                if (primaryVal) {
                     rowNames.push(primaryVal);
+                    if (engVal && !primaryVal.toUpperCase().includes(engVal.toUpperCase())) {
+                        rowNames.push(`${primaryVal} ${engVal}`);
+                        rowNames.push(`${engVal} ${primaryVal}`);
+                    }
+                    return { bestName: primaryVal, rowNames };
                 }
                 for (const cIdx of candidateCols) {
                     const cleaned = pickDirectRoleName(row, cIdx);
-                    if (cleaned && isAllowedAgentVal(cleaned) && !rowNames.includes(cleaned)) {
+                    if (cleaned && !rowNames.includes(cleaned)) {
                         rowNames.push(cleaned);
                     }
                 }
-                // Also scan other non-role columns (and adjacent Surname+GivenName pairs) for matches against known PP Raw agents
-                for (let c = 0; c < row.length; c++) {
-                    if (excludedAgentCols.has(c)) continue;
-                    const hText = String(headerRow[c] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
-                    if (isNonAgentRoleHeader(hText) || isCodeHeader(hText) || hText.includes('date') || hText.includes('month') || hText.includes('year')) continue;
-
-                    const single = pickDirectRoleName(row, c);
-                    if (single && isAllowedAgentVal(single) && knownNamesUpper.has(single.toUpperCase()) && !rowNames.includes(single)) {
-                        rowNames.push(single);
-                    }
-                    if (c + 1 < row.length && !excludedAgentCols.has(c + 1) && row[c] && row[c + 1]) {
-                        const nextH = String(headerRow[c + 1] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
-                        if (!isNonAgentRoleHeader(nextH) && !isCodeHeader(nextH)) {
-                            const combined = cleanPersonName(`${String(row[c]).trim()} ${String(row[c + 1]).trim()}`);
-                            if (isValidPersonName(combined) && isAllowedAgentVal(combined) && knownNamesUpper.has(combined.toUpperCase()) && !rowNames.includes(combined)) {
-                                rowNames.push(combined);
-                            }
-                        }
-                    }
-                }
-                const knownMatch = rowNames.find(n => knownNamesUpper.has(n.toUpperCase()));
-                if (knownMatch) return { bestName: knownMatch, rowNames };
-                return { bestName: rowNames[0] || primaryVal || '', rowNames };
+                return { bestName: rowNames[0] || '', rowNames };
             };
 
             const parseExcelOrStrDate = (raw) => {
@@ -1079,116 +1193,550 @@
                 });
             }
 
+            // Resolve each Headcount row's District Leader team (e.g. JERRY LO / PAGGIE LAW) via ARA Name, Upline Manager, and transitive hierarchy
+            const personToLeaderTeam = new Map();
+            if (Array.isArray(allSheetData)) {
+                allSheetData.forEach(r => {
+                    if (r.agentName && r.leaderName && r.leaderName !== 'Unassigned Leader') {
+                        personToLeaderTeam.set(cleanPersonName(r.agentName).toUpperCase(), r.leaderName);
+                    }
+                });
+            }
+
+            result.forEach(r => {
+                const explicitTeam = r.team && r.team !== 'Unassigned' ? normalizeDistrictLeaderName(r.team) || r.team : '';
+                const araLeader = normalizeDistrictLeaderName(r.araName);
+                const uplineLeader = normalizeDistrictLeaderName(r.uplineManager);
+                const selfLeader = normalizeDistrictLeaderName(r.agentName);
+                let resolved = explicitTeam;
+                if (!resolved) {
+                    if (selfLeader === 'PAGGIE LAW') {
+                        resolved = 'PAGGIE LAW';
+                    } else if (araLeader) {
+                        resolved = araLeader;
+                    } else if (uplineLeader) {
+                        resolved = uplineLeader;
+                    }
+                }
+                if (resolved) {
+                    r.team = resolved;
+                    if (r.agentName && r.agentName !== 'New Recruit') {
+                        personToLeaderTeam.set(cleanPersonName(r.agentName).toUpperCase(), resolved);
+                    }
+                    if (araLeader && r.uplineManager && r.uplineManager !== 'Unassigned Manager' && !normalizeDistrictLeaderName(r.uplineManager)) {
+                        const upKey = cleanPersonName(r.uplineManager).toUpperCase();
+                        if (!personToLeaderTeam.has(upKey)) {
+                            personToLeaderTeam.set(upKey, araLeader);
+                        }
+                    }
+                }
+            });
+
+            let changedTeam = true;
+            let guard = 0;
+            while (changedTeam && guard < 15) {
+                changedTeam = false;
+                guard++;
+                result.forEach(r => {
+                    if (r.team && r.team !== 'Unassigned') {
+                        const selfKey = cleanPersonName(r.agentName).toUpperCase();
+                        if (selfKey && !personToLeaderTeam.has(selfKey)) {
+                            personToLeaderTeam.set(selfKey, r.team);
+                            changedTeam = true;
+                        }
+                        return;
+                    }
+                    const selfKey = cleanPersonName(r.agentName).toUpperCase();
+                    const upKey = cleanPersonName(r.uplineManager).toUpperCase();
+                    const araKey = cleanPersonName(r.araName).toUpperCase();
+                    const matchedLeader = (selfKey && personToLeaderTeam.get(selfKey)) ||
+                                          (upKey && personToLeaderTeam.get(upKey)) ||
+                                          (araKey && personToLeaderTeam.get(araKey)) || '';
+                    if (matchedLeader) {
+                        r.team = matchedLeader;
+                        if (selfKey) personToLeaderTeam.set(selfKey, matchedLeader);
+                        changedTeam = true;
+                    }
+                });
+            }
+
             return result;
+        }
+
+        const DEFAULT_GDRIVE_FOLDER_ID = '1d9k5SpBXItTqVYF2z3_6ZsKo5w4p8Tmn';
+        const DEFAULT_GDRIVE_DDR_FOLDER_ID = '1pvxqsNTG8ur8V7InCaKVyelveDqMCMPS';
+        const DEFAULT_GDRIVE_PP_FILE = { id: '1cA3nldv2U9Csv1lOs4CWyrIWjVlkFG8n', kind: 'file', title: 'PP Raw' };
+        const DEFAULT_GDRIVE_HC_FILE = { id: '1ZIk8n5xbiJY1FEHuD4vCMGMkcQZYTGR0', kind: 'file', title: 'HEADCOUNT BY AVA.xls' };
+        const DEFAULT_GDRIVE_DDR_FILES = [
+            { id: '195DydwvLWKbu_UkZMN5SJYM6IKKAV5nR', kind: 'file', title: 'DirectDistrictReport_1790928601680.xls' }
+        ];
+        let gdriveFilesCache = [];
+
+        function triggerDdrFileInput() {
+            const input = document.getElementById('ddrFileInput');
+            if (input) input.click();
+        }
+
+        async function handleDdrFileSelect(e) {
+            const files = Array.from(e.target.files || []);
+            if (files.length === 0) return;
+            try {
+                const allParsed = [];
+                const names = [];
+                for (const file of files) {
+                    const buf = await file.arrayBuffer();
+                    const parsed = parseDirectDistrictReportBuffer(buf, file.name);
+                    allParsed.push(...parsed);
+                    names.push(file.name);
+                }
+                directDistrictReportRows = allParsed;
+                ddrLoadedFileNames = names;
+                updateDdrBadgeUI();
+                computeAgentRankings();
+                showToast(`已成功載入 ${files.length} 個 Direct District Report 檔案 (共 ${allParsed.length} 筆記錄)！`, 'success');
+            } catch (err) {
+                console.error('DDR upload error:', err);
+                showToast('讀取 Direct District Report Excel 發生錯誤！', 'error');
+            }
+            e.target.value = '';
+        }
+
+        function updateDdrBadgeUI() {
+            const badge = document.getElementById('gdriveDdrBadge');
+            if (!badge) return;
+            if (ddrLoadedFileNames.length === 0) {
+                badge.innerText = '尚未載入';
+                badge.title = '';
+            } else {
+                const totalFycc = directDistrictReportRows.reduce((s, r) => s + (r.fycc || 0), 0);
+                badge.innerText = `已加總 ${ddrLoadedFileNames.length} 個檔案 (${directDistrictReportRows.length} 筆)`;
+                badge.title = `${ddrLoadedFileNames.join(', ')} | 總 FYCC: $${Math.round(totalFycc).toLocaleString()}`;
+            }
+        }
+
+        function parseDirectDistrictReportBuffer(arrayBuffer, fileName) {
+            const data = new Uint8Array(arrayBuffer);
+            const wb = XLSX.read(data, { type: 'array' });
+            const parsedRows = [];
+
+            wb.SheetNames.forEach(sheetName => {
+                const sheet = wb.Sheets[sheetName];
+                if (!sheet) return;
+                const sRange = sheet['!ref'] ? XLSX.utils.decode_range(sheet['!ref']) : null;
+                if (sRange && sRange.s.c > 0) sRange.s.c = 0;
+                const matrix = XLSX.utils.sheet_to_json(sheet, {
+                    header: 1,
+                    defval: '',
+                    ...(sRange ? { range: sRange } : {})
+                });
+                if (!matrix || matrix.length < 5) return;
+
+                let headerRowIdx = -1;
+                for (let r = 0; r < Math.min(matrix.length, 15); r++) {
+                    const row = matrix[r] || [];
+                    const rowStr = row.map(c => String(c || '').trim().toLowerCase()).join('|');
+                    if (rowStr.includes('manageren') || (rowStr.includes('agent code') && rowStr.includes('agent name'))) {
+                        headerRowIdx = r;
+                        break;
+                    }
+                }
+                if (headerRowIdx === -1) return;
+
+                const hRow = matrix[headerRowIdx] || [];
+                const subHeaderRow = matrix[headerRowIdx - 1] || [];
+                const sectionRow = matrix[headerRowIdx - 2] || [];
+
+                let colManagerEN = 1;
+                let colAgentCode = 3;
+                let colAgentNameEN = 4;
+                let colAgentNameCN = 5;
+                let colProdDate = 6;
+                let colPosition = 7;
+                let colTermDate = 12;
+
+                hRow.forEach((cell, cIdx) => {
+                    const t = String(cell || '').trim().toLowerCase();
+                    if (t === 'manageren') colManagerEN = cIdx;
+                    else if (t === 'agent code') colAgentCode = cIdx;
+                    else if (t === 'agent nameen') colAgentNameEN = cIdx;
+                    else if (t === 'agent name') colAgentNameCN = cIdx;
+                    else if (t === 'production date') colProdDate = cIdx;
+                    else if (t === 'position') colPosition = cIdx;
+                    else if (t === 'termination date') colTermDate = cIdx;
+                });
+
+                // Find "Issue" section start in sectionRow (Row 2)
+                let issueStartCol = -1;
+                for (let c = 0; c < sectionRow.length; c++) {
+                    if (String(sectionRow[c] || '').trim().toLowerCase() === 'issue') {
+                        issueStartCol = c;
+                        break;
+                    }
+                }
+
+                // Find "Requested Month (in total)" under Issue in subHeaderRow (Row 3)
+                let reqMonthStartCol = -1;
+                for (let c = (issueStartCol !== -1 ? issueStartCol : 0); c < subHeaderRow.length; c++) {
+                    const cellText = String(subHeaderRow[c] || '').trim().toLowerCase();
+                    if (cellText.includes('requested month')) {
+                        reqMonthStartCol = c;
+                    }
+                }
+
+                let fyccCol = -1;
+                let afypCol = -1;
+                let caseCol = -1;
+                if (reqMonthStartCol !== -1) {
+                    for (let c = reqMonthStartCol; c < Math.min(hRow.length, reqMonthStartCol + 6); c++) {
+                        const hText = String(hRow[c] || '').trim().toUpperCase();
+                        if (hText === 'FYCC' && fyccCol === -1) fyccCol = c;
+                        if (hText === 'AFYP' && afypCol === -1) afypCol = c;
+                        if (hText === 'CASE' && caseCol === -1) caseCol = c;
+                    }
+                }
+                if (fyccCol === -1) {
+                    // Fallback to last FYCC column in header row or Col BQ (68)
+                    for (let c = hRow.length - 1; c >= 0; c--) {
+                        if (String(hRow[c] || '').trim().toUpperCase() === 'FYCC') {
+                            fyccCol = c;
+                            break;
+                        }
+                    }
+                    if (fyccCol === -1) fyccCol = 68;
+                }
+
+                const toNum = (val) => {
+                    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+                    if (!val) return 0;
+                    const cleaned = String(val).replace(/[^0-9.-]/g, '');
+                    const n = parseFloat(cleaned);
+                    return isNaN(n) ? 0 : n;
+                };
+
+                for (let r = headerRowIdx + 1; r < matrix.length; r++) {
+                    const row = matrix[r] || [];
+                    const rawManager = String(row[colManagerEN] || '').trim();
+                    const rawCode = String(row[colAgentCode] || '').trim();
+                    const rawNameEN = String(row[colAgentNameEN] || '').trim();
+                    const rawNameCN = String(row[colAgentNameCN] || '').trim();
+                    const rawProdDate = String(row[colProdDate] || '').trim();
+                    const rawPosition = String(row[colPosition] || '').trim();
+                    const rawTermDate = String(row[colTermDate] || '').trim();
+
+                    // Skip summary/total/remark rows or merged empty rows
+                    if (!rawCode || rawCode.toLowerCase() === 'merge' || !rawNameEN || rawNameEN.toLowerCase() === 'merge') continue;
+                    if (rawManager.toLowerCase().includes('total') || rawManager.toLowerCase().includes('remark')) continue;
+
+                    const agentName = cleanPersonName(rawNameEN) || rawNameEN;
+                    const managerName = cleanPersonName(rawManager) || rawManager;
+                    if (!isValidPersonName(agentName)) continue;
+
+                    const fycc = toNum(row[fyccCol]);
+                    const afyp = afypCol !== -1 ? toNum(row[afypCol]) : 0;
+                    const cases = caseCol !== -1 ? toNum(row[caseCol]) : 0;
+
+                    parsedRows.push({
+                        fileName,
+                        managerEN: managerName,
+                        agentCode: rawCode,
+                        agentNameEN: agentName,
+                        agentNameCN: rawNameCN,
+                        productionDate: rawProdDate,
+                        position: extractManagerRank(rawPosition) || rawPosition,
+                        terminationDate: rawTermDate,
+                        fycc,
+                        afyp,
+                        cases
+                    });
+                }
+            });
+
+            return parsedRows;
+        }
+
+        function parseExcelArrayBuffer(arrayBuffer, fileName, showSuccessToast = true) {
+            try {
+                document.getElementById('currentFileName').innerText = `${fileName}`;
+                const data = new Uint8Array(arrayBuffer);
+                rawWorkbook = XLSX.read(data, { type: 'array' });
+
+                const sheetSelector = document.getElementById('sheetSelector');
+                sheetSelector.innerHTML = '';
+
+                let targetSheet = rawWorkbook.SheetNames[0];
+
+                rawWorkbook.SheetNames.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = `${name} (工作表)`;
+                    sheetSelector.appendChild(option);
+
+                    if (name.toLowerCase().includes('issue')) {
+                        targetSheet = name;
+                    }
+                });
+
+                sheetSelector.value = targetSheet;
+                activeSheetName = targetSheet;
+
+                const headcountSheetName = rawWorkbook.SheetNames.find(n => {
+                    const lower = n.toLowerCase();
+                    return lower.includes('headcount') || lower.includes('hc') || lower.includes('recruit');
+                });
+                if (headcountSheetName) {
+                    const hcSheet = rawWorkbook.Sheets[headcountSheetName];
+                    const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
+                    if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
+                    const hcMatrix = XLSX.utils.sheet_to_json(hcSheet, {
+                        header: 1,
+                        defval: '',
+                        ...(hcRange ? { range: hcRange } : {})
+                    });
+                    lastHeadcountMatrix = hcMatrix;
+                    headcountRows = parseHeadcountMatrix(hcMatrix);
+                    document.getElementById('headcountFileName').innerText = `Sheet: ${headcountSheetName}`;
+                    document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
+                    buildHeadcountFilters();
+                }
+
+                loadWorksheetData(targetSheet);
+
+                if (lastHeadcountMatrix) {
+                    headcountRows = parseHeadcountMatrix(lastHeadcountMatrix);
+                    document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
+                    buildHeadcountFilters();
+                    computeTopNewRecruits();
+                    computeAgentRankings();
+                }
+
+                if (showSuccessToast) {
+                    showToast(`成功讀取 Excel (${fileName})！已開啓工作表：${targetSheet}`, 'success');
+                }
+                return true;
+            } catch (err) {
+                console.error("Excel Error:", err);
+                showToast("讀取 Excel 發生錯誤，請確認格式是否正確！", "error");
+                return false;
+            }
+        }
+
+        function parseHeadcountArrayBuffer(arrayBuffer, fileName, showSuccessToast = true) {
+            try {
+                document.getElementById('headcountFileName').innerText = `${fileName}`;
+                const data = new Uint8Array(arrayBuffer);
+                headcountWorkbook = XLSX.read(data, { type: 'array' });
+                const preferredSheet = headcountWorkbook.SheetNames.find(n => {
+                    const lower = n.toLowerCase();
+                    return lower.includes('headcount') || lower.includes('hc') || lower.includes('recruit');
+                });
+                const targetSheet = preferredSheet || headcountWorkbook.SheetNames[0];
+                const hcSheet = headcountWorkbook.Sheets[targetSheet];
+                const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
+                if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
+                const rawMatrix = XLSX.utils.sheet_to_json(hcSheet, {
+                    header: 1,
+                    defval: '',
+                    ...(hcRange ? { range: hcRange } : {})
+                });
+
+                lastHeadcountMatrix = rawMatrix;
+                headcountRows = parseHeadcountMatrix(rawMatrix);
+                document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
+                buildHeadcountFilters();
+                computeTopNewRecruits();
+                computeAgentRankings();
+                if (showSuccessToast) {
+                    showToast(`已成功載入 Headcount Excel (${headcountRows.length} 筆記錄)！`, 'success');
+                }
+                return true;
+            } catch (err) {
+                console.error("Headcount Excel Error:", err);
+                showToast("讀取 Headcount Excel 發生錯誤，請確認格式！", "error");
+                return false;
+            }
         }
 
         function processFile(file) {
             if (!file) return;
-
             document.getElementById('currentFileName').innerText = `${file.name}`;
             const reader = new FileReader();
-
             reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    rawWorkbook = XLSX.read(data, { type: 'array' });
-
-                    const sheetSelector = document.getElementById('sheetSelector');
-                    sheetSelector.innerHTML = '';
-
-                    let targetSheet = rawWorkbook.SheetNames[0];
-
-                    rawWorkbook.SheetNames.forEach(name => {
-                        const option = document.createElement('option');
-                        option.value = name;
-                        option.textContent = `${name} (工作表)`;
-                        sheetSelector.appendChild(option);
-
-                        if (name.toLowerCase().includes('issue')) {
-                            targetSheet = name;
-                        }
-                    });
-
-                    sheetSelector.value = targetSheet;
-                    activeSheetName = targetSheet;
-
-                    const headcountSheetName = rawWorkbook.SheetNames.find(n => {
-                        const lower = n.toLowerCase();
-                        return lower.includes('headcount') || lower.includes('hc') || lower.includes('recruit');
-                    });
-                    if (headcountSheetName) {
-                        const hcSheet = rawWorkbook.Sheets[headcountSheetName];
-                        const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
-                        if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
-                        const hcMatrix = XLSX.utils.sheet_to_json(hcSheet, {
-                            header: 1,
-                            defval: '',
-                            ...(hcRange ? { range: hcRange } : {})
-                        });
-                        lastHeadcountMatrix = hcMatrix;
-                        headcountRows = parseHeadcountMatrix(hcMatrix);
-                        document.getElementById('headcountFileName').innerText = `Sheet: ${headcountSheetName}`;
-                        document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
-                        buildHeadcountFilters();
-                    }
-
-                    loadWorksheetData(targetSheet);
-
-                    if (headcountSheetName) {
-                        computeTopNewRecruits();
-                        computeAgentRankings();
-                    }
-
-                    showToast(`成功讀取 Excel！已開啓工作表：${targetSheet}`, 'success');
-
-                } catch (err) {
-                    console.error("Excel Error:", err);
-                    showToast("讀取 Excel 發生錯誤，請確認格式是否正確！", "error");
-                }
+                parseExcelArrayBuffer(e.target.result, file.name, true);
             };
-
             reader.readAsArrayBuffer(file);
         }
 
         function processHeadcountFile(file) {
             if (!file) return;
-
             document.getElementById('headcountFileName').innerText = `${file.name}`;
             const reader = new FileReader();
-
             reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    headcountWorkbook = XLSX.read(data, { type: 'array' });
-                    const preferredSheet = headcountWorkbook.SheetNames.find(n => {
-                        const lower = n.toLowerCase();
-                        return lower.includes('headcount') || lower.includes('hc') || lower.includes('recruit');
-                    });
-                    const targetSheet = preferredSheet || headcountWorkbook.SheetNames[0];
-                    const hcSheet = headcountWorkbook.Sheets[targetSheet];
-                    const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
-                    if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
-                    const rawMatrix = XLSX.utils.sheet_to_json(hcSheet, {
-                        header: 1,
-                        defval: '',
-                        ...(hcRange ? { range: hcRange } : {})
-                    });
-
-                    lastHeadcountMatrix = rawMatrix;
-                    headcountRows = parseHeadcountMatrix(rawMatrix);
-                    document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
-                    buildHeadcountFilters();
-                    computeTopNewRecruits();
-                    computeAgentRankings();
-                    showToast(`已成功載入 Headcount Excel (${headcountRows.length} 筆記錄)！`, 'success');
-                } catch (err) {
-                    console.error("Headcount Excel Error:", err);
-                    showToast("讀取 Headcount Excel 發生錯誤，請確認格式！", "error");
-                }
+                parseHeadcountArrayBuffer(e.target.result, file.name, true);
             };
-
             reader.readAsArrayBuffer(file);
         }
+
+        async function fetchGDriveFileBuffer(fileId, kind = 'file') {
+            const res = await fetch(`/api/gdrive/file/${encodeURIComponent(fileId)}?kind=${encodeURIComponent(kind)}`);
+            if (!res.ok) {
+                throw new Error(`Google Drive 檔案下載失敗 (${res.status})`);
+            }
+            return await res.arrayBuffer();
+        }
+
+        async function onGdriveFileSelectChanged(targetType, encodedVal) {
+            if (!encodedVal) return;
+            const [fileId, kind, title] = encodedVal.split('|');
+            if (!fileId) return;
+            const badge = document.getElementById('gdriveStatusBadge');
+            try {
+                if (badge) {
+                    badge.className = 'text-[10px] bg-sky-100 text-sky-800 border border-sky-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[9px]"></i> 正在載入 ${escapeHtml(title)}...`;
+                }
+                const buf = await fetchGDriveFileBuffer(fileId, kind || 'file');
+                if (targetType === 'pp') {
+                    parseExcelArrayBuffer(buf, `[GDrive] ${title}`, true);
+                } else {
+                    parseHeadcountArrayBuffer(buf, `[GDrive] ${title}`, true);
+                }
+                if (badge) {
+                    badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-check-circle text-[9px]"></i> 已同步雲端檔案`;
+                }
+            } catch (err) {
+                console.error('Failed to load selected Google Drive file:', err);
+                showToast(`無法從 Google Drive 讀取 ${title}`, 'error');
+                if (badge) {
+                    badge.className = 'text-[10px] bg-rose-100 text-rose-800 border border-rose-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[9px]"></i> 雲端讀取失敗`;
+                }
+            }
+        }
+
+        async function preloadFromGoogleDrive(manualTrigger = false) {
+            const badge = document.getElementById('gdriveStatusBadge');
+            const syncIcon = document.getElementById('gdriveSyncIcon');
+            if (badge) {
+                badge.className = 'text-[10px] bg-sky-100 text-sky-800 border border-sky-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
+                badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-[9px]"></i> 正在從 Google Drive 同步預載...`;
+            }
+            if (syncIcon) syncIcon.className = 'fa-solid fa-arrows-rotate fa-spin';
+
+            try {
+                let ppTarget = { ...DEFAULT_GDRIVE_PP_FILE };
+                let hcTarget = { ...DEFAULT_GDRIVE_HC_FILE };
+
+                // Query live folder contents so if files are updated or added, they appear in the selector
+                try {
+                    const folderRes = await fetch(`/api/gdrive/folder?folderId=${encodeURIComponent(DEFAULT_GDRIVE_FOLDER_ID)}`);
+                    if (folderRes.ok) {
+                        const folderData = await folderRes.json();
+                        const excelEntries = (folderData.files || []).filter(f =>
+                            f.kind === 'spreadsheet' ||
+                            (f.kind === 'file' && (/\.(xlsx|xls|csv)$/i.test(f.title) || /pp\s*raw|headcount/i.test(f.title)))
+                        );
+                        if (excelEntries.length > 0) {
+                            gdriveFilesCache = excelEntries;
+                            const foundPp = excelEntries.find(f => /pp\s*raw/i.test(f.title));
+                            const foundHc = excelEntries.find(f => /headcount/i.test(f.title));
+                            if (foundPp) ppTarget = foundPp;
+                            if (foundHc) hcTarget = foundHc;
+
+                            const ppSelect = document.getElementById('gdrivePpSelect');
+                            const hcSelect = document.getElementById('gdriveHcSelect');
+                            if (ppSelect) {
+                                ppSelect.innerHTML = excelEntries.map(f => {
+                                    const val = `${f.id}|${f.kind}|${f.title}`;
+                                    const sel = f.id === ppTarget.id ? 'selected' : '';
+                                    return `<option value="${escapeHtml(val)}" ${sel}>${escapeHtml(f.title)}</option>`;
+                                }).join('');
+                            }
+                            if (hcSelect) {
+                                hcSelect.innerHTML = excelEntries.map(f => {
+                                    const val = `${f.id}|${f.kind}|${f.title}`;
+                                    const sel = f.id === hcTarget.id ? 'selected' : '';
+                                    return `<option value="${escapeHtml(val)}" ${sel}>${escapeHtml(f.title)}</option>`;
+                                }).join('');
+                            }
+                        }
+                    }
+                } catch (folderErr) {
+                    console.warn('Folder listing fallback to default file IDs:', folderErr);
+                }
+
+                // Query live DIRECT DISTRICT REPORT folder (1pvxqsNTG8ur8V7InCaKVyelveDqMCMPS) and load ALL Excel files inside
+                let ddrTargets = [...DEFAULT_GDRIVE_DDR_FILES];
+                try {
+                    const ddrFolderRes = await fetch(`/api/gdrive/folder?folderId=${encodeURIComponent(DEFAULT_GDRIVE_DDR_FOLDER_ID)}`);
+                    if (ddrFolderRes.ok) {
+                        const ddrFolderData = await ddrFolderRes.json();
+                        const ddrExcelEntries = (ddrFolderData.files || []).filter(f =>
+                            f.kind === 'spreadsheet' ||
+                            (f.kind === 'file' && (/\.(xlsx|xls|csv)$/i.test(f.title) || /directdistrict|report/i.test(f.title)))
+                        );
+                        if (ddrExcelEntries.length > 0) {
+                            ddrTargets = ddrExcelEntries;
+                        }
+                    }
+                } catch (ddrFolderErr) {
+                    console.warn('DDR folder listing fallback to default file IDs:', ddrFolderErr);
+                }
+
+                // Download PP Raw, Headcount, and all Direct District Report Excel files in parallel from Google Drive
+                const [ppBuf, hcBuf, ddrBuffers] = await Promise.all([
+                    fetchGDriveFileBuffer(ppTarget.id, ppTarget.kind),
+                    fetchGDriveFileBuffer(hcTarget.id, hcTarget.kind),
+                    Promise.all(
+                        ddrTargets.map(async f => {
+                            try {
+                                const buf = await fetchGDriveFileBuffer(f.id, f.kind || 'file');
+                                return { title: f.title, buf };
+                            } catch (e) {
+                                console.warn('Failed to download DDR file:', f.title, e);
+                                return null;
+                            }
+                        })
+                    )
+                ]);
+
+                const combinedDdrRows = [];
+                const loadedDdrNames = [];
+                ddrBuffers.filter(Boolean).forEach(item => {
+                    const rows = parseDirectDistrictReportBuffer(item.buf, item.title);
+                    combinedDdrRows.push(...rows);
+                    loadedDdrNames.push(item.title);
+                });
+                directDistrictReportRows = combinedDdrRows;
+                ddrLoadedFileNames = loadedDdrNames;
+                updateDdrBadgeUI();
+
+                // Load Headcount first, then PP Raw (which also re-syncs Headcount team mapping with PP Raw leaders and computes Table 5 & Table 7)
+                parseHeadcountArrayBuffer(hcBuf, `[GDrive] ${hcTarget.title}`, false);
+                parseExcelArrayBuffer(ppBuf, `[GDrive] ${ppTarget.title}`, false);
+
+                if (badge) {
+                    badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-cloud-check text-[9px]"></i> 已從 Google Drive 預載 (${escapeHtml(ppTarget.title)} + ${escapeHtml(hcTarget.title)} + ${loadedDdrNames.length} 個 DDR)`;
+                }
+                showToast(`已成功從 Google Drive 預載「${ppTarget.title}」、「${hcTarget.title}」及 ${loadedDdrNames.length} 個 Direct District Report 檔案！`, 'success');
+            } catch (err) {
+                console.error('Google Drive preload error:', err);
+                if (badge) {
+                    badge.className = 'text-[10px] bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[9px]"></i> 雲端預載失敗，請手動上載或重試`;
+                }
+                if (manualTrigger) {
+                    showToast('從 Google Drive 預載檔案失敗，請稍後重試或手動上載 Excel', 'error');
+                }
+            } finally {
+                if (syncIcon) syncIcon.className = 'fa-solid fa-cloud-arrow-down';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            preloadFromGoogleDrive(false);
+        });
 
         function onSheetChanged(sheetName) {
             activeSheetName = sheetName;
@@ -1393,19 +1941,26 @@
 
                 let rawUpline = getVal('uplineManager');
                 let uplineManager = isValidPersonName(cleanPersonName(rawUpline)) ? cleanPersonName(rawUpline) : '';
+                const rowUplineManagersList = [];
 
-                // If primary uplineManager is empty, self, or a top-level District Leader, look for a direct manager in uplineCandidateCols
-                if (!uplineManager || uplineManager.toUpperCase() === agentUpper || isDefaultTargetLeaderOrTeam(uplineManager)) {
-                    for (const uCol of uplineCandidateCols) {
-                        const cand = cleanPersonName(row[uCol]);
-                        if (isValidPersonName(cand) && cand.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(cand)) {
+                if (uplineManager && uplineManager.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(uplineManager)) {
+                    rowUplineManagersList.push(uplineManager);
+                }
+
+                for (const uCol of uplineCandidateCols) {
+                    const cand = cleanPersonName(row[uCol]);
+                    if (isValidPersonName(cand) && cand.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(cand)) {
+                        if (!rowUplineManagersList.some(existing => existing.toUpperCase() === cand.toUpperCase())) {
+                            rowUplineManagersList.push(cand);
+                        }
+                        if (!uplineManager || uplineManager.toUpperCase() === agentUpper || isDefaultTargetLeaderOrTeam(uplineManager)) {
                             uplineManager = cand;
                             rawUpline = String(row[uCol] || '');
-                            break;
                         }
                     }
                 }
-                const leader = rawLeader || uplineManager || 'Unassigned Leader';
+
+                const leader = normalizeDistrictLeaderName(rawLeader) || rawLeader || normalizeDistrictLeaderName(uplineManager) || uplineManager || 'Unassigned Leader';
                 const polNo = rawPolNo || `POL-${r}`;
                 const prod = getVal('product') || 'General Product';
                 const rowAgentGrade = extractManagerRank(getVal('agentGrade')) || extractManagerRank(rawAgent);
@@ -1431,6 +1986,7 @@
                     issueMonth: issMth,
                     leaderName: leader,
                     uplineManager: uplineManager,
+                    uplineManagersList: rowUplineManagersList,
                     agentName: agent,
                     agentGrade: rowAgentGrade,
                     uplineGrade: rowUplineGrade,
@@ -1448,23 +2004,31 @@
             allSheetData = rows;
             document.getElementById('rowCountBadge').innerText = `${allSheetData.length} 筆記錄`;
 
-            // Re-parse Headcount matrix if already loaded so Agent Name detection leverages allSheetData names
+            // Re-parse Headcount matrix if already loaded so Agent Name & Team detection leverages allSheetData names
             if (lastHeadcountMatrix) {
                 headcountRows = parseHeadcountMatrix(lastHeadcountMatrix);
+                buildHeadcountFilters();
+                computeTopNewRecruits();
             }
 
             buildFilterOptionsAndDefaults();
             applyFilters();
         }
 
-        function isDefaultTargetLeaderOrTeam(val) {
-            if (!val) return false;
+        function normalizeDistrictLeaderName(val) {
+            if (!val) return '';
             const upper = String(val).toUpperCase().trim().replace(/\s+/g, ' ');
-            if (upper === 'PAGGIE LAW' || upper === 'JERRY LO') return true;
-            if ((upper.includes('PAGGIE') && upper.includes('LAW')) || (upper.includes('JERRY') && upper.includes('LO'))) {
-                return true;
+            if (upper === 'PAGGIE LAW' || upper === 'LAW PUI KI' || upper === 'LAW SUK KING' || (upper.includes('PAGGIE') && upper.includes('LAW')) || (upper.includes('LAW') && upper.includes('PUI') && upper.includes('KI')) || (upper.includes('LAW') && upper.includes('SUK') && upper.includes('KING'))) {
+                return 'PAGGIE LAW';
             }
-            return false;
+            if (upper === 'JERRY LO' || upper === 'LO CHUN KIT' || upper === 'LO CHAK WAI' || (upper.includes('JERRY') && upper.includes('LO')) || (upper.includes('LO') && upper.includes('CHUN') && upper.includes('KIT')) || (upper.includes('LO') && upper.includes('CHAK') && upper.includes('WAI'))) {
+                return 'JERRY LO';
+            }
+            return '';
+        }
+
+        function isDefaultTargetLeaderOrTeam(val) {
+            return Boolean(normalizeDistrictLeaderName(val));
         }
 
         function buildFilterOptionsAndDefaults() {
@@ -1877,7 +2441,7 @@
             });
 
             table4RecruitRankings = Object.values(recruitMap)
-                .filter(item => item.recruitsCount > 0)
+                .filter(item => item.recruitsCount >= 3)
                 .sort((a, b) => b.recruitsCount - a.recruitsCount);
             renderTable4TopNewRecruits();
         }
@@ -1888,15 +2452,13 @@
             if (!tbody) return;
 
             if (subtext) {
-                const yrStr = selectedLisYears.size > 0 ? Array.from(selectedLisYears).join(',') : '無';
-                const mthStr = selectedLisMonths.size > 0 ? Array.from(selectedLisMonths).join(',') : '無';
-                subtext.innerText = `LIS 年: ${yrStr} | 月: ${mthStr} (${filteredHeadcountRows.length} 筆)`;
+                subtext.innerText = '4 OR ABOVE';
             }
 
             if (table4RecruitRankings.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="3" class="text-center py-6 text-purple-400">當前篩選範圍內無符合條件的新招募記錄</td>
+                        <td colspan="3" class="text-center py-6 text-purple-400">當前篩選範圍內無新招募人數達 3 位或以上的記錄</td>
                     </tr>
                 `;
                 return;
@@ -2108,9 +2670,18 @@
                 const cleanA = cleanPersonName(nameA).toUpperCase();
                 const cleanB = cleanPersonName(nameB).toUpperCase();
                 if (cleanA === cleanB) return true;
+                const dlA = normalizeDistrictLeaderName(cleanA);
+                const dlB = normalizeDistrictLeaderName(cleanB);
+                if (dlA && dlB && dlA === dlB) return true;
                 const tokensA = tokenizeForMatch(cleanA);
                 const tokensB = tokenizeForMatch(cleanB);
                 if (tokensA.length === 0 || tokensB.length === 0) return false;
+                // Match Pinyin / multi-word names where syllables are joined vs space-separated (e.g. MA YIKUN vs MA YI KUN, QI GUANG MING vs QI GUANGMING)
+                if (tokensA.length >= 2 && tokensB.length >= 2 && tokensA[0] === tokensB[0]) {
+                    const joinedA = tokensA.join('');
+                    const joinedB = tokensB.join('');
+                    if (joinedA.length >= 5 && joinedA === joinedB) return true;
+                }
                 const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
                 const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
                 if (shorter.length < 2 && longer.length > 1) return false;
@@ -2285,10 +2856,14 @@
             // Track manager ranks from PP Raw (allSheetData) and Headcount (headcountRows)
             const personRankMap = new Map();
             const recordPersonRank = (personName, rank) => {
-                if (!personName || !rank || !MANAGER_MIN_HEADCOUNT[rank]) return;
+                if (!personName || !rank || (!MANAGER_MIN_HEADCOUNT[rank] && rank !== 'SUM' && rank !== 'UM')) return;
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 if (!fullName) return;
-                personRankMap.set(fullName.toUpperCase(), rank);
+                const key = fullName.toUpperCase();
+                const existing = personRankMap.get(key);
+                if (!existing || (MANAGER_MIN_HEADCOUNT[rank] || 0) >= (MANAGER_MIN_HEADCOUNT[existing] || 0)) {
+                    personRankMap.set(key, rank);
+                }
             };
 
             allSheetData.forEach(r => {
@@ -2302,6 +2877,11 @@
                 if (hc.uplineGrade && hc.uplineManager) recordPersonRank(hc.uplineManager, hc.uplineGrade);
             });
 
+            directDistrictReportRows.forEach(ddr => {
+                const rk = extractManagerRank(ddr.position);
+                if (rk) recordPersonRank(ddr.agentNameEN, rk);
+            });
+
             const getManagerRank = (personName) => {
                 if (!personName) return '';
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
@@ -2313,31 +2893,96 @@
                 return extractManagerRank(personName) || '';
             };
 
-            // Table 5: TEAM TOP PRODUCTIVITY
+            // Table 5 (Direct District Report) & Table 7 (PP Raw): TEAM TOP PRODUCTIVITY
             // Strictly respect Multi-Select Filter Grid (especially selectedFilters.LeaderName, SubmitYear/Month, IssueYear/Month)
             const matchesSelectedLeader = (leaderVal) => {
                 if (!selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) return false;
                 if (!leaderVal) return false;
-                if (selectedFilters.LeaderName.has(leaderVal)) return true;
-                const targetUpper = String(leaderVal).toUpperCase().trim();
-                return Array.from(selectedFilters.LeaderName).some(sel => String(sel).toUpperCase().trim() === targetUpper);
+                const normVal = normalizeDistrictLeaderName(leaderVal) || String(leaderVal).trim();
+                if (selectedFilters.LeaderName.has(leaderVal) || selectedFilters.LeaderName.has(normVal)) return true;
+                const targetUpper = normVal.toUpperCase();
+                return Array.from(selectedFilters.LeaderName).some(sel => {
+                    const normSel = normalizeDistrictLeaderName(sel) || String(sel).trim();
+                    return normSel.toUpperCase() === targetUpper;
+                });
             };
 
             const isKnownFilterLeader = (leaderVal) => {
-                if (!leaderVal || !filterOptions.LeaderName) return false;
+                if (!leaderVal) return false;
+                if (normalizeDistrictLeaderName(leaderVal)) return true;
+                if (!filterOptions.LeaderName) return false;
                 const targetUpper = String(leaderVal).toUpperCase().trim();
                 return filterOptions.LeaderName.some(l => String(l).toUpperCase().trim() === targetUpper);
             };
 
-            // Map every person in allSheetData to their known Leader Name(s) so non-selected Leaders never leak in via headcountRows
+            // Map every person in allSheetData, headcountRows, & directDistrictReportRows to their direct Upline Manager and Leader Name
+            const directUplineMap = new Map();
+            const recordDirectUpline = (memberName, uplineName, preferOverride = false) => {
+                if (!memberName || !uplineName || uplineName === 'Unassigned Manager') return;
+                const mFull = resolveToFullName(memberName) || cleanPersonName(memberName);
+                const uFull = resolveToFullName(uplineName) || cleanPersonName(uplineName);
+                if (!mFull || !uFull || isSamePersonName(mFull, uFull)) return;
+                const mKey = mFull.toUpperCase();
+                const existing = directUplineMap.get(mKey);
+                if (!existing || preferOverride || (isDefaultTargetLeaderOrTeam(existing) && !isDefaultTargetLeaderOrTeam(uFull))) {
+                    directUplineMap.set(mKey, uFull);
+                }
+            };
+
+            const getDirectUpline = (personName) => {
+                if (!personName) return '';
+                const fullName = resolveToFullName(personName) || cleanPersonName(personName);
+                const key = fullName.toUpperCase();
+                if (directUplineMap.has(key)) return directUplineMap.get(key);
+                for (const [k, up] of directUplineMap.entries()) {
+                    if (isSamePersonName(fullName, k)) return up;
+                }
+                return '';
+            };
+
+            // 1. Record upline chains from PP Raw (allSheetData) and Direct District Report (directDistrictReportRows)
+            allSheetData.forEach(r => {
+                if (Array.isArray(r.uplineManagersList) && r.uplineManagersList.length > 0) {
+                    const chain = r.uplineManagersList
+                        .map(u => resolveToFullName(u) || cleanPersonName(u))
+                        .filter(u => isValidPersonName(u) && !isSamePersonName(u, r.agentName));
+                    if (chain.length === 1) {
+                        recordDirectUpline(r.agentName, chain[0], false);
+                    } else if (chain.length > 1) {
+                        recordDirectUpline(r.agentName, chain[chain.length - 1], false);
+                        for (let i = chain.length - 1; i > 0; i--) {
+                            recordDirectUpline(chain[i], chain[i - 1], false);
+                        }
+                    }
+                } else if (r.uplineManager && !isSamePersonName(r.uplineManager, r.agentName)) {
+                    recordDirectUpline(r.agentName, r.uplineManager, false);
+                }
+            });
+
+            directDistrictReportRows.forEach(ddr => {
+                if (isValidPersonName(ddr.agentNameEN) && isValidPersonName(ddr.managerEN) && !isSamePersonName(ddr.agentNameEN, ddr.managerEN)) {
+                    recordDirectUpline(ddr.agentNameEN, ddr.managerEN, false);
+                }
+            });
+
+            // 2. Record authoritative direct Upline Manager (Column K) from Headcount rows (preferOverride = true)
+            headcountRows.forEach(hc => {
+                if (isValidPersonName(hc.agentName) && hc.agentName !== 'New Recruit' && isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager') {
+                    recordDirectUpline(hc.agentName, hc.uplineManager, true);
+                }
+            });
+
+            // 3. Map every person to their known District Leader Name(s) and propagate across the upline/downline hierarchy
             const personLeadersMap = new Map();
             const recordPersonLeader = (personName, leaderVal) => {
-                if (!personName || !leaderVal || leaderVal === 'Unassigned Leader') return;
+                if (!personName || !leaderVal || leaderVal === 'Unassigned Leader' || leaderVal === 'Unassigned') return;
+                const normLeader = normalizeDistrictLeaderName(leaderVal) || (isKnownFilterLeader(leaderVal) ? leaderVal : '');
+                if (!normLeader) return;
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 if (!fullName) return;
                 const k = fullName.toUpperCase();
                 if (!personLeadersMap.has(k)) personLeadersMap.set(k, new Set());
-                personLeadersMap.get(k).add(leaderVal);
+                personLeadersMap.get(k).add(normLeader);
             };
 
             allSheetData.forEach(r => {
@@ -2346,11 +2991,48 @@
                     if (r.uplineManager && !isDefaultTargetLeaderOrTeam(r.uplineManager)) {
                         recordPersonLeader(r.uplineManager, r.leaderName);
                     }
+                    if (Array.isArray(r.uplineManagersList)) {
+                        r.uplineManagersList.forEach(u => {
+                            if (!isDefaultTargetLeaderOrTeam(u)) recordPersonLeader(u, r.leaderName);
+                        });
+                    }
+                }
+            });
+
+            headcountRows.forEach(hc => {
+                const selfLeader = normalizeDistrictLeaderName(hc.agentName);
+                if (selfLeader) {
+                    recordPersonLeader(hc.agentName, selfLeader);
+                    return;
+                }
+                const teamLeader = normalizeDistrictLeaderName(hc.team) || (isKnownFilterLeader(hc.team) ? hc.team : '');
+                const araLeader = normalizeDistrictLeaderName(hc.araName);
+                const upLeader = normalizeDistrictLeaderName(hc.uplineManager);
+                const resolvedLeader = teamLeader || araLeader || upLeader;
+                if (resolvedLeader) {
+                    recordPersonLeader(hc.agentName, resolvedLeader);
+                    if (hc.uplineManager && !isDefaultTargetLeaderOrTeam(hc.uplineManager)) {
+                        recordPersonLeader(hc.uplineManager, resolvedLeader);
+                    }
+                }
+            });
+
+            directDistrictReportRows.forEach(ddr => {
+                const selfLeader = normalizeDistrictLeaderName(ddr.agentNameEN);
+                if (selfLeader) {
+                    recordPersonLeader(ddr.agentNameEN, selfLeader);
+                    return;
+                }
+                const mgrLeader = normalizeDistrictLeaderName(ddr.managerEN);
+                if (mgrLeader) {
+                    recordPersonLeader(ddr.agentNameEN, mgrLeader);
                 }
             });
 
             const getPersonKnownLeaders = (personName) => {
                 if (!personName) return [];
+                const selfDistrict = normalizeDistrictLeaderName(personName);
+                if (selfDistrict) return [selfDistrict];
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 const key = fullName.toUpperCase();
                 if (personLeadersMap.has(key)) return Array.from(personLeadersMap.get(key));
@@ -2360,9 +3042,32 @@
                 return [];
             };
 
+            // Propagate Leader Name up and down directUplineMap until convergence so 2nd/3rd level sub-teams inherit their District Leader
+            let leaderChanged = true;
+            let leaderGuard = 0;
+            while (leaderChanged && leaderGuard < 15) {
+                leaderChanged = false;
+                leaderGuard++;
+                for (const [memberKey, uplineFull] of directUplineMap.entries()) {
+                    const memberLeaders = getPersonKnownLeaders(memberKey);
+                    const uplineLeaders = getPersonKnownLeaders(uplineFull);
+                    if (memberLeaders.length === 0 && uplineLeaders.length > 0) {
+                        uplineLeaders.forEach(l => recordPersonLeader(memberKey, l));
+                        leaderChanged = true;
+                    } else if (uplineLeaders.length === 0 && memberLeaders.length > 0 && !isDefaultTargetLeaderOrTeam(uplineFull)) {
+                        memberLeaders.forEach(l => recordPersonLeader(uplineFull, l));
+                        leaderChanged = true;
+                    }
+                }
+            }
+
             const isPersonAllowedByLeaderFilter = (personName, fallbackTeam) => {
                 if (!selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) return false;
-                if (fallbackTeam && fallbackTeam !== 'Unassigned' && isKnownFilterLeader(fallbackTeam)) {
+                const selfDistrict = normalizeDistrictLeaderName(personName);
+                if (selfDistrict) {
+                    return matchesSelectedLeader(selfDistrict);
+                }
+                if (fallbackTeam && fallbackTeam !== 'Unassigned') {
                     return matchesSelectedLeader(fallbackTeam);
                 }
                 if (agentList.some(a => isSamePersonName(a.agentName, personName))) {
@@ -2372,22 +3077,36 @@
                 if (knownLeaders.length > 0) {
                     return knownLeaders.some(l => matchesSelectedLeader(l));
                 }
-                if (fallbackTeam && fallbackTeam !== 'Unassigned') {
-                    return matchesSelectedLeader(fallbackTeam);
-                }
                 return false;
             };
 
-            if (filteredRows.length === 0 || !selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) {
+            if ((filteredRows.length === 0 && directDistrictReportRows.length === 0) || !selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) {
                 table5ProductivityRankings = [];
+                table5AllRankings = [];
+                table7ProductivityRankings = [];
+                table7AllRankings = [];
                 renderAgentRankingsTables();
                 renderTable5Productivity();
                 renderTable6ActiveElite();
+                renderTable7Productivity();
                 return;
             }
 
             const memberRosterMap = new Map();
+            const findExistingRosterKey = (personName, extraAliases = []) => {
+                const fullName = resolveToFullName(personName) || cleanPersonName(personName) || personName;
+                const key = fullName.toUpperCase();
+                if (memberRosterMap.has(key)) return key;
+                const allAliases = [fullName, personName, ...extraAliases].filter(Boolean);
+                for (const [k, v] of memberRosterMap.entries()) {
+                    if (allAliases.some(al => isSamePersonName(al, v.name))) {
+                        return k;
+                    }
+                }
+                return null;
+            };
 
+            // Step 1: Add all producing agents from filteredRows (agentList)
             agentList.forEach(a => {
                 const fullName = resolveToFullName(a.agentName) || a.agentName;
                 const key = fullName.toUpperCase();
@@ -2406,7 +3125,7 @@
                     ? (resolveToFullName(hcWithDirectUpline.uplineManager) || hcWithDirectUpline.uplineManager)
                     : '';
 
-                let effectiveUpline = hcUpline || a.uplineManager || '';
+                let effectiveUpline = hcUpline || getDirectUpline(fullName) || a.uplineManager || '';
                 if (!effectiveUpline || isDefaultTargetLeaderOrTeam(effectiveUpline) || isSamePersonName(effectiveUpline, fullName)) {
                     const sheetMatchWithDirectUpline = filteredRows.find(r =>
                         isSamePersonName(r.agentName, fullName) &&
@@ -2419,156 +3138,199 @@
                     }
                 }
 
+                const knownLeaders = getPersonKnownLeaders(fullName);
+                const effectiveLeader = normalizeDistrictLeaderName(a.leaderName) ||
+                    (isKnownFilterLeader(a.leaderName) ? a.leaderName : '') ||
+                    knownLeaders.find(l => matchesSelectedLeader(l)) ||
+                    (hcMatches[0] ? hcMatches[0].team : '') ||
+                    a.leaderName || '';
+
                 memberRosterMap.set(key, {
                     name: fullName,
                     rank: getManagerRank(fullName),
-                    leaderName: a.leaderName || (hcMatches[0] ? hcMatches[0].team : ''),
+                    leaderName: effectiveLeader,
                     uplineManager: effectiveUpline,
                     totalFYC: a.totalFYC,
+                    ddrFYCC: 0,
+                    extraDdrFYCC: 0,
                     manMonth: a.manMonth
                 });
             });
 
-            // Include Headcount members and link their Upline Manager (Column K) to roster entries ONLY if allowed by selectedFilters.LeaderName
-            headcountRows.forEach(hc => {
-                const candidateNames = [hc.agentName, ...(Array.isArray(hc.rowPersonNames) ? hc.rowPersonNames : [])]
-                    .filter(n => isValidPersonName(n) && n !== 'New Recruit');
-                if (candidateNames.length === 0) return;
+            // Step 2: Iteratively include Headcount members and all Upline Managers across all hierarchy levels (respecting selectedFilters.LeaderName)
+            let rosterChanged = true;
+            let rosterGuard = 0;
+            while (rosterChanged && rosterGuard < 15) {
+                rosterChanged = false;
+                rosterGuard++;
 
-                const rawAgentName = candidateNames[0];
-                const fullName = resolveToFullName(rawAgentName) || rawAgentName;
-                const key = fullName.toUpperCase();
-                const uplineFull = (isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager')
-                    ? (resolveToFullName(hc.uplineManager) || hc.uplineManager)
-                    : '';
+                // 2a: Ensure every Headcount member belonging to selectedFilters.LeaderName is in memberRosterMap
+                headcountRows.forEach(hc => {
+                    const candidateNames = [hc.agentName, ...(Array.isArray(hc.rowPersonNames) ? hc.rowPersonNames : [])]
+                        .filter(n => isValidPersonName(n) && n !== 'New Recruit');
+                    if (candidateNames.length === 0) return;
 
-                let existingKey = memberRosterMap.has(key) ? key : null;
-                if (!existingKey) {
-                    for (const [k, v] of memberRosterMap.entries()) {
-                        if (candidateNames.some(cn => isSamePersonName(cn, v.name)) || isSamePersonName(fullName, v.name)) {
-                            existingKey = k;
-                            break;
+                    const rawAgentName = candidateNames[0];
+                    const fullName = resolveToFullName(rawAgentName) || rawAgentName;
+                    const key = fullName.toUpperCase();
+                    const uplineFull = (isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager')
+                        ? (resolveToFullName(hc.uplineManager) || hc.uplineManager)
+                        : (getDirectUpline(fullName) || '');
+
+                    const existingKey = findExistingRosterKey(fullName, candidateNames);
+                    if (existingKey) {
+                        const existing = memberRosterMap.get(existingKey);
+                        if (uplineFull && !isSamePersonName(uplineFull, existing.name)) {
+                            if (!existing.uplineManager || (isDefaultTargetLeaderOrTeam(existing.uplineManager) && !isDefaultTargetLeaderOrTeam(uplineFull)) || isSamePersonName(existing.uplineManager, existing.name)) {
+                                existing.uplineManager = uplineFull;
+                                rosterChanged = true;
+                            }
+                        }
+                        if (!existing.rank) {
+                            existing.rank = getManagerRank(existing.name) || getManagerRank(fullName);
+                        }
+                    } else {
+                        const uplineKey = uplineFull ? findExistingRosterKey(uplineFull) : null;
+                        const uplineEntry = uplineKey ? memberRosterMap.get(uplineKey) : null;
+                        const hasExplicitHcTeam = Boolean(hc.team && hc.team !== 'Unassigned');
+                        const allowedSelf = isPersonAllowedByLeaderFilter(fullName, hc.team);
+                        const allowedViaUpline = !hasExplicitHcTeam && uplineEntry && isPersonAllowedByLeaderFilter(uplineEntry.name, uplineEntry.leaderName);
+
+                        if (!allowedSelf && !allowedViaUpline) return;
+                        // Never allow a top-level District Leader who is unchecked in LeaderName filter
+                        const selfDistrict = normalizeDistrictLeaderName(fullName);
+                        if (selfDistrict && !matchesSelectedLeader(selfDistrict)) return;
+
+                        const mm = hc.manMonth > 0 ? hc.manMonth : calculateManMonthFromDates(hc.productionStartDate, hc.terminationDate);
+                        if (mm > 0) {
+                            const knownLeaders = getPersonKnownLeaders(fullName);
+                            const effectiveLeaderName = (selfDistrict && matchesSelectedLeader(selfDistrict))
+                                ? selfDistrict
+                                : (knownLeaders.find(l => matchesSelectedLeader(l)) ||
+                                   (uplineEntry && uplineEntry.leaderName) ||
+                                   (matchesSelectedLeader(hc.team) ? (normalizeDistrictLeaderName(hc.team) || hc.team) : ''));
+
+                            memberRosterMap.set(key, {
+                                name: fullName,
+                                rank: getManagerRank(fullName),
+                                leaderName: effectiveLeaderName,
+                                uplineManager: uplineFull,
+                                totalFYC: 0,
+                                ddrFYCC: 0,
+                                extraDdrFYCC: 0,
+                                manMonth: mm
+                            });
+                            rosterChanged = true;
                         }
                     }
-                }
+                });
 
-                if (existingKey) {
-                    const existing = memberRosterMap.get(existingKey);
-                    if (uplineFull && !isSamePersonName(uplineFull, existing.name)) {
-                        if (!existing.uplineManager || isDefaultTargetLeaderOrTeam(existing.uplineManager) || isSamePersonName(existing.uplineManager, existing.name)) {
-                            existing.uplineManager = uplineFull;
+                // 2b: Ensure every Upline Manager referenced by any member in memberRosterMap also has a node in memberRosterMap
+                const currentRosterValues = Array.from(memberRosterMap.values());
+                currentRosterValues.forEach(m => {
+                    if (!m.uplineManager) {
+                        const inferredUp = getDirectUpline(m.name);
+                        if (inferredUp && !isSamePersonName(inferredUp, m.name)) {
+                            m.uplineManager = inferredUp;
+                            rosterChanged = true;
                         }
                     }
-                    if (!existing.rank) {
-                        existing.rank = getManagerRank(existing.name) || getManagerRank(fullName);
-                    }
-                } else {
-                    // For non-producing Headcount members, strictly check Leader Name filter and whether their Upline Manager is in the active Leader roster
-                    if (hc.team && hc.team !== 'Unassigned' && isKnownFilterLeader(hc.team) && !matchesSelectedLeader(hc.team)) {
-                        return;
-                    }
-                    const knownAgentLeaders = getPersonKnownLeaders(fullName);
-                    if (knownAgentLeaders.length > 0 && !knownAgentLeaders.some(l => matchesSelectedLeader(l))) {
-                        return;
-                    }
+                    if (!m.uplineManager) return;
+                    const upFull = resolveToFullName(m.uplineManager) || m.uplineManager;
+                    if (isSamePersonName(upFull, m.name)) return;
+                    const foundKey = findExistingRosterKey(upFull);
+                    if (!foundKey) {
+                        if (!isPersonAllowedByLeaderFilter(upFull, m.leaderName)) return;
+                        const upDistrict = normalizeDistrictLeaderName(upFull);
+                        if (upDistrict && !matchesSelectedLeader(upDistrict)) return;
 
-                    const uplineEntry = uplineFull
-                        ? (memberRosterMap.get(uplineFull.toUpperCase()) || Array.from(memberRosterMap.values()).find(m => isSamePersonName(uplineFull, m.name)))
-                        : null;
-                    const matchLeaderTeam = matchesSelectedLeader(hc.team);
+                        const hcMatches = findHeadcountMatches(upFull);
+                        const mm = (hcMatches.length > 0 && hcMatches[0].manMonth > 0)
+                            ? hcMatches[0].manMonth
+                            : (hcMatches.length > 0 && hcMatches[0].productionStartDate)
+                                ? Math.max(1, calculateManMonthFromDates(hcMatches[0].productionStartDate, hcMatches[0].terminationDate))
+                                : Math.max(1, defaultFullTenureMonths);
+                        const upOfUp = (hcMatches.length > 0 && isValidPersonName(hcMatches[0].uplineManager) && hcMatches[0].uplineManager !== 'Unassigned Manager')
+                            ? (resolveToFullName(hcMatches[0].uplineManager) || hcMatches[0].uplineManager)
+                            : (getDirectUpline(upFull) || '');
+                        const upLeaders = getPersonKnownLeaders(upFull);
+                        const upLeaderName = upDistrict || upLeaders.find(l => matchesSelectedLeader(l)) || m.leaderName || '';
 
-                    if (!matchLeaderTeam && !uplineEntry) return;
-                    if (uplineFull && !uplineEntry && !isPersonAllowedByLeaderFilter(uplineFull, hc.team)) return;
-
-                    const mm = hc.manMonth > 0 ? hc.manMonth : calculateManMonthFromDates(hc.productionStartDate, hc.terminationDate);
-                    if (mm > 0) {
-                        const effectiveLeaderName = (uplineEntry && uplineEntry.leaderName)
-                            ? uplineEntry.leaderName
-                            : (matchLeaderTeam ? hc.team : (knownAgentLeaders.find(l => matchesSelectedLeader(l)) || ''));
-                        memberRosterMap.set(key, {
-                            name: fullName,
-                            rank: getManagerRank(fullName),
-                            leaderName: effectiveLeaderName,
-                            uplineManager: uplineFull,
+                        memberRosterMap.set(upFull.toUpperCase(), {
+                            name: upFull,
+                            rank: getManagerRank(upFull),
+                            leaderName: upLeaderName,
+                            uplineManager: (!isSamePersonName(upOfUp, upFull)) ? upOfUp : '',
                             totalFYC: 0,
+                            ddrFYCC: 0,
+                            extraDdrFYCC: 0,
                             manMonth: mm
                         });
+                        rosterChanged = true;
                     }
-                }
-            });
+                });
+            }
 
-            // Ensure every member in memberRosterMap has their accurate FYC Final strictly from filteredRows (respecting all 5 filters including LeaderName)
+            // Step 3: Ensure every member in memberRosterMap has:
+            // (a) totalFYC from filteredRows (PP Raw Col V) for Table 7
+            // (b) ddrFYCC summed across all Direct District Report Excel files (Requested Month FYCC) for Table 5
             for (const member of memberRosterMap.values()) {
-                if (!member.totalFYC || member.totalFYC === 0) {
-                    const matchedAg = agentList.find(ag => isSamePersonName(ag.agentName, member.name));
-                    if (matchedAg && matchedAg.totalFYC > 0) {
-                        member.totalFYC = matchedAg.totalFYC;
-                        if (matchedAg.manMonth > 0) member.manMonth = matchedAg.manMonth;
-                        if (matchedAg.leaderName) member.leaderName = matchedAg.leaderName;
-                    } else {
-                        const memberFilteredRows = filteredRows.filter(r => isSamePersonName(r.agentName, member.name));
-                        if (memberFilteredRows.length > 0) {
-                            member.totalFYC = memberFilteredRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
-                            if (!member.leaderName && memberFilteredRows[0].leaderName) {
-                                member.leaderName = memberFilteredRows[0].leaderName;
-                            }
+                const matchedAgents = agentList.filter(ag => isSamePersonName(ag.agentName, member.name));
+                if (matchedAgents.length > 0) {
+                    const sumFYC = matchedAgents.reduce((s, ag) => s + (ag.totalFYC || 0), 0);
+                    if (sumFYC > 0) member.totalFYC = sumFYC;
+                    if (matchedAgents[0].manMonth > 0 && (!member.manMonth || member.manMonth === 0)) {
+                        member.manMonth = matchedAgents[0].manMonth;
+                    }
+                    if (!member.leaderName && matchedAgents[0].leaderName) {
+                        member.leaderName = normalizeDistrictLeaderName(matchedAgents[0].leaderName) || matchedAgents[0].leaderName;
+                    }
+                } else if (!member.totalFYC || member.totalFYC === 0) {
+                    const memberFilteredRows = filteredRows.filter(r => isSamePersonName(r.agentName, member.name));
+                    if (memberFilteredRows.length > 0) {
+                        member.totalFYC = memberFilteredRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+                        if (!member.leaderName && memberFilteredRows[0].leaderName) {
+                            member.leaderName = normalizeDistrictLeaderName(memberFilteredRows[0].leaderName) || memberFilteredRows[0].leaderName;
                         }
                     }
                 }
             }
 
-            // Ensure every referenced Upline Manager (belonging to the selected Leader Name) also has a node in memberRosterMap
-            const allRosterValues = Array.from(memberRosterMap.values());
-            allRosterValues.forEach(m => {
-                if (!m.uplineManager) return;
-                const upFull = resolveToFullName(m.uplineManager) || m.uplineManager;
-                const upKey = upFull.toUpperCase();
-                let foundKey = memberRosterMap.has(upKey) ? upKey : null;
-                if (!foundKey) {
-                    for (const [k, v] of memberRosterMap.entries()) {
-                        if (isSamePersonName(upFull, v.name)) {
-                            foundKey = k;
-                            break;
-                        }
+            // Sum Requested Month FYCC from Direct District Report rows into memberRosterMap
+            directDistrictReportRows.forEach(ddr => {
+                if (!ddr.fycc) return;
+                const rosterKey = findExistingRosterKey(ddr.agentNameEN);
+                if (rosterKey) {
+                    const m = memberRosterMap.get(rosterKey);
+                    m.ddrFYCC = (m.ddrFYCC || 0) + ddr.fycc;
+                } else if (ddr.managerEN) {
+                    const mgrKey = findExistingRosterKey(ddr.managerEN);
+                    if (mgrKey) {
+                        const mgr = memberRosterMap.get(mgrKey);
+                        mgr.extraDdrFYCC = (mgr.extraDdrFYCC || 0) + ddr.fycc;
                     }
-                }
-                if (!foundKey) {
-                    if (!isPersonAllowedByLeaderFilter(upFull, m.leaderName)) return;
-                    const hcMatches = findHeadcountMatches(upFull);
-                    const mm = (hcMatches.length > 0 && hcMatches[0].manMonth > 0)
-                        ? hcMatches[0].manMonth
-                        : (hcMatches.length > 0 && hcMatches[0].productionStartDate)
-                            ? Math.max(1, calculateManMonthFromDates(hcMatches[0].productionStartDate, hcMatches[0].terminationDate))
-                            : Math.max(1, defaultFullTenureMonths);
-                    memberRosterMap.set(upKey, {
-                        name: upFull,
-                        rank: getManagerRank(upFull),
-                        leaderName: m.leaderName || '',
-                        uplineManager: (hcMatches.length > 0 && isValidPersonName(hcMatches[0].uplineManager) && hcMatches[0].uplineManager !== 'Unassigned Manager')
-                            ? (resolveToFullName(hcMatches[0].uplineManager) || hcMatches[0].uplineManager)
-                            : '',
-                        totalFYC: 0,
-                        manMonth: mm
-                    });
                 }
             });
 
             // Calculation months (計算月份): matches the assessment months in the filtered period
             const calcMonths = Math.max(1, defaultFullTenureMonths);
 
-            // Compute Team Productivity for each Manager / Team Leader belonging to selectedFilters.LeaderName
+            // Step 4: Compute Team Productivity for Table 5 (Direct District Report Requested Month FYCC) and Table 7 (PP Raw Col V FYC Final)
+            // Total Man Month calculation method is identical for both tables (總 Man Month計算方法一樣)
             const rosterEntries = Array.from(memberRosterMap.values());
-            const teamRankings = [];
+            const table5TeamRankings = [];
+            const table7TeamRankings = [];
+            const hasDdrData = directDistrictReportRows.length > 0;
 
             rosterEntries.forEach(manager => {
                 if (!isPersonAllowedByLeaderFilter(manager.name, manager.leaderName)) return;
 
-                // Find all direct and transitive downlines of this manager (Upline Manager belongs to this manager)
+                // Find all direct and transitive downlines of this manager
                 const teamMembers = [manager];
                 const visited = new Set([manager.name.toUpperCase()]);
                 let queue = [manager.name];
 
-                const isDistrictLeader = isDefaultTargetLeaderOrTeam(manager.name);
+                const managerDistrictLeader = normalizeDistrictLeaderName(manager.name) || normalizeDistrictLeaderName(manager.leaderName);
 
                 while (queue.length > 0) {
                     const currentLeaderName = queue.shift();
@@ -2576,11 +3338,14 @@
                         const candKey = candidate.name.toUpperCase();
                         if (visited.has(candKey)) return;
                         if (candidate.uplineManager && isSamePersonName(candidate.uplineManager, currentLeaderName)) {
+                            // Do not merge a separate top-level District Leader (e.g. JERRY LO / LO CHAK WAI vs PAGGIE LAW / LAW SUK KING) into another District Leader's team
+                            const candSelfDistrict = normalizeDistrictLeaderName(candidate.name);
+                            if (candSelfDistrict && managerDistrictLeader && candSelfDistrict !== managerDistrictLeader) {
+                                return;
+                            }
                             visited.add(candKey);
                             teamMembers.push(candidate);
-                            if (!isDistrictLeader) {
-                                queue.push(candidate.name);
-                            }
+                            queue.push(candidate.name);
                         }
                     });
                 }
@@ -2589,65 +3354,160 @@
                 const minReqHeadcount = MANAGER_MIN_HEADCOUNT[managerRank] || 0;
                 const minReqManMonth = minReqHeadcount > 0 ? (minReqHeadcount * calcMonths) : 0;
 
-                const teamTotalFYC = teamMembers.reduce((sum, m) => sum + (m.totalFYC || 0), 0);
                 const actualTeamManMonth = teamMembers.reduce((sum, m) => sum + (m.manMonth || 0), 0);
 
                 // Rule: If team's actual Man-Month (or headcount) is below company minimum requirement for manager's rank,
-                // MANMONTH = 每月最低要求團體人數 * 計算月份, and TEAM TOP PRODUCTIVITY = 團隊 FYC FINAL 加總 / 此 MAN MONTH
+                // MANMONTH = 每月最低要求團體人數 * 計算月份
                 const isBelowMinRequirement = minReqHeadcount > 0 && (teamMembers.length < minReqHeadcount || actualTeamManMonth < minReqManMonth);
                 const effectiveManMonth = isBelowMinRequirement
                     ? Math.max(actualTeamManMonth, minReqManMonth)
                     : actualTeamManMonth;
 
-                const teamProductivity = effectiveManMonth > 0 ? (teamTotalFYC / effectiveManMonth) : 0;
+                const isTeamLeader = teamMembers.length > 1 || Boolean(managerRank);
+                const cleanMgrName = cleanPersonName(manager.name) || manager.name;
 
-                if (teamTotalFYC > 0) {
-                    teamRankings.push({
-                        managerName: cleanPersonName(manager.name) || manager.name,
-                        managerRank: managerRank,
-                        minReqHeadcount: minReqHeadcount,
-                        minReqManMonth: minReqManMonth,
-                        isBelowMinRequirement: isBelowMinRequirement,
-                        calcMonths: calcMonths,
-                        leaderName: manager.leaderName,
-                        memberCount: teamMembers.length,
-                        teamMembers: teamMembers,
-                        teamTotalFYC,
-                        actualTeamManMonth,
-                        teamTotalManMonth: effectiveManMonth,
-                        productivity: teamProductivity,
-                        isTeamLeader: teamMembers.length > 1 || Boolean(managerRank)
+                // Table 7: PP Raw FYC Final (Col V)
+                const teamTotalPpFYC = teamMembers.reduce((sum, m) => sum + (m.totalFYC || 0), 0);
+                const teamPpProductivity = effectiveManMonth > 0 ? (teamTotalPpFYC / effectiveManMonth) : 0;
+
+                // Table 5: Direct District Report (Requested Month FYCC summed across all DDR Excel files)
+                const teamTotalDdrFYCC = hasDdrData
+                    ? teamMembers.reduce((sum, m) => sum + (m.ddrFYCC || 0) + (m.extraDdrFYCC || 0), 0)
+                    : teamTotalPpFYC;
+                const teamDdrProductivity = effectiveManMonth > 0 ? (teamTotalDdrFYCC / effectiveManMonth) : 0;
+
+                const t5Members = teamMembers.map(m => ({
+                    ...m,
+                    displayFYC: hasDdrData ? ((m.ddrFYCC || 0) + (m.extraDdrFYCC || 0)) : (m.totalFYC || 0)
+                }));
+                const t7Members = teamMembers.map(m => ({
+                    ...m,
+                    displayFYC: m.totalFYC || 0
+                }));
+
+                const baseObj = {
+                    managerName: cleanMgrName,
+                    managerRank,
+                    minReqHeadcount,
+                    minReqManMonth,
+                    isBelowMinRequirement,
+                    calcMonths,
+                    leaderName: manager.leaderName,
+                    memberCount: teamMembers.length,
+                    actualTeamManMonth,
+                    teamTotalManMonth: effectiveManMonth,
+                    isTeamLeader
+                };
+
+                if (teamTotalDdrFYCC > 0 || isTeamLeader || effectiveManMonth > 0) {
+                    table5TeamRankings.push({
+                        ...baseObj,
+                        teamMembers: t5Members,
+                        teamTotalFYC: teamTotalDdrFYCC,
+                        productivity: teamDdrProductivity,
+                        dataSourceType: 'ddr'
+                    });
+                }
+
+                if (teamTotalPpFYC > 0 || isTeamLeader || effectiveManMonth > 0) {
+                    table7TeamRankings.push({
+                        ...baseObj,
+                        teamMembers: t7Members,
+                        teamTotalFYC: teamTotalPpFYC,
+                        productivity: teamPpProductivity,
+                        dataSourceType: 'ppraw'
                     });
                 }
             });
 
-            // Prioritize true teams / ranked managers; if fewer than 5 exist, include remaining units
-            const multiMemberTeams = teamRankings.filter(t => t.isTeamLeader).sort((a, b) => b.productivity - a.productivity);
-            const singleMemberUnits = teamRankings.filter(t => !t.isTeamLeader).sort((a, b) => b.productivity - a.productivity);
+            const sortByProdDesc = (a, b) => {
+                if (Math.abs(b.productivity - a.productivity) > 1e-6) return b.productivity - a.productivity;
+                return b.teamTotalFYC - a.teamTotalFYC;
+            };
 
-            table5ProductivityRankings = multiMemberTeams.length >= 5
-                ? multiMemberTeams
-                : [...multiMemberTeams, ...singleMemberUnits];
+            const buildSortedLists = (rankingsArr) => {
+                const positive = rankingsArr.filter(t => t.teamTotalFYC > 0);
+                const multi = positive.filter(t => t.isTeamLeader).sort(sortByProdDesc);
+                const single = positive.filter(t => !t.isTeamLeader).sort(sortByProdDesc);
+                const topList = [...multi, ...single];
+                const allList = [...rankingsArr].sort((a, b) => {
+                    if (a.isTeamLeader !== b.isTeamLeader) return a.isTeamLeader ? -1 : 1;
+                    return sortByProdDesc(a, b);
+                });
+                return { topList, allList };
+            };
+
+            const t5Sorted = buildSortedLists(table5TeamRankings);
+            table5ProductivityRankings = t5Sorted.topList;
+            table5AllRankings = t5Sorted.allList;
+
+            const t7Sorted = buildSortedLists(table7TeamRankings);
+            table7ProductivityRankings = t7Sorted.topList;
+            table7AllRankings = t7Sorted.allList;
 
             renderAgentRankingsTables();
             renderTable5Productivity();
             renderTable6ActiveElite();
+            renderTable7Productivity();
         }
 
-        function renderTable5Productivity() {
-            const tbody = document.getElementById('table5Body');
-            const subtext = document.getElementById('table5Subtext');
+        function toggleTable5ShowAll() {
+            table5ShowAll = !table5ShowAll;
+            renderTable5Productivity();
+        }
+
+        function toggleTable7ShowAll() {
+            table7ShowAll = !table7ShowAll;
+            renderTable7Productivity();
+        }
+
+        function renderTeamProductivityTableCard(tableKey, tbodyId, subtextId, toggleTextId, toggleIconId, scrollContainerId, showAllFlag) {
+            const tbody = document.getElementById(tbodyId);
+            const subtext = document.getElementById(subtextId);
+            const toggleText = document.getElementById(toggleTextId);
+            const toggleIcon = document.getElementById(toggleIconId);
+            const scrollContainer = document.getElementById(scrollContainerId);
             if (!tbody) return;
+
+            const isTable5 = tableKey === 'table5';
+            const rawTopList = isTable5 ? table5ProductivityRankings : table7ProductivityRankings;
+            const rawAllList = isTable5 ? table5AllRankings : table7AllRankings;
+            const allList = rawAllList.length > 0 ? rawAllList : rawTopList;
+
+            if (toggleText) {
+                toggleText.innerText = showAllFlag
+                    ? `顯示全部 (${allList.length}) · 收起`
+                    : `Top 5 · 查看全部 (${allList.length})`;
+            }
+            if (toggleIcon) {
+                toggleIcon.className = showAllFlag
+                    ? 'fa-solid fa-chevron-up text-[9px]'
+                    : 'fa-solid fa-chevron-down text-[9px]';
+            }
+            if (scrollContainer) {
+                if (showAllFlag) {
+                    scrollContainer.classList.add('max-h-[460px]', 'overflow-y-auto');
+                } else {
+                    scrollContainer.classList.remove('max-h-[460px]', 'overflow-y-auto');
+                }
+            }
 
             if (subtext) {
                 const leadersArr = selectedFilters.LeaderName ? Array.from(selectedFilters.LeaderName) : [];
                 const leaderLabel = leadersArr.length > 0
                     ? (leadersArr.length <= 2 ? leadersArr.join(', ') : `已選 ${leadersArr.length} 位 Leader`)
                     : '未選擇 Leader';
-                subtext.innerText = `Leader: ${leaderLabel} | 團隊總 FYC / 總 Man Month`;
+                if (isTable5) {
+                    const ddrCountLabel = ddrLoadedFileNames.length > 0 ? `DDR(${ddrLoadedFileNames.length}檔) Requested Month FYCC` : 'Direct District Report FYCC';
+                    subtext.innerText = `${ddrCountLabel} / 總 Man Month | ${leaderLabel}`;
+                } else {
+                    subtext.innerText = `Leader: ${leaderLabel} | 團隊總 FYC (PP Raw) / 總 Man Month`;
+                }
             }
 
-            if (table5ProductivityRankings.length === 0) {
+            const displayList = showAllFlag ? allList : rawTopList.slice(0, 5);
+
+            if (displayList.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="3" class="text-center py-4 text-slate-400">無數據</td>
@@ -2656,9 +3516,9 @@
                 return;
             }
 
-            const top5List = table5ProductivityRankings.slice(0, 5);
+            const metricLabel = isTable5 ? '總 FYCC' : '總 FYC';
 
-            tbody.innerHTML = top5List.map((item, idx) => {
+            tbody.innerHTML = displayList.map((item, idx) => {
                 const memberNamesPreview = item.teamMembers.map(m => m.name).join(' + ');
                 const rankBadge = item.managerRank
                     ? `<span class="text-[9px] bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded font-bold ml-1">${escapeHtml(item.managerRank)}</span>`
@@ -2670,12 +3530,12 @@
                     ? `實際 ${item.actualTeamManMonth} MM → 按最低要求計 ${item.teamTotalManMonth} MM (${item.minReqHeadcount}人×${item.calcMonths}月)`
                     : `團隊 ${item.memberCount} 人 · 共 ${item.teamTotalManMonth} MM`;
                 return `
-                    <tr class="hover:bg-indigo-50/60 transition-colors cursor-pointer" onclick="openTeamProductivityDetail('${escapeJsString(item.managerName)}')">
+                    <tr class="hover:bg-indigo-50/60 transition-colors cursor-pointer" onclick="openTeamProductivityDetail('${escapeJsString(item.managerName)}', '${tableKey}')">
                         <td class="p-2.5 text-center font-black ${idx === 0 ? 'text-amber-500 font-extrabold text-sm' : idx === 1 ? 'text-slate-400 font-extrabold' : idx === 2 ? 'text-amber-700 font-extrabold' : 'text-slate-400'}">${idx + 1}</td>
                         <td class="p-2.5">
                             <div class="font-bold text-slate-900 break-words leading-snug flex items-center flex-wrap">${escapeHtml(item.managerName)}${rankBadge}${leaderBadge}</div>
                             <div class="text-[10px] text-indigo-700">${escapeHtml(mmNote)}</div>
-                            <div class="text-[10px] text-slate-400 truncate max-w-[200px]" title="${escapeHtml(memberNamesPreview)}">總 FYC: $${Math.round(item.teamTotalFYC).toLocaleString()} | ${escapeHtml(memberNamesPreview)}</div>
+                            <div class="text-[10px] text-slate-400 truncate max-w-[200px]" title="${escapeHtml(memberNamesPreview)}">${metricLabel}: $${Math.round(item.teamTotalFYC).toLocaleString()} | ${escapeHtml(memberNamesPreview)}</div>
                         </td>
                         <td class="p-2.5 text-right font-black text-indigo-800 whitespace-nowrap">
                             $${Math.round(item.productivity).toLocaleString()}
@@ -2685,22 +3545,118 @@
             }).join('');
         }
 
-        function openTeamProductivityDetail(managerName) {
-            const targetTeam = table5ProductivityRankings.find(t => t.managerName === managerName);
+        function renderTable5Productivity() {
+            renderTeamProductivityTableCard('table5', 'table5Body', 'table5Subtext', 'table5ToggleAllText', 'table5ToggleAllIcon', 'table5ScrollContainer', table5ShowAll);
+        }
+
+        function renderTable7Productivity() {
+            renderTeamProductivityTableCard('table7', 'table7Body', 'table7Subtext', 'table7ToggleAllText', 'table7ToggleAllIcon', 'table7ScrollContainer', table7ShowAll);
+        }
+
+        function openAllTeamProductivityModal(tableKey = 'table5') {
+            const isTable5 = tableKey !== 'table7';
+            const rawTopList = isTable5 ? table5ProductivityRankings : table7ProductivityRankings;
+            const rawAllList = isTable5 ? table5AllRankings : table7AllRankings;
+            const allList = rawAllList.length > 0 ? rawAllList : rawTopList;
+            const leadersArr = selectedFilters.LeaderName ? Array.from(selectedFilters.LeaderName) : [];
+            const leaderLabel = leadersArr.length > 0 ? leadersArr.join(', ') : '未選擇 Leader';
+            const sourceTitle = isTable5
+                ? `Direct District Report (Requested Month FYCC · ${ddrLoadedFileNames.length} 個 Excel 加總)`
+                : `PP Raw Data (Col V FYC Final)`;
+
+            document.getElementById('modalTitle').innerText = `${isTable5 ? '表格 5' : '表格 7'} 所有人 TEAM TOP PRODUCTIVITY 總覽 (${allList.length} 組/人)`;
+            document.getElementById('modalSubtitle').innerText = `數據來源: ${sourceTitle} | 生效 Leader: ${leaderLabel}`;
+
+            const kpi1Label = document.getElementById('modalKpi1Label');
+            const kpi2Label = document.getElementById('modalKpi2Label');
+            const kpi3Label = document.getElementById('modalKpi3Label');
+            if (kpi1Label) kpi1Label.innerText = '總人數 / 團隊數';
+            if (kpi2Label) kpi2Label.innerText = isTable5 ? 'Direct District Report 總 FYCC' : '篩選範圍總 FYC Final (Col V)';
+            if (kpi3Label) kpi3Label.innerText = '生效 Leader 篩選';
+
+            const totalSourceFYC = isTable5
+                ? directDistrictReportRows.reduce((s, r) => s + (r.fycc || 0), 0)
+                : filteredRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+            document.getElementById('modalKpiFYC').innerText = `${allList.length} 組/人`;
+            document.getElementById('modalKpiFYP').innerText = `$${Math.round(totalSourceFYC).toLocaleString()}`;
+            document.getElementById('modalKpiCases').innerText = leaderLabel;
+
+            const rosterSection = document.getElementById('modalRosterSection');
+            const rosterTitle = document.getElementById('modalRosterTitle');
+            const rosterNote = document.getElementById('modalRosterNote');
+            const rosterThead = document.getElementById('modalRosterThead');
+            const rosterBody = document.getElementById('modalRosterBody');
+
+            if (rosterSection && rosterBody) {
+                rosterSection.classList.remove('hidden');
+                if (rosterTitle) {
+                    rosterTitle.innerHTML = `<i class="fa-solid fa-ranking-star text-indigo-600"></i> 所有人 TEAM TOP PRODUCTIVITY 完整排行榜 (${isTable5 ? 'Direct District Report' : 'PP Raw'})`;
+                }
+                if (rosterNote) {
+                    rosterNote.innerText = `共 ${allList.length} 位主管／顧問 · 點擊行可深入檢視下線成員名單`;
+                }
+                if (rosterThead) {
+                    rosterThead.innerHTML = `
+                        <tr class="bg-indigo-50/70 text-indigo-950 font-bold border-b border-indigo-100">
+                            <th class="p-2 w-10 text-center">排名</th>
+                            <th class="p-2">主管 / 顧問姓名 (NAME)</th>
+                            <th class="p-2 text-center">團隊人數 / Man Month</th>
+                            <th class="p-2 text-right">${isTable5 ? '團隊總 FYCC (Requested Month)' : '團隊總 FYC Final (Col V)'}</th>
+                            <th class="p-2 text-right">Productivity</th>
+                        </tr>
+                    `;
+                }
+
+                rosterBody.innerHTML = allList.map((item, idx) => {
+                    const rankBadge = item.managerRank
+                        ? `<span class="ml-1.5 text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded font-bold">${escapeHtml(item.managerRank)}</span>`
+                        : '';
+                    const leaderBadge = item.leaderName
+                        ? `<span class="ml-1 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-semibold">${escapeHtml(item.leaderName)}</span>`
+                        : '';
+                    const memberNamesPreview = item.teamMembers.map(m => m.name).join(' + ');
+                    const mmInfo = item.isBelowMinRequirement
+                        ? `<span class="text-amber-700 font-bold">${item.teamTotalManMonth} MM</span> <span class="text-[10px] text-slate-400">(實際 ${item.actualTeamManMonth}M / ${item.memberCount}人)</span>`
+                        : `<span class="text-indigo-700 font-bold">${item.teamTotalManMonth} MM</span> <span class="text-[10px] text-slate-500">(${item.memberCount}人)</span>`;
+                    return `
+                        <tr class="hover:bg-indigo-50/70 transition-colors cursor-pointer" onclick="openTeamProductivityDetail('${escapeJsString(item.managerName)}', '${isTable5 ? 'table5' : 'table7'}')">
+                            <td class="p-2 text-center font-black ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-slate-400' : idx === 2 ? 'text-amber-700' : 'text-slate-400'}">${idx + 1}</td>
+                            <td class="p-2">
+                                <div class="font-bold text-slate-900 flex items-center flex-wrap">${escapeHtml(item.managerName)}${rankBadge}${leaderBadge}</div>
+                                <div class="text-[10px] text-slate-400 truncate max-w-[260px]" title="${escapeHtml(memberNamesPreview)}">${escapeHtml(memberNamesPreview)}</div>
+                            </td>
+                            <td class="p-2 text-center">${mmInfo}</td>
+                            <td class="p-2 text-right font-bold text-sky-700">$${Math.round(item.teamTotalFYC).toLocaleString()}</td>
+                            <td class="p-2 text-right font-black text-indigo-800">$${Math.round(item.productivity).toLocaleString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const policiesSection = document.getElementById('modalPoliciesSection');
+            if (policiesSection) policiesSection.classList.add('hidden');
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function openTeamProductivityDetail(managerName, tableKey = 'table5') {
+            const isTable5 = tableKey !== 'table7';
+            const primaryAll = isTable5 ? table5AllRankings : table7AllRankings;
+            const primaryTop = isTable5 ? table5ProductivityRankings : table7ProductivityRankings;
+            const targetTeam = primaryAll.find(t => t.managerName === managerName) || primaryTop.find(t => t.managerName === managerName);
             if (!targetTeam) {
                 openAgentDetail(managerName);
                 return;
             }
 
             const rankInfo = targetTeam.managerRank ? ` (${targetTeam.managerRank} 最低要求 ${targetTeam.minReqHeadcount}人/月)` : '';
-            document.getElementById('modalTitle').innerText = `團隊 Productivity: ${targetTeam.managerName}${rankInfo}`;
+            document.getElementById('modalTitle').innerText = `${isTable5 ? '[表格 5 · Direct District Report] ' : '[表格 7 · PP Raw] '}團隊 Productivity: ${targetTeam.managerName}${rankInfo}`;
             document.getElementById('modalSubtitle').innerText = `團隊成員 (${targetTeam.memberCount} 人): ${targetTeam.teamMembers.map(m => `${m.name} (${m.manMonth}M)`).join(' + ')}`;
 
             const kpi1Label = document.getElementById('modalKpi1Label');
             const kpi2Label = document.getElementById('modalKpi2Label');
             const kpi3Label = document.getElementById('modalKpi3Label');
-            if (kpi1Label) kpi1Label.innerText = '團隊總 FYC Final (Col V)';
-            if (kpi2Label) kpi2Label.innerText = 'Team Productivity (FYC / MM)';
+            if (kpi1Label) kpi1Label.innerText = isTable5 ? '團隊總 FYCC (Requested Month)' : '團隊總 FYC Final (Col V)';
+            if (kpi2Label) kpi2Label.innerText = isTable5 ? 'Team Productivity (FYCC / MM)' : 'Team Productivity (FYC / MM)';
             if (kpi3Label) kpi3Label.innerText = targetTeam.isBelowMinRequirement
                 ? `計算 Man Month (最低要求 ${targetTeam.minReqHeadcount}人×${targetTeam.calcMonths}月)`
                 : '全員加總 Man Month';
@@ -2733,22 +3689,26 @@
                             <th class="p-2">Agent Name (成員姓名)</th>
                             <th class="p-2 text-center">各自在職月數 (Man Month)</th>
                             <th class="p-2">Upline Manager Name</th>
-                            <th class="p-2 text-right">個人 FYC Final (Col V)</th>
+                            <th class="p-2 text-right">${isTable5 ? '個人 Requested Month FYCC' : '個人 FYC Final (Col V)'}</th>
                         </tr>
                     `;
                 }
 
                 const memberRowsHtml = targetTeam.teamMembers.map((m, idx) => {
                     const isLeaderSelf = idx === 0;
+                    const isSubTeamManager = !isLeaderSelf && (Boolean(m.rank) || targetTeam.teamMembers.some(other => other.uplineManager && other.uplineManager.toUpperCase() === m.name.toUpperCase()));
                     const roleBadge = isLeaderSelf
                         ? `<span class="ml-1.5 text-[10px] bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded font-bold">主管本人${m.rank ? ` · ${escapeHtml(m.rank)}` : ''}</span>`
-                        : `<span class="ml-1.5 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-semibold">下線成員${m.rank ? ` · ${escapeHtml(m.rank)}` : ''}</span>`;
+                        : isSubTeamManager
+                            ? `<span class="ml-1.5 text-[10px] bg-violet-100 text-violet-800 px-1.5 py-0.2 rounded font-bold">下線團隊主管${m.rank ? ` · ${escapeHtml(m.rank)}` : ''}</span>`
+                            : `<span class="ml-1.5 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-semibold">下線成員</span>`;
+                    const memberFycVal = m.displayFYC !== undefined ? m.displayFYC : (m.totalFYC || 0);
                     return `
                         <tr class="hover:bg-slate-50 transition-colors">
                             <td class="p-2 font-bold text-slate-900">${escapeHtml(m.name)}${roleBadge}</td>
                             <td class="p-2 text-center font-bold text-indigo-700">${m.manMonth} 個月</td>
                             <td class="p-2 text-slate-600 font-medium">${escapeHtml(m.uplineManager || '-')}</td>
-                            <td class="p-2 text-right font-bold text-sky-700">$${Math.round(m.totalFYC || 0).toLocaleString()}</td>
+                            <td class="p-2 text-right font-bold text-sky-700">$${Math.round(memberFycVal).toLocaleString()}</td>
                         </tr>
                     `;
                 }).join('');
@@ -2787,11 +3747,49 @@
                     return shorter.length >= 2 && shorter.every(t => longer.includes(t));
                 });
             };
-            const records = filteredRows.filter(r => matchesAnyTeamMember(r.agentName));
 
             const policiesSection = document.getElementById('modalPoliciesSection');
-            if (policiesSection) policiesSection.classList.remove('hidden');
-            renderModalPoliciesTable(records, true);
+            const policiesTitle = document.getElementById('modalPoliciesTitle');
+            if (isTable5 && directDistrictReportRows.length > 0) {
+                const ddrMatched = directDistrictReportRows.filter(r => matchesAnyTeamMember(r.agentNameEN));
+                if (policiesSection) policiesSection.classList.remove('hidden');
+                if (policiesTitle) {
+                    policiesTitle.innerHTML = `<i class="fa-solid fa-file-excel text-indigo-600"></i> Direct District Report 記錄明細 (Requested Month FYCC)`;
+                }
+                const thead = document.getElementById('modalPolicyThead');
+                const tbody = document.getElementById('modalPolicyBody');
+                if (thead) {
+                    thead.innerHTML = `
+                        <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
+                            <th class="p-2">Agent NameEN</th>
+                            <th class="p-2">Position</th>
+                            <th class="p-2">ManagerEN</th>
+                            <th class="p-2 text-right">Case</th>
+                            <th class="p-2 text-right">AFYP</th>
+                            <th class="p-2 text-right">Requested Month FYCC</th>
+                        </tr>
+                    `;
+                }
+                if (tbody) {
+                    tbody.innerHTML = ddrMatched.map(r => `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-2 font-bold text-slate-800">${escapeHtml(r.agentNameEN)} <span class="text-[10px] text-slate-400 font-mono">(${escapeHtml(r.agentCode)})</span></td>
+                            <td class="p-2 font-semibold text-indigo-700">${escapeHtml(r.position)}</td>
+                            <td class="p-2 text-slate-600">${escapeHtml(r.managerEN)}</td>
+                            <td class="p-2 text-right font-mono text-slate-600">${r.cases}</td>
+                            <td class="p-2 text-right font-semibold text-slate-700">$${Math.round(r.afyp || 0).toLocaleString()}</td>
+                            <td class="p-2 text-right font-bold text-sky-700">$${Math.round(r.fycc || 0).toLocaleString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } else {
+                const records = filteredRows.filter(r => matchesAnyTeamMember(r.agentName));
+                if (policiesSection) policiesSection.classList.remove('hidden');
+                if (policiesTitle) {
+                    policiesTitle.innerHTML = `<i class="fa-solid fa-list-check text-sky-600"></i> 旗下保單列表 (Policies Breakdown)`;
+                }
+                renderModalPoliciesTable(records, true);
+            }
             document.getElementById('detailModal').classList.remove('hidden');
         }
 
