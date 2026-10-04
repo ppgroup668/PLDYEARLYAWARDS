@@ -35,7 +35,6 @@
                         PLD YEARLY AWARDS
                         <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold px-2 py-0.5 rounded-full">v2.0 第22欄 Column V 模式</span>
                     </h1>
-                    <p class="text-[11px] text-slate-400">精準讀取每一行第 22 欄位 (FYC Final) 彙總，支援多維度篩選與深度 Leader/Agent 戰績分析</p>
                 </div>
             </div>
 
@@ -791,7 +790,7 @@
             issueYear: ['issue year', 'issueyear', 'issue_year', 'issued year', '出單年份', '生效年份', '發單年份', '批核年份', 'i_year'],
             issueMonth: ['issue month', 'issuemonth', 'issue_month', 'issued month', '出單月份', '生效月份', '發單月份', '批核月份', 'i_month'],
             leader: ['leader name', 'leadername', 'leader_name', 'team leader name', '團隊主管', 'leader'],
-            uplineManager: ['upline manager full name', 'upline full name', 'upline manager name', 'upline_manager_name', 'upline manager', 'upline name', 'direct upline name', 'unit manager name', 'manager name', '上線主管全名', '上線主管姓名', '上線主管', '直屬主管', '主管姓名', 'upline'],
+            uplineManager: ['upline 1 name', 'upline_1_name', 'upline1 name', 'upline manager full name', 'upline full name', 'upline manager name', 'upline_manager_name', 'upline manager', 'upline name', 'direct upline name', 'unit manager name', '上線主管全名', '上線主管姓名', '上線主管', '直屬主管', '主管姓名', 'upline'],
             agent: ['agent name', 'agentname', 'agent_name', 'writing agent name', 'producing agent name', 'selling agent name', 'servicing agent name', 'advisor name', 'consultant name', 'producer name', 'fc name', '顧問姓名', '代理人姓名', '業務員姓名', '理財顧問姓名', '姓名', '代理人', 'agent'],
             agentGrade: ['agent grade', 'agent rank', 'agent level', 'agent title', 'current grade', 'grade', 'rank', 'level', 'title', 'position', 'designation', '職級', '級別', '職稱'],
             uplineGrade: ['upline grade', 'upline rank', 'upline level', 'upline title', 'manager grade', 'manager rank', 'leader grade', '上線職級', '主管職級'],
@@ -1352,6 +1351,10 @@
                 let colAgentNameCN = 5;
                 let colProdDate = 6;
                 let colPosition = 7;
+                let colTitleStart = 8;
+                let colTitleEnd = 9;
+                let colUnitStart = 10;
+                let colUnitEnd = 11;
                 let colTermDate = 12;
 
                 hRow.forEach((cell, cIdx) => {
@@ -1362,6 +1365,10 @@
                     else if (t === 'agent name') colAgentNameCN = cIdx;
                     else if (t === 'production date') colProdDate = cIdx;
                     else if (t === 'position') colPosition = cIdx;
+                    else if (t === 'title start date') colTitleStart = cIdx;
+                    else if (t === 'title end date') colTitleEnd = cIdx;
+                    else if (t === 'direct unit start date') colUnitStart = cIdx;
+                    else if (t === 'direct unit end date') colUnitEnd = cIdx;
                     else if (t === 'termination date') colTermDate = cIdx;
                 });
 
@@ -1421,6 +1428,10 @@
                     const rawNameCN = String(row[colAgentNameCN] || '').trim();
                     const rawProdDate = String(row[colProdDate] || '').trim();
                     const rawPosition = String(row[colPosition] || '').trim();
+                    const rawTitleStart = String(row[colTitleStart] || '').trim();
+                    const rawTitleEnd = String(row[colTitleEnd] || '').trim();
+                    const rawUnitStart = String(row[colUnitStart] || '').trim();
+                    const rawUnitEnd = String(row[colUnitEnd] || '').trim();
                     const rawTermDate = String(row[colTermDate] || '').trim();
 
                     // Skip summary/total/remark rows or merged empty rows
@@ -1443,6 +1454,10 @@
                         agentNameCN: rawNameCN,
                         productionDate: rawProdDate,
                         position: extractManagerRank(rawPosition) || rawPosition,
+                        titleStartDate: rawTitleStart,
+                        titleEndDate: rawTitleEnd,
+                        unitStartDate: rawUnitStart,
+                        unitEndDate: rawUnitEnd,
                         terminationDate: rawTermDate,
                         fycc,
                         afyp,
@@ -1855,15 +1870,15 @@
             if (maxCols > 25) colMap.agent = 25;
             if (maxCols > 29) colMap.submitYear = 29;
 
-            // Collect all candidate Upline Manager columns in the sheet that contain valid person names
+            // Collect all candidate Upline Manager columns in the sheet that contain valid person names (in Upline 1 -> Upline 2 -> ... order)
             const sheetHeaderRow = rawMatrix[headerIdx] || [];
             const uplineCandidateCols = [];
             if (colMap.uplineManager !== undefined) uplineCandidateCols.push(colMap.uplineManager);
             sheetHeaderRow.forEach((cell, cIdx) => {
-                if (cIdx === colMap.agent || reservedCols.has(cIdx) || uplineCandidateCols.includes(cIdx)) return;
+                if (cIdx === colMap.agent || cIdx === colMap.leader || reservedCols.has(cIdx) || uplineCandidateCols.includes(cIdx)) return;
                 const text = String(cell || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
-                if (!text || isCodeOrIdHeader(text) || text.includes('ara')) return;
-                if (text.includes('upline') || text.includes('manager') || text.includes('supervisor') || text.includes('superior') || text.includes('direct') || text.includes('unit') || text.includes('um') || text.includes('bm') || text.includes('dm') || text.includes('上線') || text.includes('主管')) {
+                if (!text || isCodeOrIdHeader(text) || text.includes('ara') || text.includes('bm name') || text.includes('leader')) return;
+                if (text.includes('upline') || text.includes('direct') || text.includes('supervisor') || text.includes('上線') || text.includes('直屬')) {
                     uplineCandidateCols.push(cIdx);
                 }
             });
@@ -1943,17 +1958,17 @@
                 let uplineManager = isValidPersonName(cleanPersonName(rawUpline)) ? cleanPersonName(rawUpline) : '';
                 const rowUplineManagersList = [];
 
-                if (uplineManager && uplineManager.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(uplineManager)) {
+                if (uplineManager && uplineManager.toUpperCase() !== agentUpper && !isTeamNicknameLabel(uplineManager)) {
                     rowUplineManagersList.push(uplineManager);
                 }
 
                 for (const uCol of uplineCandidateCols) {
                     const cand = cleanPersonName(row[uCol]);
-                    if (isValidPersonName(cand) && cand.toUpperCase() !== agentUpper && !isDefaultTargetLeaderOrTeam(cand)) {
+                    if (isValidPersonName(cand) && cand.toUpperCase() !== agentUpper && !isTeamNicknameLabel(cand)) {
                         if (!rowUplineManagersList.some(existing => existing.toUpperCase() === cand.toUpperCase())) {
                             rowUplineManagersList.push(cand);
                         }
-                        if (!uplineManager || uplineManager.toUpperCase() === agentUpper || isDefaultTargetLeaderOrTeam(uplineManager)) {
+                        if (!uplineManager || uplineManager.toUpperCase() === agentUpper || isTeamNicknameLabel(uplineManager)) {
                             uplineManager = cand;
                             rawUpline = String(row[uCol] || '');
                         }
@@ -2025,6 +2040,12 @@
                 return 'JERRY LO';
             }
             return '';
+        }
+
+        function isTeamNicknameLabel(val) {
+            if (!val) return false;
+            const upper = String(val).toUpperCase().trim().replace(/\s+/g, ' ');
+            return upper === 'PAGGIE LAW' || upper === 'JERRY LO';
         }
 
         function isDefaultTargetLeaderOrTeam(val) {
@@ -2740,7 +2761,7 @@
                     agentMap[mapKey].rowStartDate = row.productionStartDate;
                 }
                 if (rowUplineResolved && !isSamePersonName(rowUplineResolved, agentMap[mapKey].agentName)) {
-                    if (!agentMap[mapKey].uplineManager || (isDefaultTargetLeaderOrTeam(agentMap[mapKey].uplineManager) && !isDefaultTargetLeaderOrTeam(rowUplineResolved))) {
+                    if (!agentMap[mapKey].uplineManager || (isTeamNicknameLabel(agentMap[mapKey].uplineManager) && !isTeamNicknameLabel(rowUplineResolved))) {
                         agentMap[mapKey].uplineManager = rowUplineResolved;
                     }
                 }
@@ -2915,6 +2936,34 @@
                 return filterOptions.LeaderName.some(l => String(l).toUpperCase().trim() === targetUpper);
             };
 
+            // Build authoritative ManagerEN map from Direct District Report (Column B ManagerEN)
+            // When an agent has multiple rows due to promotion/transfer, prefer the active Direct Unit row (where Direct Unit End Date is empty)
+            const ddrManagerMap = new Map();
+            directDistrictReportRows.forEach(ddr => {
+                if (!isValidPersonName(ddr.agentNameEN) || !isValidPersonName(ddr.managerEN)) return;
+                const agFull = resolveToFullName(ddr.agentNameEN) || cleanPersonName(ddr.agentNameEN);
+                const mgrFull = resolveToFullName(ddr.managerEN) || cleanPersonName(ddr.managerEN);
+                if (!agFull || !mgrFull || isSamePersonName(agFull, mgrFull)) return;
+                const agKey = agFull.toUpperCase();
+                const unitEnd = String(ddr.unitEndDate || '').trim();
+                const unitStart = String(ddr.unitStartDate || '').trim();
+                const existing = ddrManagerMap.get(agKey);
+                if (!existing || (!unitEnd && existing.unitEnd) || (Boolean(unitEnd) === Boolean(existing.unitEnd) && unitStart > existing.unitStart)) {
+                    ddrManagerMap.set(agKey, { managerEN: mgrFull, unitStart, unitEnd });
+                }
+            });
+
+            const getDdrManagerEN = (personName) => {
+                if (!personName) return '';
+                const fullName = resolveToFullName(personName) || cleanPersonName(personName);
+                const key = fullName.toUpperCase();
+                if (ddrManagerMap.has(key)) return ddrManagerMap.get(key).managerEN;
+                for (const [k, v] of ddrManagerMap.entries()) {
+                    if (isSamePersonName(fullName, k)) return v.managerEN;
+                }
+                return '';
+            };
+
             // Map every person in allSheetData, headcountRows, & directDistrictReportRows to their direct Upline Manager and Leader Name
             const directUplineMap = new Map();
             const recordDirectUpline = (memberName, uplineName, preferOverride = false) => {
@@ -2924,7 +2973,7 @@
                 if (!mFull || !uFull || isSamePersonName(mFull, uFull)) return;
                 const mKey = mFull.toUpperCase();
                 const existing = directUplineMap.get(mKey);
-                if (!existing || preferOverride || (isDefaultTargetLeaderOrTeam(existing) && !isDefaultTargetLeaderOrTeam(uFull))) {
+                if (!existing || preferOverride || (isTeamNicknameLabel(existing) && !isTeamNicknameLabel(uFull))) {
                     directUplineMap.set(mKey, uFull);
                 }
             };
@@ -2940,7 +2989,7 @@
                 return '';
             };
 
-            // 1. Record upline chains from PP Raw (allSheetData) and Direct District Report (directDistrictReportRows)
+            // 1. Record upline chains from PP Raw (allSheetData: Upline 1 -> Upline 2 -> ...)
             allSheetData.forEach(r => {
                 if (Array.isArray(r.uplineManagersList) && r.uplineManagersList.length > 0) {
                     const chain = r.uplineManagersList
@@ -2949,9 +2998,9 @@
                     if (chain.length === 1) {
                         recordDirectUpline(r.agentName, chain[0], false);
                     } else if (chain.length > 1) {
-                        recordDirectUpline(r.agentName, chain[chain.length - 1], false);
-                        for (let i = chain.length - 1; i > 0; i--) {
-                            recordDirectUpline(chain[i], chain[i - 1], false);
+                        recordDirectUpline(r.agentName, chain[0], false);
+                        for (let i = 0; i < chain.length - 1; i++) {
+                            recordDirectUpline(chain[i], chain[i + 1], false);
                         }
                     }
                 } else if (r.uplineManager && !isSamePersonName(r.uplineManager, r.agentName)) {
@@ -2959,13 +3008,11 @@
                 }
             });
 
-            directDistrictReportRows.forEach(ddr => {
-                if (isValidPersonName(ddr.agentNameEN) && isValidPersonName(ddr.managerEN) && !isSamePersonName(ddr.agentNameEN, ddr.managerEN)) {
-                    recordDirectUpline(ddr.agentNameEN, ddr.managerEN, false);
-                }
-            });
+            // 2. Record authoritative ManagerEN from Direct District Report and Upline Manager (Column K) from Headcount rows (preferOverride = true)
+            for (const [agKey, ddrInfo] of ddrManagerMap.entries()) {
+                recordDirectUpline(agKey, ddrInfo.managerEN, true);
+            }
 
-            // 2. Record authoritative direct Upline Manager (Column K) from Headcount rows (preferOverride = true)
             headcountRows.forEach(hc => {
                 if (isValidPersonName(hc.agentName) && hc.agentName !== 'New Recruit' && isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager') {
                     recordDirectUpline(hc.agentName, hc.uplineManager, true);
@@ -3115,7 +3162,7 @@
                     isValidPersonName(m.uplineManager) &&
                     m.uplineManager !== 'Unassigned Manager' &&
                     !isSamePersonName(m.uplineManager, fullName) &&
-                    !isDefaultTargetLeaderOrTeam(m.uplineManager)
+                    !isTeamNicknameLabel(m.uplineManager)
                 ) || hcMatches.find(m =>
                     isValidPersonName(m.uplineManager) &&
                     m.uplineManager !== 'Unassigned Manager' &&
@@ -3124,14 +3171,15 @@
                 const hcUpline = hcWithDirectUpline
                     ? (resolveToFullName(hcWithDirectUpline.uplineManager) || hcWithDirectUpline.uplineManager)
                     : '';
+                const ddrUpline = getDdrManagerEN(fullName);
 
-                let effectiveUpline = hcUpline || getDirectUpline(fullName) || a.uplineManager || '';
-                if (!effectiveUpline || isDefaultTargetLeaderOrTeam(effectiveUpline) || isSamePersonName(effectiveUpline, fullName)) {
+                let effectiveUpline = ddrUpline || hcUpline || getDirectUpline(fullName) || a.uplineManager || '';
+                if (!effectiveUpline || isTeamNicknameLabel(effectiveUpline) || isSamePersonName(effectiveUpline, fullName)) {
                     const sheetMatchWithDirectUpline = filteredRows.find(r =>
                         isSamePersonName(r.agentName, fullName) &&
                         isValidPersonName(r.uplineManager) &&
                         !isSamePersonName(r.uplineManager, fullName) &&
-                        !isDefaultTargetLeaderOrTeam(r.uplineManager)
+                        !isTeamNicknameLabel(r.uplineManager)
                     );
                     if (sheetMatchWithDirectUpline) {
                         effectiveUpline = resolveToFullName(sheetMatchWithDirectUpline.uplineManager) || sheetMatchWithDirectUpline.uplineManager;
@@ -3173,15 +3221,17 @@
                     const rawAgentName = candidateNames[0];
                     const fullName = resolveToFullName(rawAgentName) || rawAgentName;
                     const key = fullName.toUpperCase();
-                    const uplineFull = (isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager')
+                    const ddrUp = getDdrManagerEN(fullName);
+                    const hcUp = (isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager')
                         ? (resolveToFullName(hc.uplineManager) || hc.uplineManager)
-                        : (getDirectUpline(fullName) || '');
+                        : '';
+                    const uplineFull = ddrUp || hcUp || getDirectUpline(fullName) || '';
 
                     const existingKey = findExistingRosterKey(fullName, candidateNames);
                     if (existingKey) {
                         const existing = memberRosterMap.get(existingKey);
                         if (uplineFull && !isSamePersonName(uplineFull, existing.name)) {
-                            if (!existing.uplineManager || (isDefaultTargetLeaderOrTeam(existing.uplineManager) && !isDefaultTargetLeaderOrTeam(uplineFull)) || isSamePersonName(existing.uplineManager, existing.name)) {
+                            if (!existing.uplineManager || (isTeamNicknameLabel(existing.uplineManager) && !isTeamNicknameLabel(uplineFull)) || isSamePersonName(existing.uplineManager, existing.name) || (ddrUp && existing.uplineManager !== ddrUp)) {
                                 existing.uplineManager = uplineFull;
                                 rosterChanged = true;
                             }
@@ -3226,10 +3276,11 @@
                 });
 
                 // 2b: Ensure every Upline Manager referenced by any member in memberRosterMap also has a node in memberRosterMap
+                // (except external uplines above a top-level District Leader, e.g. WONG LUK KWAN above LAW SUK KING)
                 const currentRosterValues = Array.from(memberRosterMap.values());
                 currentRosterValues.forEach(m => {
                     if (!m.uplineManager) {
-                        const inferredUp = getDirectUpline(m.name);
+                        const inferredUp = getDdrManagerEN(m.name) || getDirectUpline(m.name);
                         if (inferredUp && !isSamePersonName(inferredUp, m.name)) {
                             m.uplineManager = inferredUp;
                             rosterChanged = true;
@@ -3240,7 +3291,9 @@
                     if (isSamePersonName(upFull, m.name)) return;
                     const foundKey = findExistingRosterKey(upFull);
                     if (!foundKey) {
-                        if (!isPersonAllowedByLeaderFilter(upFull, m.leaderName)) return;
+                        // Do not pull in an external division head above a top-level District Leader (e.g. WONG LUK KWAN above LAW SUK KING)
+                        if (normalizeDistrictLeaderName(m.name) && !normalizeDistrictLeaderName(upFull)) return;
+                        if (!isPersonAllowedByLeaderFilter(upFull, '')) return;
                         const upDistrict = normalizeDistrictLeaderName(upFull);
                         if (upDistrict && !matchesSelectedLeader(upDistrict)) return;
 
@@ -3250,9 +3303,10 @@
                             : (hcMatches.length > 0 && hcMatches[0].productionStartDate)
                                 ? Math.max(1, calculateManMonthFromDates(hcMatches[0].productionStartDate, hcMatches[0].terminationDate))
                                 : Math.max(1, defaultFullTenureMonths);
-                        const upOfUp = (hcMatches.length > 0 && isValidPersonName(hcMatches[0].uplineManager) && hcMatches[0].uplineManager !== 'Unassigned Manager')
-                            ? (resolveToFullName(hcMatches[0].uplineManager) || hcMatches[0].uplineManager)
-                            : (getDirectUpline(upFull) || '');
+                        const upOfUp = getDdrManagerEN(upFull) ||
+                            ((hcMatches.length > 0 && isValidPersonName(hcMatches[0].uplineManager) && hcMatches[0].uplineManager !== 'Unassigned Manager')
+                                ? (resolveToFullName(hcMatches[0].uplineManager) || hcMatches[0].uplineManager)
+                                : (getDirectUpline(upFull) || ''));
                         const upLeaders = getPersonKnownLeaders(upFull);
                         const upLeaderName = upDistrict || upLeaders.find(l => matchesSelectedLeader(l)) || m.leaderName || '';
 
@@ -3269,6 +3323,14 @@
                         rosterChanged = true;
                     }
                 });
+            }
+
+            // Ensure every member's uplineManager reflects their authoritative ManagerEN when present in Direct District Report
+            for (const member of memberRosterMap.values()) {
+                const ddrMgr = getDdrManagerEN(member.name);
+                if (ddrMgr && !isSamePersonName(ddrMgr, member.name)) {
+                    member.uplineManager = ddrMgr;
+                }
             }
 
             // Step 3: Ensure every member in memberRosterMap has:
