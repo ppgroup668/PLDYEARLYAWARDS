@@ -507,7 +507,7 @@
                                 <h3 class="text-xs font-extrabold text-indigo-950 flex items-center gap-1">
                                     TEAM TOP PRODUCTIVITY
                                 </h3>
-                                <p id="table5Subtext" class="text-[10px] text-indigo-700/80">Direct District Report (Requested Month FYCC) / 總 Man Month</p>
+                                <p id="table5Subtext" class="text-[10px] text-indigo-700/80">FYCC $15,000/ Month / 根據Sales Production Report</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
@@ -578,7 +578,7 @@
                                 <h3 class="text-xs font-extrabold text-indigo-950 flex items-center gap-1">
                                     TEAM TOP PRODUCTIVITY
                                 </h3>
-                                <p id="table7Subtext" class="text-[10px] text-indigo-700/80">團隊總 FYC Final / 團隊總 Man Month</p>
+                                <p id="table7Subtext" class="text-[10px] text-indigo-700/80">FYCC $15,000/ Month / 根據Raw Data</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
@@ -3555,15 +3555,10 @@
             }
 
             if (subtext) {
-                const leadersArr = selectedFilters.LeaderName ? Array.from(selectedFilters.LeaderName) : [];
-                const leaderLabel = leadersArr.length > 0
-                    ? (leadersArr.length <= 2 ? leadersArr.join(', ') : `已選 ${leadersArr.length} 位 Leader`)
-                    : '未選擇 Leader';
                 if (isTable5) {
-                    const ddrCountLabel = ddrLoadedFileNames.length > 0 ? `DDR(${ddrLoadedFileNames.length}檔) Requested Month FYCC` : 'Direct District Report FYCC';
-                    subtext.innerText = `${ddrCountLabel} / 總 Man Month | ${leaderLabel}`;
+                    subtext.innerText = 'FYCC $15,000/ Month / 根據Sales Production Report';
                 } else {
-                    subtext.innerText = `Leader: ${leaderLabel} | 團隊總 FYC (PP Raw) / 總 Man Month`;
+                    subtext.innerText = 'FYCC $15,000/ Month / 根據Raw Data';
                 }
             }
 
