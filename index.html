@@ -1591,12 +1591,150 @@
             reader.readAsArrayBuffer(file);
         }
 
-        async function fetchGDriveFileBuffer(fileId, kind = 'file') {
-            const res = await fetch(`/api/gdrive/file/${encodeURIComponent(fileId)}?kind=${encodeURIComponent(kind)}`);
-            if (!res.ok) {
-                throw new Error(`Google Drive 檔案下載失敗 (${res.status})`);
+        function isValidExcelBuffer(arrayBuffer) {
+            if (!arrayBuffer || arrayBuffer.byteLength < 256) return false;
+            const bytes = new Uint8Array(arrayBuffer, 0, Math.min(32, arrayBuffer.byteLength));
+            // Check ZIP/XLSX magic bytes (PK\x03\x04) or OLE2/XLS magic bytes (\xD0\xCF\x11\xE0)
+            if (bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04) return true;
+            if (bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0) return true;
+            // Reject HTML error pages or JSON responses
+            const headStr = String.fromCharCode(...bytes).trim().toLowerCase();
+            if (headStr.startsWith('<!doctype') || headStr.startsWith('<html') || headStr.startsWith('<head') || headStr.startsWith('{')) {
+                return false;
             }
-            return await res.arrayBuffer();
+            return true;
+        }
+
+        function parseEmbeddedFolderHtmlClient(html) {
+            const files = [];
+            const entryRegex = /<div class="flip-entry" id="entry-([a-zA-Z0-9_-]+)"[\s\S]*?<a href="([^"]+)"[\s\S]*?<div class="flip-entry-title">([^<]+)<\/div>/g;
+            let match;
+            while ((match = entryRegex.exec(html)) !== null) {
+                const id = match[1];
+                const href = match[2];
+                const title = match[3].trim();
+                const isFolder = href.includes('/drive/folders/');
+                const isSpreadsheet = href.includes('/spreadsheets/');
+                files.push({
+                    id,
+                    title,
+                    kind: isFolder ? 'folder' : isSpreadsheet ? 'spreadsheet' : 'file'
+                });
+            }
+            return files;
+        }
+
+        const CLOUD_RUN_API_BASE = 'https://ais-pre-gdgmhfk7iftytfwdgms2uw-223653853926.us-east1.run.app';
+
+        async function fetchWithTimeout(url, options = {}, timeoutMs = 4000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        async function fetchGDriveFolderFiles(folderId) {
+            const isStaticHost = /\.github\.io$/i.test(window.location.hostname) || window.location.protocol === 'file:';
+
+            // 1. Try local Node.js backend API first (when not on static GitHub Pages)
+            if (!isStaticHost) {
+                try {
+                    const res = await fetchWithTimeout(`./api/gdrive/folder?folderId=${encodeURIComponent(folderId)}`, {}, 3500);
+                    if (res.ok) {
+                        const contentType = res.headers.get('content-type') || '';
+                        if (contentType.includes('application/json')) {
+                            const data = await res.json();
+                            if (Array.isArray(data.files) && data.files.length > 0) {
+                                return data.files;
+                            }
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            // 2. Try Cloud Run backend API (with CORS enabled) with short timeout
+            try {
+                const res = await fetchWithTimeout(`${CLOUD_RUN_API_BASE}/api/gdrive/folder?folderId=${encodeURIComponent(folderId)}`, {}, 3000);
+                if (res.ok) {
+                    const contentType = res.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await res.json();
+                        if (Array.isArray(data.files) && data.files.length > 0) {
+                            return data.files;
+                        }
+                    }
+                }
+            } catch (_) {}
+
+            return [];
+        }
+
+        async function fetchGDriveFileBuffer(fileId, kind = 'file') {
+            const isStaticHost = /\.github\.io$/i.test(window.location.hostname) || window.location.protocol === 'file:';
+
+            // 1. Try local Node.js backend API first (AI Studio / Express server)
+            if (!isStaticHost) {
+                try {
+                    const res = await fetchWithTimeout(`./api/gdrive/file/${encodeURIComponent(fileId)}?kind=${encodeURIComponent(kind)}`, {}, 8000);
+                    if (res.ok) {
+                        const buf = await res.arrayBuffer();
+                        if (isValidExcelBuffer(buf)) return buf;
+                    }
+                } catch (_) {}
+            }
+
+            // 2. Direct Google Drive / Google Sheets CORS-enabled download URLs (works natively in browser on GitHub Pages!)
+            // Note: drive.usercontent.google.com and docs.google.com/spreadsheets/.../export both return Access-Control-Allow-Origin: *
+            const directGoogleUrls = kind === 'spreadsheet'
+                ? [
+                    `https://docs.google.com/spreadsheets/d/${encodeURIComponent(fileId)}/export?format=xlsx`,
+                    `https://drive.usercontent.google.com/download?id=${encodeURIComponent(fileId)}&export=download&confirm=t`
+                ]
+                : [
+                    `https://drive.usercontent.google.com/download?id=${encodeURIComponent(fileId)}&export=download&confirm=t`,
+                    `https://docs.google.com/spreadsheets/d/${encodeURIComponent(fileId)}/export?format=xlsx`
+                ];
+
+            for (const directUrl of directGoogleUrls) {
+                try {
+                    const res = await fetchWithTimeout(directUrl, { redirect: 'follow' }, 10000);
+                    if (!res.ok) continue;
+                    const buf = await res.arrayBuffer();
+                    if (isValidExcelBuffer(buf)) return buf;
+                } catch (_) {}
+            }
+
+            // 3. Fallback to Cloud Run backend API (with CORS enabled)
+            try {
+                const res = await fetchWithTimeout(`${CLOUD_RUN_API_BASE}/api/gdrive/file/${encodeURIComponent(fileId)}?kind=${encodeURIComponent(kind)}`, {}, 8000);
+                if (res.ok) {
+                    const buf = await res.arrayBuffer();
+                    if (isValidExcelBuffer(buf)) return buf;
+                }
+            } catch (_) {}
+
+            // 4. Fallback to bundled static Google Drive cache inside repository (./gdrive/<fileId>.xlsx or .xls)
+            const localCandidates = [
+                `./gdrive/${encodeURIComponent(fileId)}.xlsx`,
+                `./gdrive/${encodeURIComponent(fileId)}.xls`,
+                `gdrive/${encodeURIComponent(fileId)}.xlsx`,
+                `gdrive/${encodeURIComponent(fileId)}.xls`,
+                `./public/gdrive/${encodeURIComponent(fileId)}.xlsx`,
+                `./public/gdrive/${encodeURIComponent(fileId)}.xls`
+            ];
+            for (const localPath of localCandidates) {
+                try {
+                    const res = await fetchWithTimeout(localPath, {}, 5000);
+                    if (!res.ok) continue;
+                    const buf = await res.arrayBuffer();
+                    if (isValidExcelBuffer(buf)) return buf;
+                } catch (_) {}
+            }
+
+            throw new Error(`Google Drive 檔案下載失敗 (${fileId})`);
         }
 
         async function onGdriveFileSelectChanged(targetType, encodedVal) {
@@ -1644,36 +1782,33 @@
 
                 // Query live folder contents so if files are updated or added, they appear in the selector
                 try {
-                    const folderRes = await fetch(`/api/gdrive/folder?folderId=${encodeURIComponent(DEFAULT_GDRIVE_FOLDER_ID)}`);
-                    if (folderRes.ok) {
-                        const folderData = await folderRes.json();
-                        const excelEntries = (folderData.files || []).filter(f =>
-                            f.kind === 'spreadsheet' ||
-                            (f.kind === 'file' && (/\.(xlsx|xls|csv)$/i.test(f.title) || /pp\s*raw|headcount/i.test(f.title)))
-                        );
-                        if (excelEntries.length > 0) {
-                            gdriveFilesCache = excelEntries;
-                            const foundPp = excelEntries.find(f => /pp\s*raw/i.test(f.title));
-                            const foundHc = excelEntries.find(f => /headcount/i.test(f.title));
-                            if (foundPp) ppTarget = foundPp;
-                            if (foundHc) hcTarget = foundHc;
+                    const folderFiles = await fetchGDriveFolderFiles(DEFAULT_GDRIVE_FOLDER_ID);
+                    const excelEntries = (folderFiles || []).filter(f =>
+                        f.kind === 'spreadsheet' ||
+                        (f.kind === 'file' && (/\.(xlsx|xls|csv)$/i.test(f.title) || /pp\s*raw|headcount/i.test(f.title)))
+                    );
+                    if (excelEntries.length > 0) {
+                        gdriveFilesCache = excelEntries;
+                        const foundPp = excelEntries.find(f => /pp\s*raw/i.test(f.title));
+                        const foundHc = excelEntries.find(f => /headcount/i.test(f.title));
+                        if (foundPp) ppTarget = foundPp;
+                        if (foundHc) hcTarget = foundHc;
 
-                            const ppSelect = document.getElementById('gdrivePpSelect');
-                            const hcSelect = document.getElementById('gdriveHcSelect');
-                            if (ppSelect) {
-                                ppSelect.innerHTML = excelEntries.map(f => {
-                                    const val = `${f.id}|${f.kind}|${f.title}`;
-                                    const sel = f.id === ppTarget.id ? 'selected' : '';
-                                    return `<option value="${escapeHtml(val)}" ${sel}>${escapeHtml(f.title)}</option>`;
-                                }).join('');
-                            }
-                            if (hcSelect) {
-                                hcSelect.innerHTML = excelEntries.map(f => {
-                                    const val = `${f.id}|${f.kind}|${f.title}`;
-                                    const sel = f.id === hcTarget.id ? 'selected' : '';
-                                    return `<option value="${escapeHtml(val)}" ${sel}>${escapeHtml(f.title)}</option>`;
-                                }).join('');
-                            }
+                        const ppSelect = document.getElementById('gdrivePpSelect');
+                        const hcSelect = document.getElementById('gdriveHcSelect');
+                        if (ppSelect) {
+                            ppSelect.innerHTML = excelEntries.map(f => {
+                                const val = `${f.id}|${f.kind}|${f.title}`;
+                                const sel = f.id === ppTarget.id ? 'selected' : '';
+                                return `<option value="${escapeHtml(val)}" ${sel}>${escapeHtml(f.title)}</option>`;
+                            }).join('');
+                        }
+                        if (hcSelect) {
+                            hcSelect.innerHTML = excelEntries.map(f => {
+                                const val = `${f.id}|${f.kind}|${f.title}`;
+                                const sel = f.id === hcTarget.id ? 'selected' : '';
+                                return `<option value="${escapeHtml(val)}" ${sel}>${escapeHtml(f.title)}</option>`;
+                            }).join('');
                         }
                     }
                 } catch (folderErr) {
@@ -1683,16 +1818,13 @@
                 // Query live DIRECT DISTRICT REPORT folder (1pvxqsNTG8ur8V7InCaKVyelveDqMCMPS) and load ALL Excel files inside
                 let ddrTargets = [...DEFAULT_GDRIVE_DDR_FILES];
                 try {
-                    const ddrFolderRes = await fetch(`/api/gdrive/folder?folderId=${encodeURIComponent(DEFAULT_GDRIVE_DDR_FOLDER_ID)}`);
-                    if (ddrFolderRes.ok) {
-                        const ddrFolderData = await ddrFolderRes.json();
-                        const ddrExcelEntries = (ddrFolderData.files || []).filter(f =>
-                            f.kind === 'spreadsheet' ||
-                            (f.kind === 'file' && (/\.(xlsx|xls|csv)$/i.test(f.title) || /directdistrict|report/i.test(f.title)))
-                        );
-                        if (ddrExcelEntries.length > 0) {
-                            ddrTargets = ddrExcelEntries;
-                        }
+                    const ddrFolderFiles = await fetchGDriveFolderFiles(DEFAULT_GDRIVE_DDR_FOLDER_ID);
+                    const ddrExcelEntries = (ddrFolderFiles || []).filter(f =>
+                        f.kind === 'spreadsheet' ||
+                        (f.kind === 'file' && (/\.(xlsx|xls|csv)$/i.test(f.title) || /directdistrict|report/i.test(f.title)))
+                    );
+                    if (ddrExcelEntries.length > 0) {
+                        ddrTargets = ddrExcelEntries;
                     }
                 } catch (ddrFolderErr) {
                     console.warn('DDR folder listing fallback to default file IDs:', ddrFolderErr);
