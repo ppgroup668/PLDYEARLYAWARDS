@@ -868,20 +868,30 @@
             e.target.value = '';
         }
 
+        const _validPersonCache = new Map();
         function isValidPersonName(val) {
             if (val === undefined || val === null) return false;
             const s = String(val).trim();
             if (!s) return false;
+            const cached = _validPersonCache.get(s);
+            if (cached !== undefined) return cached;
             const upper = s.toUpperCase();
-            if (['N/A', '#N/A', 'NA', 'NIL', 'NONE', 'NULL', '-', '--', '---', '0', 'Y', 'N', 'YES', 'NO', 'TRUE', 'FALSE', 'TBD', 'UNASSIGNED', 'BLANK', 'EMPTY', 'NO ARA', 'WITHOUT ARA'].includes(upper)) return false;
-            if (/^[0-9]+$/.test(s)) return false;
-            if (/^[A-Z0-9_-]+$/i.test(s) && /\d{3,}/.test(s)) return false;
-            return /[a-zA-Z\u4e00-\u9fa5]{2,}/.test(s);
+            let res = true;
+            if (['N/A', '#N/A', 'NA', 'NIL', 'NONE', 'NULL', '-', '--', '---', '0', 'Y', 'N', 'YES', 'NO', 'TRUE', 'FALSE', 'TBD', 'UNASSIGNED', 'BLANK', 'EMPTY', 'NO ARA', 'WITHOUT ARA'].includes(upper)) res = false;
+            else if (/^[0-9]+$/.test(s)) res = false;
+            else if (/^[A-Z0-9_-]+$/i.test(s) && /\d{3,}/.test(s)) res = false;
+            else res = /[a-zA-Z\u4e00-\u9fa5]{2,}/.test(s);
+            _validPersonCache.set(s, res);
+            return res;
         }
 
+        const _cleanPersonCache = new Map();
         function cleanPersonName(val) {
             if (!val) return '';
-            let s = String(val).trim();
+            const raw = String(val);
+            const cached = _cleanPersonCache.get(raw);
+            if (cached !== undefined) return cached;
+            let s = raw.trim();
             // Strip leading or trailing agent/manager code if formatted like "012345 - CHAN TAI MAN", "(012345) CHAN TAI MAN", "CHAN TAI MAN (012345)"
             s = s.replace(/^(?:\([A-Z0-9_-]{2,}\)|[A-Z0-9_-]*\d{3,}[A-Z0-9_-]*)\s*[-:\/|]?\s*/i, '').trim();
             s = s.replace(/\s*[-:\/|]?\s*(?:\([A-Z0-9_-]*\d{2,}[A-Z0-9_-]*\)|[A-Z0-9_-]*\d{3,}[A-Z0-9_-]*)$/i, '').trim();
@@ -889,6 +899,7 @@
             s = s.replace(/\(\s*(?:EDD|SDD|DD|SBM|BM|SDM|ADM|DM|SUM|UM|FA|FC|RP)\s*\d*\s*\)/gi, '').trim();
             s = s.replace(/^(?:EDD|SDD|DD|SBM|BM|SDM|ADM|DM|SUM|UM)\s*\d*\s*[-:\/|]\s*/i, '').trim();
             s = s.replace(/\s*[-:\/|]\s*(?:EDD|SDD|DD|SBM|BM|SDM|ADM|DM|SUM|UM)\s*\d*$/i, '').trim();
+            _cleanPersonCache.set(raw, s);
             return s;
         }
 
@@ -1267,7 +1278,7 @@
         const DEFAULT_GDRIVE_PP_FILE = { id: '1cA3nldv2U9Csv1lOs4CWyrIWjVlkFG8n', kind: 'file', title: 'PP Raw' };
         const DEFAULT_GDRIVE_HC_FILE = { id: '1ZIk8n5xbiJY1FEHuD4vCMGMkcQZYTGR0', kind: 'file', title: 'HEADCOUNT BY AVA.xls' };
         const DEFAULT_GDRIVE_DDR_FILES = [
-            { id: '195DydwvLWKbu_UkZMN5SJYM6IKKAV5nR', kind: 'file', title: 'DirectDistrictReport_1790928601680.xls' }
+            { id: '1C0BNFZjSRH4sT6WgE6e6tP7qcJJubd2N', kind: 'file', title: 'DirectDistrictReport_1791167958447.xls' }
         ];
         let gdriveFilesCache = [];
 
@@ -1469,11 +1480,208 @@
             return parsedRows;
         }
 
-        function parseExcelArrayBuffer(arrayBuffer, fileName, showSuccessToast = true) {
+        async function fastParseXlsxBuffer(arrayBuffer) {
+            try {
+                if (typeof DecompressionStream === 'undefined') return null;
+                const bytes = new Uint8Array(arrayBuffer);
+                if (bytes.length < 4 || bytes[0] !== 0x50 || bytes[1] !== 0x4B || bytes[2] !== 0x03 || bytes[3] !== 0x04) {
+                    return null;
+                }
+                const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+                let eocdOffset = -1;
+                for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
+                    if (view.getUint32(i, true) === 0x06054b50) {
+                        eocdOffset = i;
+                        break;
+                    }
+                }
+                if (eocdOffset === -1) return null;
+
+                const totalEntries = view.getUint16(eocdOffset + 10, true);
+                let cdOffset = view.getUint32(eocdOffset + 16, true);
+                const entries = new Map();
+                const decoder = new TextDecoder('utf-8');
+
+                for (let i = 0; i < totalEntries; i++) {
+                    if (cdOffset + 46 > bytes.length || view.getUint32(cdOffset, true) !== 0x02014b50) break;
+                    const method = view.getUint16(cdOffset + 10, true);
+                    const compSize = view.getUint32(cdOffset + 20, true);
+                    const uncompSize = view.getUint32(cdOffset + 24, true);
+                    const nameLen = view.getUint16(cdOffset + 28, true);
+                    const extraLen = view.getUint16(cdOffset + 30, true);
+                    const commentLen = view.getUint16(cdOffset + 32, true);
+                    const localHeaderOffset = view.getUint32(cdOffset + 42, true);
+                    const name = decoder.decode(bytes.subarray(cdOffset + 46, cdOffset + 46 + nameLen));
+                    entries.set(name, { method, compSize, uncompSize, localHeaderOffset });
+                    cdOffset += 46 + nameLen + extraLen + commentLen;
+                }
+
+                async function extractText(entryName) {
+                    const info = entries.get(entryName);
+                    if (!info) return '';
+                    const lh = info.localHeaderOffset;
+                    const fnameLen = view.getUint16(lh + 26, true);
+                    const extraLen = view.getUint16(lh + 28, true);
+                    const dataStart = lh + 30 + fnameLen + extraLen;
+                    const slice = bytes.subarray(dataStart, dataStart + info.compSize);
+                    if (info.method === 0) return decoder.decode(slice);
+                    if (info.method === 8) {
+                        const ds = new DecompressionStream('deflate-raw');
+                        const writer = ds.writable.getWriter();
+                        writer.write(slice);
+                        writer.close();
+                        const buf = await new Response(ds.readable).arrayBuffer();
+                        return decoder.decode(buf);
+                    }
+                    return '';
+                }
+
+                const [wbXml, relsXml, ssXml] = await Promise.all([
+                    extractText('xl/workbook.xml'),
+                    extractText('xl/_rels/workbook.xml.rels'),
+                    extractText('xl/sharedStrings.xml')
+                ]);
+                if (!wbXml || !relsXml) return null;
+
+                const relMap = new Map();
+                const relRe = /<Relationship[^>]+Id="([^"]+)"[^>]+Target="([^"]+)"/g;
+                let m;
+                while ((m = relRe.exec(relsXml)) !== null) {
+                    let target = m[2].replace(/^\//, '');
+                    if (!target.startsWith('xl/')) target = 'xl/' + target;
+                    relMap.set(m[1], target);
+                }
+
+                const sheetsMeta = [];
+                const sheetTagRe = /<sheet\b([^>]+)>/g;
+                while ((m = sheetTagRe.exec(wbXml)) !== null) {
+                    const attrs = m[1];
+                    const nameM = attrs.match(/name="([^"]+)"/);
+                    const idM = attrs.match(/r:id="([^"]+)"/);
+                    if (nameM && idM) {
+                        sheetsMeta.push({ name: decodeHtmlEntitiesClient(nameM[1]), path: relMap.get(idM[1]) });
+                    }
+                }
+                if (sheetsMeta.length === 0) return null;
+
+                const sharedStrings = [];
+                if (ssXml) {
+                    const siRe = /<si>([\s\S]*?)<\/si>/g;
+                    const tRe = /<t[^>]*>([\s\S]*?)<\/t>/g;
+                    while ((m = siRe.exec(ssXml)) !== null) {
+                        let str = '';
+                        let tm;
+                        while ((tm = tRe.exec(m[1])) !== null) str += tm[1];
+                        sharedStrings.push(decodeHtmlEntitiesClient(str));
+                    }
+                }
+
+                function parseSheetXmlToMatrix(sXml) {
+                    const matrix = [];
+                    let pos = sXml.indexOf('<sheetData>');
+                    const endPos = sXml.indexOf('</sheetData>', pos);
+                    if (pos === -1 || endPos === -1) return matrix;
+                    const cellRe = /<c r="([A-Z]+)\d+"([^>]*)(?:>(?:<f[^>]*>[^<]*<\/f>)?<v>([^<]*)<\/v>[^<]*<\/c>|><is><t[^>]*>([\s\S]*?)<\/t><\/is><\/c>|\/>)/g;
+                    while (pos !== -1 && pos < endPos) {
+                        const rStart = sXml.indexOf('<row ', pos);
+                        if (rStart === -1 || rStart >= endPos) break;
+                        const rEnd = sXml.indexOf('</row>', rStart);
+                        if (rEnd === -1) break;
+                        const rowXml = sXml.slice(rStart, rEnd);
+                        const rowArr = [];
+                        let cm;
+                        cellRe.lastIndex = 0;
+                        while ((cm = cellRe.exec(rowXml)) !== null) {
+                            const colLetters = cm[1];
+                            let colIdx = 0;
+                            for (let i = 0; i < colLetters.length; i++) {
+                                colIdx = colIdx * 26 + (colLetters.charCodeAt(i) - 64);
+                            }
+                            colIdx -= 1;
+                            const attrs = cm[2];
+                            const rawVal = cm[3];
+                            const inlineStr = cm[4];
+                            if (inlineStr !== undefined) {
+                                rowArr[colIdx] = decodeHtmlEntitiesClient(inlineStr);
+                            } else if (rawVal === undefined) {
+                                rowArr[colIdx] = '';
+                            } else if (attrs.includes('t="s"')) {
+                                rowArr[colIdx] = sharedStrings[parseInt(rawVal, 10)] ?? '';
+                            } else if (attrs.includes('t="str"') || attrs.includes('t="inlineStr"')) {
+                                rowArr[colIdx] = decodeHtmlEntitiesClient(rawVal);
+                            } else {
+                                const n = Number(rawVal);
+                                rowArr[colIdx] = isNaN(n) ? rawVal : n;
+                            }
+                        }
+                        for (let c = 0; c < rowArr.length; c++) {
+                            if (rowArr[c] === undefined) rowArr[c] = '';
+                        }
+                        matrix.push(rowArr);
+                        pos = rEnd + 6;
+                    }
+                    return matrix;
+                }
+
+                const SheetNames = [];
+                const Sheets = {};
+                let targetSheetName = sheetsMeta[0].name;
+                for (const sm of sheetsMeta) {
+                    if (!sm.path) continue;
+                    SheetNames.push(sm.name);
+                    if (sm.name.toLowerCase().includes('issue')) {
+                        targetSheetName = sm.name;
+                    }
+                }
+
+                for (const sm of sheetsMeta) {
+                    if (!sm.path) continue;
+                    const lower = sm.name.toLowerCase();
+                    const isEager = sm.name === targetSheetName || lower.includes('headcount') || lower.includes('hc') || lower.includes('recruit');
+                    if (isEager) {
+                        const sXml = await extractText(sm.path);
+                        Sheets[sm.name] = { _matrix: parseSheetXmlToMatrix(sXml) };
+                    } else {
+                        Sheets[sm.name] = {
+                            _lazyLoad: async () => {
+                                const sXml = await extractText(sm.path);
+                                const mat = parseSheetXmlToMatrix(sXml);
+                                Sheets[sm.name]._matrix = mat;
+                                delete Sheets[sm.name]._lazyLoad;
+                                return mat;
+                            }
+                        };
+                    }
+                }
+                return { SheetNames, Sheets };
+            } catch (e) {
+                console.warn('fastParseXlsxBuffer fallback to XLSX.read:', e);
+                return null;
+            }
+        }
+
+        function decodeHtmlEntitiesClient(str) {
+            if (!str || !str.includes('&')) return str || '';
+            return str
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)));
+        }
+
+        async function parseExcelArrayBuffer(arrayBuffer, fileName, showSuccessToast = true) {
             try {
                 document.getElementById('currentFileName').innerText = `${fileName}`;
-                const data = new Uint8Array(arrayBuffer);
-                rawWorkbook = XLSX.read(data, { type: 'array' });
+                const fastWb = await fastParseXlsxBuffer(arrayBuffer);
+                if (fastWb && fastWb.SheetNames && fastWb.SheetNames.length > 0) {
+                    rawWorkbook = fastWb;
+                } else {
+                    const data = new Uint8Array(arrayBuffer);
+                    rawWorkbook = XLSX.read(data, { type: 'array', dense: true, cellFormula: false, cellHTML: false, cellText: false, cellStyles: false });
+                }
 
                 const sheetSelector = document.getElementById('sheetSelector');
                 sheetSelector.innerHTML = '';
@@ -1500,28 +1708,26 @@
                 });
                 if (headcountSheetName) {
                     const hcSheet = rawWorkbook.Sheets[headcountSheetName];
-                    const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
-                    if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
-                    const hcMatrix = XLSX.utils.sheet_to_json(hcSheet, {
-                        header: 1,
-                        defval: '',
-                        ...(hcRange ? { range: hcRange } : {})
-                    });
+                    let hcMatrix;
+                    if (hcSheet && Array.isArray(hcSheet._matrix)) {
+                        hcMatrix = hcSheet._matrix;
+                    } else {
+                        const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
+                        if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
+                        hcMatrix = XLSX.utils.sheet_to_json(hcSheet, {
+                            header: 1,
+                            defval: '',
+                            ...(hcRange ? { range: hcRange } : {})
+                        });
+                    }
                     lastHeadcountMatrix = hcMatrix;
-                    headcountRows = parseHeadcountMatrix(hcMatrix);
                     document.getElementById('headcountFileName').innerText = `Sheet: ${headcountSheetName}`;
-                    document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
-                    buildHeadcountFilters();
                 }
 
                 loadWorksheetData(targetSheet);
 
                 if (lastHeadcountMatrix) {
-                    headcountRows = parseHeadcountMatrix(lastHeadcountMatrix);
                     document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
-                    buildHeadcountFilters();
-                    computeTopNewRecruits();
-                    computeAgentRankings();
                 }
 
                 if (showSuccessToast) {
@@ -1535,31 +1741,43 @@
             }
         }
 
-        function parseHeadcountArrayBuffer(arrayBuffer, fileName, showSuccessToast = true) {
+        async function parseHeadcountArrayBuffer(arrayBuffer, fileName, showSuccessToast = true, deferCompute = false) {
             try {
                 document.getElementById('headcountFileName').innerText = `${fileName}`;
-                const data = new Uint8Array(arrayBuffer);
-                headcountWorkbook = XLSX.read(data, { type: 'array' });
+                const fastWb = await fastParseXlsxBuffer(arrayBuffer);
+                if (fastWb && fastWb.SheetNames && fastWb.SheetNames.length > 0) {
+                    headcountWorkbook = fastWb;
+                } else {
+                    const data = new Uint8Array(arrayBuffer);
+                    headcountWorkbook = XLSX.read(data, { type: 'array', dense: true, cellFormula: false, cellHTML: false, cellText: false, cellStyles: false });
+                }
                 const preferredSheet = headcountWorkbook.SheetNames.find(n => {
                     const lower = n.toLowerCase();
                     return lower.includes('headcount') || lower.includes('hc') || lower.includes('recruit');
                 });
                 const targetSheet = preferredSheet || headcountWorkbook.SheetNames[0];
                 const hcSheet = headcountWorkbook.Sheets[targetSheet];
-                const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
-                if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
-                const rawMatrix = XLSX.utils.sheet_to_json(hcSheet, {
-                    header: 1,
-                    defval: '',
-                    ...(hcRange ? { range: hcRange } : {})
-                });
+                let rawMatrix;
+                if (hcSheet && Array.isArray(hcSheet._matrix)) {
+                    rawMatrix = hcSheet._matrix;
+                } else {
+                    const hcRange = hcSheet['!ref'] ? XLSX.utils.decode_range(hcSheet['!ref']) : null;
+                    if (hcRange && hcRange.s.c > 0) hcRange.s.c = 0;
+                    rawMatrix = XLSX.utils.sheet_to_json(hcSheet, {
+                        header: 1,
+                        defval: '',
+                        ...(hcRange ? { range: hcRange } : {})
+                    });
+                }
 
                 lastHeadcountMatrix = rawMatrix;
-                headcountRows = parseHeadcountMatrix(rawMatrix);
-                document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
-                buildHeadcountFilters();
-                computeTopNewRecruits();
-                computeAgentRankings();
+                if (!deferCompute) {
+                    headcountRows = parseHeadcountMatrix(rawMatrix);
+                    document.getElementById('headcountBadge').innerText = `${headcountRows.length} 筆`;
+                    buildHeadcountFilters();
+                    computeTopNewRecruits();
+                    computeAgentRankings();
+                }
                 if (showSuccessToast) {
                     showToast(`已成功載入 Headcount Excel (${headcountRows.length} 筆記錄)！`, 'success');
                 }
@@ -1749,9 +1967,9 @@
                 }
                 const buf = await fetchGDriveFileBuffer(fileId, kind || 'file');
                 if (targetType === 'pp') {
-                    parseExcelArrayBuffer(buf, `[GDrive] ${title}`, true);
+                    await parseExcelArrayBuffer(buf, `[GDrive] ${title}`, true);
                 } else {
-                    parseHeadcountArrayBuffer(buf, `[GDrive] ${title}`, true);
+                    await parseHeadcountArrayBuffer(buf, `[GDrive] ${title}`, true, false);
                 }
                 if (badge) {
                     badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
@@ -1858,9 +2076,9 @@
                 ddrLoadedFileNames = loadedDdrNames;
                 updateDdrBadgeUI();
 
-                // Load Headcount first, then PP Raw (which also re-syncs Headcount team mapping with PP Raw leaders and computes Table 5 & Table 7)
-                parseHeadcountArrayBuffer(hcBuf, `[GDrive] ${hcTarget.title}`, false);
-                parseExcelArrayBuffer(ppBuf, `[GDrive] ${ppTarget.title}`, false);
+                // Load Headcount matrix first (deferring compute until PP Raw is also loaded so calculation runs once!)
+                await parseHeadcountArrayBuffer(hcBuf, `[GDrive] ${hcTarget.title}`, false, true);
+                await parseExcelArrayBuffer(ppBuf, `[GDrive] ${ppTarget.title}`, false);
 
                 if (badge) {
                     badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-full flex items-center gap-1';
@@ -1885,9 +2103,13 @@
             preloadFromGoogleDrive(false);
         });
 
-        function onSheetChanged(sheetName) {
+        async function onSheetChanged(sheetName) {
             activeSheetName = sheetName;
             if (rawWorkbook && rawWorkbook.Sheets[sheetName]) {
+                const sheet = rawWorkbook.Sheets[sheetName];
+                if (typeof sheet._lazyLoad === 'function') {
+                    await sheet._lazyLoad();
+                }
                 loadWorksheetData(sheetName);
             }
         }
@@ -1896,15 +2118,20 @@
             if (!rawWorkbook || !rawWorkbook.Sheets[sheetName]) return;
 
             const sheet = rawWorkbook.Sheets[sheetName];
-            const sheetRange = sheet['!ref'] ? XLSX.utils.decode_range(sheet['!ref']) : null;
-            if (sheetRange && sheetRange.s.c > 0) {
-                sheetRange.s.c = 0; // Ensure Column A is always index 0
+            let rawMatrix;
+            if (sheet && Array.isArray(sheet._matrix)) {
+                rawMatrix = sheet._matrix;
+            } else {
+                const sheetRange = sheet['!ref'] ? XLSX.utils.decode_range(sheet['!ref']) : null;
+                if (sheetRange && sheetRange.s.c > 0) {
+                    sheetRange.s.c = 0; // Ensure Column A is always index 0
+                }
+                rawMatrix = XLSX.utils.sheet_to_json(sheet, {
+                    header: 1,
+                    defval: '',
+                    ...(sheetRange ? { range: sheetRange } : {})
+                });
             }
-            const rawMatrix = XLSX.utils.sheet_to_json(sheet, {
-                header: 1,
-                defval: '',
-                ...(sheetRange ? { range: sheetRange } : {})
-            });
 
             if (!rawMatrix || rawMatrix.length === 0) {
                 allSheetData = [];
@@ -2806,57 +3033,84 @@
             setElemText('kpiAgentCount', agentsSet.size);
         }
 
+        const _personMatchInfoCache = new Map();
+        const _samePersonPairCache = new Map();
+
+        function getPersonMatchInfo(name) {
+            const rawKey = String(name || '');
+            let info = _personMatchInfoCache.get(rawKey);
+            if (info !== undefined) return info;
+            const clean = cleanPersonName(rawKey).toUpperCase();
+            const dl = normalizeDistrictLeaderName(clean);
+            const tokens = clean
+                .replace(/[^A-Z0-9\u4e00-\u9fa5\s]/g, ' ')
+                .split(/\s+/)
+                .filter(t => Boolean(t) && !/^(?:EDD|SDD|DD|SBM|BM|SDM|ADM|DM|SUM|UM|FA|FC|RP)\d*$/.test(t) && !/^\d+$/.test(t));
+            const joined = tokens.join('');
+            const eng = tokens.filter(t => /^[A-Z]+$/.test(t));
+            info = { clean, dl, tokens, joined, eng };
+            _personMatchInfoCache.set(rawKey, info);
+            return info;
+        }
+
         function computeAgentRankings() {
             const resolveToFullName = buildFullNameResolver();
             const agentMap = {};
-
-            const tokenizeForMatch = (str) => {
-                return String(str || '')
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9\u4e00-\u9fa5\s]/g, ' ')
-                    .split(/\s+/)
-                    .filter(t => Boolean(t) && !/^(?:EDD|SDD|DD|SBM|BM|SDM|ADM|DM|SUM|UM|FA|FC|RP)\d*$/.test(t) && !/^\d+$/.test(t));
-            };
+            const aliasToAgentMapKey = new Map();
 
             const isSamePersonName = (nameA, nameB) => {
                 if (!nameA || !nameB) return false;
-                const cleanA = cleanPersonName(nameA).toUpperCase();
-                const cleanB = cleanPersonName(nameB).toUpperCase();
-                if (cleanA === cleanB) return true;
-                const dlA = normalizeDistrictLeaderName(cleanA);
-                const dlB = normalizeDistrictLeaderName(cleanB);
-                if (dlA && dlB && dlA === dlB) return true;
-                const tokensA = tokenizeForMatch(cleanA);
-                const tokensB = tokenizeForMatch(cleanB);
-                if (tokensA.length === 0 || tokensB.length === 0) return false;
-                // Match Pinyin / multi-word names where syllables are joined vs space-separated (e.g. MA YIKUN vs MA YI KUN, QI GUANG MING vs QI GUANGMING)
-                if (tokensA.length >= 2 && tokensB.length >= 2 && tokensA[0] === tokensB[0]) {
-                    const joinedA = tokensA.join('');
-                    const joinedB = tokensB.join('');
-                    if (joinedA.length >= 5 && joinedA === joinedB) return true;
+                if (nameA === nameB) return true;
+                const infoA = getPersonMatchInfo(nameA);
+                const infoB = getPersonMatchInfo(nameB);
+                if (!infoA.clean || !infoB.clean) return false;
+                if (infoA.clean === infoB.clean) return true;
+                const pairKey = infoA.clean < infoB.clean ? `${infoA.clean}|${infoB.clean}` : `${infoB.clean}|${infoA.clean}`;
+                const cached = _samePersonPairCache.get(pairKey);
+                if (cached !== undefined) return cached;
+
+                let res = false;
+                if (infoA.dl && infoB.dl && infoA.dl === infoB.dl) {
+                    res = true;
+                } else {
+                    const tokensA = infoA.tokens;
+                    const tokensB = infoB.tokens;
+                    if (tokensA.length > 0 && tokensB.length > 0) {
+                        if (tokensA.length >= 2 && tokensB.length >= 2 && tokensA[0] === tokensB[0] && infoA.joined.length >= 5 && infoA.joined === infoB.joined) {
+                            res = true;
+                        } else {
+                            const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
+                            const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
+                            if (!(shorter.length < 2 && longer.length > 1) && shorter.every(t => longer.includes(t))) {
+                                res = true;
+                            } else if (infoA.eng.length >= 3 && infoB.eng.length >= 3 && infoA.eng[0] === infoB.eng[0] && infoA.eng[1] === infoB.eng[1] && infoA.eng[2] === infoB.eng[2]) {
+                                res = true;
+                            }
+                        }
+                    }
                 }
-                const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
-                const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
-                if (shorter.length < 2 && longer.length > 1) return false;
-                if (shorter.every(t => longer.includes(t))) return true;
-                // Match if both have >= 3 alphabetic tokens and share the same 3-token Cantonese surname + given name prefix
-                const engA = tokensA.filter(t => /^[A-Z]+$/.test(t));
-                const engB = tokensB.filter(t => /^[A-Z]+$/.test(t));
-                if (engA.length >= 3 && engB.length >= 3 && engA[0] === engB[0] && engA[1] === engB[1] && engA[2] === engB[2]) {
-                    return true;
-                }
-                return false;
+                _samePersonPairCache.set(pairKey, res);
+                return res;
             };
 
             filteredRows.forEach(row => {
                 const rawName = row.agentName || 'Unknown Agent';
                 const aName = resolveToFullName(rawName) || rawName;
-                let mapKey = aName.toUpperCase();
-                for (const existingKey of Object.keys(agentMap)) {
-                    if (isSamePersonName(aName, agentMap[existingKey].agentName)) {
-                        mapKey = existingKey;
-                        break;
+                const upperName = aName.toUpperCase();
+                let mapKey = aliasToAgentMapKey.get(upperName);
+                if (!mapKey) {
+                    if (agentMap[upperName]) {
+                        mapKey = upperName;
+                    } else {
+                        mapKey = upperName;
+                        for (const existingKey of Object.keys(agentMap)) {
+                            if (isSamePersonName(aName, agentMap[existingKey].agentName)) {
+                                mapKey = existingKey;
+                                break;
+                            }
+                        }
                     }
+                    aliasToAgentMapKey.set(upperName, mapKey);
                 }
 
                 const rowUplineResolved = row.uplineManager ? (resolveToFullName(row.uplineManager) || row.uplineManager) : '';
@@ -2913,18 +3167,26 @@
                 ? Math.max(sortedPeriodYMs.length, maxPeriodYM - minPeriodYM + 1)
                 : (selectedFilters.IssueMonth && selectedFilters.IssueMonth.size > 0 ? selectedFilters.IssueMonth.size : 12);
 
+            const hcMatchesCache = new Map();
             const findHeadcountMatches = (agentName) => {
                 if (!headcountRows || headcountRows.length === 0 || !agentName) return [];
                 const targetClean = cleanPersonName(agentName).toUpperCase();
+                const cached = hcMatchesCache.get(targetClean);
+                if (cached !== undefined) return cached;
                 const exact = headcountRows.filter(hc =>
                     cleanPersonName(hc.agentName).toUpperCase() === targetClean ||
                     (Array.isArray(hc.rowPersonNames) && hc.rowPersonNames.some(n => cleanPersonName(n).toUpperCase() === targetClean))
                 );
-                if (exact.length > 0) return exact;
-                return headcountRows.filter(hc =>
+                if (exact.length > 0) {
+                    hcMatchesCache.set(targetClean, exact);
+                    return exact;
+                }
+                const fuzzy = headcountRows.filter(hc =>
                     isSamePersonName(agentName, hc.agentName) ||
                     (Array.isArray(hc.rowPersonNames) && hc.rowPersonNames.some(n => isSamePersonName(agentName, n)))
                 );
+                hcMatchesCache.set(targetClean, fuzzy);
+                return fuzzy;
             };
 
             const calculateManMonthFromDates = (startDate, termDate) => {
@@ -3035,15 +3297,22 @@
                 if (rk) recordPersonRank(ddr.agentNameEN, rk);
             });
 
+            const rankLookupCache = new Map();
             const getManagerRank = (personName) => {
                 if (!personName) return '';
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 const key = fullName.toUpperCase();
                 if (personRankMap.has(key)) return personRankMap.get(key);
+                if (rankLookupCache.has(key)) return rankLookupCache.get(key);
                 for (const [k, rk] of personRankMap.entries()) {
-                    if (isSamePersonName(fullName, k)) return rk;
+                    if (isSamePersonName(fullName, k)) {
+                        rankLookupCache.set(key, rk);
+                        return rk;
+                    }
                 }
-                return extractManagerRank(personName) || '';
+                const extracted = extractManagerRank(personName) || '';
+                rankLookupCache.set(key, extracted);
+                return extracted;
             };
 
             // Table 5 (Direct District Report) & Table 7 (PP Raw): TEAM TOP PRODUCTIVITY
@@ -3085,19 +3354,26 @@
                 }
             });
 
+            const ddrLookupCache = new Map();
             const getDdrManagerEN = (personName) => {
                 if (!personName) return '';
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 const key = fullName.toUpperCase();
                 if (ddrManagerMap.has(key)) return ddrManagerMap.get(key).managerEN;
+                if (ddrLookupCache.has(key)) return ddrLookupCache.get(key);
                 for (const [k, v] of ddrManagerMap.entries()) {
-                    if (isSamePersonName(fullName, k)) return v.managerEN;
+                    if (isSamePersonName(fullName, k)) {
+                        ddrLookupCache.set(key, v.managerEN);
+                        return v.managerEN;
+                    }
                 }
+                ddrLookupCache.set(key, '');
                 return '';
             };
 
             // Map every person in allSheetData, headcountRows, & directDistrictReportRows to their direct Upline Manager and Leader Name
             const directUplineMap = new Map();
+            const uplineLookupCache = new Map();
             const recordDirectUpline = (memberName, uplineName, preferOverride = false) => {
                 if (!memberName || !uplineName || uplineName === 'Unassigned Manager') return;
                 const mFull = resolveToFullName(memberName) || cleanPersonName(memberName);
@@ -3107,6 +3383,7 @@
                 const existing = directUplineMap.get(mKey);
                 if (!existing || preferOverride || (isTeamNicknameLabel(existing) && !isTeamNicknameLabel(uFull))) {
                     directUplineMap.set(mKey, uFull);
+                    uplineLookupCache.clear();
                 }
             };
 
@@ -3115,9 +3392,14 @@
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 const key = fullName.toUpperCase();
                 if (directUplineMap.has(key)) return directUplineMap.get(key);
+                if (uplineLookupCache.has(key)) return uplineLookupCache.get(key);
                 for (const [k, up] of directUplineMap.entries()) {
-                    if (isSamePersonName(fullName, k)) return up;
+                    if (isSamePersonName(fullName, k)) {
+                        uplineLookupCache.set(key, up);
+                        return up;
+                    }
                 }
+                uplineLookupCache.set(key, '');
                 return '';
             };
 
@@ -3153,6 +3435,7 @@
 
             // 3. Map every person to their known District Leader Name(s) and propagate across the upline/downline hierarchy
             const personLeadersMap = new Map();
+            const leadersLookupCache = new Map();
             const recordPersonLeader = (personName, leaderVal) => {
                 if (!personName || !leaderVal || leaderVal === 'Unassigned Leader' || leaderVal === 'Unassigned') return;
                 const normLeader = normalizeDistrictLeaderName(leaderVal) || (isKnownFilterLeader(leaderVal) ? leaderVal : '');
@@ -3161,7 +3444,11 @@
                 if (!fullName) return;
                 const k = fullName.toUpperCase();
                 if (!personLeadersMap.has(k)) personLeadersMap.set(k, new Set());
-                personLeadersMap.get(k).add(normLeader);
+                const setRef = personLeadersMap.get(k);
+                if (!setRef.has(normLeader)) {
+                    setRef.add(normLeader);
+                    leadersLookupCache.clear();
+                }
             };
 
             allSheetData.forEach(r => {
@@ -3215,9 +3502,15 @@
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName);
                 const key = fullName.toUpperCase();
                 if (personLeadersMap.has(key)) return Array.from(personLeadersMap.get(key));
+                if (leadersLookupCache.has(key)) return leadersLookupCache.get(key);
                 for (const [k, setVal] of personLeadersMap.entries()) {
-                    if (isSamePersonName(fullName, k)) return Array.from(setVal);
+                    if (isSamePersonName(fullName, k)) {
+                        const arr = Array.from(setVal);
+                        leadersLookupCache.set(key, arr);
+                        return arr;
+                    }
                 }
+                leadersLookupCache.set(key, []);
                 return [];
             };
 
@@ -3240,6 +3533,15 @@
                 }
             }
 
+            const inAgentListCache = new Map();
+            const isPersonInAgentList = (personName) => {
+                const k = String(personName || '').toUpperCase();
+                if (inAgentListCache.has(k)) return inAgentListCache.get(k);
+                const found = agentList.some(a => isSamePersonName(a.agentName, personName));
+                inAgentListCache.set(k, found);
+                return found;
+            };
+
             const isPersonAllowedByLeaderFilter = (personName, fallbackTeam) => {
                 if (!selectedFilters.LeaderName || selectedFilters.LeaderName.size === 0) return false;
                 const selfDistrict = normalizeDistrictLeaderName(personName);
@@ -3249,7 +3551,7 @@
                 if (fallbackTeam && fallbackTeam !== 'Unassigned') {
                     return matchesSelectedLeader(fallbackTeam);
                 }
-                if (agentList.some(a => isSamePersonName(a.agentName, personName))) {
+                if (isPersonInAgentList(personName)) {
                     return true;
                 }
                 const knownLeaders = getPersonKnownLeaders(personName);
@@ -3272,16 +3574,21 @@
             }
 
             const memberRosterMap = new Map();
+            const rosterKeyLookupCache = new Map();
             const findExistingRosterKey = (personName, extraAliases = []) => {
                 const fullName = resolveToFullName(personName) || cleanPersonName(personName) || personName;
                 const key = fullName.toUpperCase();
                 if (memberRosterMap.has(key)) return key;
+                const cacheKey = extraAliases.length > 0 ? `${key}|${extraAliases.join('|').toUpperCase()}` : key;
+                if (rosterKeyLookupCache.has(cacheKey)) return rosterKeyLookupCache.get(cacheKey);
                 const allAliases = [fullName, personName, ...extraAliases].filter(Boolean);
                 for (const [k, v] of memberRosterMap.entries()) {
                     if (allAliases.some(al => isSamePersonName(al, v.name))) {
+                        rosterKeyLookupCache.set(cacheKey, k);
                         return k;
                     }
                 }
+                rosterKeyLookupCache.set(cacheKey, null);
                 return null;
             };
 
@@ -3306,17 +3613,6 @@
                 const ddrUpline = getDdrManagerEN(fullName);
 
                 let effectiveUpline = ddrUpline || hcUpline || getDirectUpline(fullName) || a.uplineManager || '';
-                if (!effectiveUpline || isTeamNicknameLabel(effectiveUpline) || isSamePersonName(effectiveUpline, fullName)) {
-                    const sheetMatchWithDirectUpline = filteredRows.find(r =>
-                        isSamePersonName(r.agentName, fullName) &&
-                        isValidPersonName(r.uplineManager) &&
-                        !isSamePersonName(r.uplineManager, fullName) &&
-                        !isTeamNicknameLabel(r.uplineManager)
-                    );
-                    if (sheetMatchWithDirectUpline) {
-                        effectiveUpline = resolveToFullName(sheetMatchWithDirectUpline.uplineManager) || sheetMatchWithDirectUpline.uplineManager;
-                    }
-                }
 
                 const knownLeaders = getPersonKnownLeaders(fullName);
                 const effectiveLeader = normalizeDistrictLeaderName(a.leaderName) ||
@@ -3337,28 +3633,40 @@
                 });
             });
 
+            // Precompute normalized Headcount items once before the convergence loop
+            const preparedHcItems = [];
+            headcountRows.forEach(hc => {
+                const candidateNames = [hc.agentName, ...(Array.isArray(hc.rowPersonNames) ? hc.rowPersonNames : [])]
+                    .filter(n => isValidPersonName(n) && n !== 'New Recruit');
+                if (candidateNames.length === 0) return;
+                const rawAgentName = candidateNames[0];
+                const fullName = resolveToFullName(rawAgentName) || rawAgentName;
+                const selfDistrict = normalizeDistrictLeaderName(fullName);
+                if (selfDistrict && !matchesSelectedLeader(selfDistrict)) return;
+                const hasExplicitHcTeam = Boolean(hc.team && hc.team !== 'Unassigned');
+                const allowedSelf = isPersonAllowedByLeaderFilter(fullName, hc.team);
+                const key = fullName.toUpperCase();
+                if (hasExplicitHcTeam && !allowedSelf && !memberRosterMap.has(key)) return;
+                const ddrUp = getDdrManagerEN(fullName);
+                const hcUp = (isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager')
+                    ? (resolveToFullName(hc.uplineManager) || hc.uplineManager)
+                    : '';
+                const uplineFull = ddrUp || hcUp || getDirectUpline(fullName) || '';
+                preparedHcItems.push({ hc, candidateNames, fullName, key, ddrUp, uplineFull, hasExplicitHcTeam, allowedSelf, selfDistrict });
+            });
+
             // Step 2: Iteratively include Headcount members and all Upline Managers across all hierarchy levels (respecting selectedFilters.LeaderName)
             let rosterChanged = true;
             let rosterGuard = 0;
             while (rosterChanged && rosterGuard < 15) {
                 rosterChanged = false;
                 rosterGuard++;
+                for (const [ck, cv] of rosterKeyLookupCache.entries()) {
+                    if (cv === null) rosterKeyLookupCache.delete(ck);
+                }
 
                 // 2a: Ensure every Headcount member belonging to selectedFilters.LeaderName is in memberRosterMap
-                headcountRows.forEach(hc => {
-                    const candidateNames = [hc.agentName, ...(Array.isArray(hc.rowPersonNames) ? hc.rowPersonNames : [])]
-                        .filter(n => isValidPersonName(n) && n !== 'New Recruit');
-                    if (candidateNames.length === 0) return;
-
-                    const rawAgentName = candidateNames[0];
-                    const fullName = resolveToFullName(rawAgentName) || rawAgentName;
-                    const key = fullName.toUpperCase();
-                    const ddrUp = getDdrManagerEN(fullName);
-                    const hcUp = (isValidPersonName(hc.uplineManager) && hc.uplineManager !== 'Unassigned Manager')
-                        ? (resolveToFullName(hc.uplineManager) || hc.uplineManager)
-                        : '';
-                    const uplineFull = ddrUp || hcUp || getDirectUpline(fullName) || '';
-
+                preparedHcItems.forEach(({ hc, candidateNames, fullName, key, ddrUp, uplineFull, hasExplicitHcTeam, allowedSelf, selfDistrict }) => {
                     const existingKey = findExistingRosterKey(fullName, candidateNames);
                     if (existingKey) {
                         const existing = memberRosterMap.get(existingKey);
@@ -3372,16 +3680,13 @@
                             existing.rank = getManagerRank(existing.name) || getManagerRank(fullName);
                         }
                     } else {
+                        if (hasExplicitHcTeam && !allowedSelf) return;
+
                         const uplineKey = uplineFull ? findExistingRosterKey(uplineFull) : null;
                         const uplineEntry = uplineKey ? memberRosterMap.get(uplineKey) : null;
-                        const hasExplicitHcTeam = Boolean(hc.team && hc.team !== 'Unassigned');
-                        const allowedSelf = isPersonAllowedByLeaderFilter(fullName, hc.team);
                         const allowedViaUpline = !hasExplicitHcTeam && uplineEntry && isPersonAllowedByLeaderFilter(uplineEntry.name, uplineEntry.leaderName);
 
                         if (!allowedSelf && !allowedViaUpline) return;
-                        // Never allow a top-level District Leader who is unchecked in LeaderName filter
-                        const selfDistrict = normalizeDistrictLeaderName(fullName);
-                        if (selfDistrict && !matchesSelectedLeader(selfDistrict)) return;
 
                         const mm = hc.manMonth > 0 ? hc.manMonth : calculateManMonthFromDates(hc.productionStartDate, hc.terminationDate);
                         if (mm > 0) {
@@ -3478,14 +3783,6 @@
                     }
                     if (!member.leaderName && matchedAgents[0].leaderName) {
                         member.leaderName = normalizeDistrictLeaderName(matchedAgents[0].leaderName) || matchedAgents[0].leaderName;
-                    }
-                } else if (!member.totalFYC || member.totalFYC === 0) {
-                    const memberFilteredRows = filteredRows.filter(r => isSamePersonName(r.agentName, member.name));
-                    if (memberFilteredRows.length > 0) {
-                        member.totalFYC = memberFilteredRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
-                        if (!member.leaderName && memberFilteredRows[0].leaderName) {
-                            member.leaderName = normalizeDistrictLeaderName(memberFilteredRows[0].leaderName) || memberFilteredRows[0].leaderName;
-                        }
                     }
                 }
             }
