@@ -233,10 +233,10 @@
                     <div id="containerIssueMonth" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
                 </div>
 
-                <!-- 5. Leader Name -->
+                <!-- 5. District -->
                 <div class="bg-slate-50 rounded-xl border border-slate-200/80 p-2.5">
                     <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
-                        <span>Leader Name</span>
+                        <span>District</span>
                         <span id="badgeLeaderName" class="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
                     </div>
                     <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1 border-b border-slate-200/60 pb-1">
@@ -244,14 +244,14 @@
                         <span>|</span>
                         <button onclick="toggleSelectAll('LeaderName', false)" class="hover:text-sky-600 font-semibold">取消</button>
                     </div>
-                    <input type="text" id="leaderSearch" onkeyup="filterListSearch('LeaderName', 'leaderSearch')" placeholder="搜尋 Leader..." class="w-full text-[10px] p-1 mb-1 border border-slate-300 rounded focus:ring-1 focus:ring-sky-500 focus:outline-none">
+                    <input type="text" id="leaderSearch" onkeyup="filterListSearch('LeaderName', 'leaderSearch')" placeholder="搜尋 District..." class="w-full text-[10px] p-1 mb-1 border border-slate-300 rounded focus:ring-1 focus:ring-sky-500 focus:outline-none">
                     <div id="containerLeaderName" class="max-h-20 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
                 </div>
 
-                <!-- 6. Headcount LIS Year Multi-Select -->
+                <!-- 6. Headcount Production Year Multi-Select -->
                 <div class="bg-purple-50/60 rounded-xl border border-purple-200/80 p-2.5">
                     <div class="flex items-center justify-between text-xs font-bold text-purple-900 mb-1">
-                        <span><i class="fa-solid fa-calendar-days text-purple-600 mr-1"></i>LIS Year</span>
+                        <span><i class="fa-solid fa-calendar-days text-purple-600 mr-1"></i>Production Year</span>
                         <span id="badgeLisYear" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
                     </div>
                     <div class="flex items-center justify-between text-[10px] text-purple-600 mb-2 border-b border-purple-200/60 pb-1">
@@ -262,10 +262,10 @@
                     <div id="containerLisYear" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
                 </div>
 
-                <!-- 7. Headcount LIS Month Multi-Select -->
+                <!-- 7. Headcount Production Month Multi-Select -->
                 <div class="bg-purple-50/60 rounded-xl border border-purple-200/80 p-2.5">
                     <div class="flex items-center justify-between text-xs font-bold text-purple-900 mb-1">
-                        <span><i class="fa-solid fa-calendar-week text-purple-600 mr-1"></i>LIS Month</span>
+                        <span><i class="fa-solid fa-calendar-week text-purple-600 mr-1"></i>Production Month</span>
                         <span id="badgeLisMonth" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
                     </div>
                     <div class="flex items-center justify-between text-[10px] text-purple-600 mb-2 border-b border-purple-200/60 pb-1">
@@ -276,10 +276,10 @@
                     <div id="containerLisMonth" class="max-h-28 overflow-y-auto space-y-1 custom-scrollbar pr-1 text-xs"></div>
                 </div>
 
-                <!-- 8. Headcount Team Multi-Select -->
+                <!-- 8. District Multi-Select -->
                 <div class="bg-purple-50/60 rounded-xl border border-purple-200/80 p-2.5">
                     <div class="flex items-center justify-between text-xs font-bold text-purple-900 mb-1">
-                        <span><i class="fa-solid fa-users-viewfinder text-purple-600 mr-1"></i>Headcount Team</span>
+                        <span><i class="fa-solid fa-users-viewfinder text-purple-600 mr-1"></i>District</span>
                         <span id="badgeHeadcountTeam" class="text-[10px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">0/0</span>
                     </div>
                     <div class="flex items-center justify-between text-[10px] text-purple-600 mb-2 border-b border-purple-200/60 pb-1">
@@ -300,7 +300,6 @@
                     <i class="fa-solid fa-dollar-sign text-sky-500"></i>
                 </div>
                 <div id="kpiTotalFYC" class="text-xl font-black text-sky-900">$0</div>
-                <div class="text-[10px] text-slate-400 mt-1">第22欄 (Column V) 精準計算</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-emerald-300 transition-colors">
@@ -309,16 +308,14 @@
                     <i class="fa-solid fa-vault text-emerald-500"></i>
                 </div>
                 <div id="kpiTotalFYP" class="text-xl font-black text-emerald-900">$0</div>
-                <div class="text-[10px] text-slate-400 mt-1">生效保費總計</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-amber-300 transition-colors">
                 <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
-                    <span>FYC Final Case 1</span>
+                    <span>Total Case</span>
                     <i class="fa-solid fa-chart-pie text-amber-500"></i>
                 </div>
                 <div id="kpiTotalCase1" class="text-xl font-black text-amber-900">$0</div>
-                <div class="text-[10px] text-slate-400 mt-1">Case 1 階段總和</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-purple-300 transition-colors">
@@ -326,8 +323,8 @@
                     <span>總保單件數</span>
                     <i class="fa-solid fa-file-contract text-purple-500"></i>
                 </div>
+                <div id="kpiTotalPolicyCount" class="hidden"></div>
                 <div id="kpiPolicyCount" class="text-xl font-black text-purple-900">0</div>
-                <div class="text-[10px] text-slate-400 mt-1">Total Policies Issued</div>
             </div>
 
             <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col justify-between hover:border-indigo-300 transition-colors">
@@ -336,7 +333,6 @@
                     <i class="fa-solid fa-user-check text-indigo-500"></i>
                 </div>
                 <div id="kpiAgentCount" class="text-xl font-black text-indigo-900">0</div>
-                <div class="text-[10px] text-slate-400 mt-1">Active Agents</div>
             </div>
         </section>
 
