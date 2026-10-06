@@ -1248,12 +1248,12 @@
             agent: ['agent name', 'agentname', 'agent_name', 'writing agent name', 'producing agent name', 'selling agent name', 'servicing agent name', 'advisor name', 'consultant name', 'producer name', 'fc name', '顧問姓名', '代理人姓名', '業務員姓名', '理財顧問姓名', '姓名', '代理人', 'agent'],
             agentGrade: ['agent grade', 'agent rank', 'agent level', 'agent title', 'current grade', 'grade', 'rank', 'level', 'title', 'position', 'designation', '職級', '級別', '職稱'],
             uplineGrade: ['upline grade', 'upline rank', 'upline level', 'upline title', 'manager grade', 'manager rank', 'leader grade', '上線職級', '主管職級'],
-            policyNo: ['policy no', 'policyno', 'policy_no', 'policy number', '保單編號', '保單號碼', 'pol_no'],
+            policyNo: ['contno', 'policy no', 'policyno', 'policy_no', 'policy number', '保單編號', '保單號碼', 'pol_no'],
             product: ['product name', 'product_name', 'productname', 'plan name', 'product', '險種', '產品名稱', 'prod_name'],
             fycFinal: ['fyc final', 'fyc_final', 'fycfinal', 'final fyc', 'column v', 'col v', 'col 22'],
             fypFinal: ['fyp final', 'fyp_final', 'fypfinal', 'final fyp', 'afyp final', 'fyp', 'afyp', 'ape', 'annualized premium'],
             fycFinalCase1: ['fyc finalcase1', 'fyc final case1', 'fyc final case 1', 'fyc_finalcase1', 'fyc_final_case1', 'case1', 'case 1', 'fyc case 1', 'fyc case1'],
-            bmName: ['bm name', 'bm_name', 'bmname', 'branch manager name', 'branch manager', 'bm'],
+            bmName: ['bm name', 'bm_name', 'bmname', 'branch manager name', 'branch manager'],
             qdapFlag: ['qdap flag', 'qdap_flag', 'qdapflag', 'qdap'],
             hpFlag: ['hp flag', 'hp_flag', 'hpflag', 'h&p flag', 'h&p', 'hp'],
             vnb: ['vnb'],
@@ -2679,16 +2679,22 @@
             if (headerIdx === -1) headerIdx = 0;
 
             // Strictly enforce specified columns when present in the worksheet:
+            // Column B (index 1) = Contno (Policy No)
             // Column V (index 21) = FYC Final
+            // Column Y (index 24) = Leader Name
             // Column Z (index 25) = Agent Name (Agent 顧問)
             // Column AD (index 29) = Submit Year
+            // Column AF (index 31) = BM Name
+            // Column AG (index 32) = QDAP Flag
+            // Column AH (index 33) = HP Flag
             const maxCols = rawMatrix.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
+            if (maxCols > 1 && colMap.policyNo === undefined) colMap.policyNo = 1;
             if (maxCols > 21) colMap.fycFinal = 21;
             if (maxCols > 25) colMap.agent = 25;
             if (maxCols > 29) colMap.submitYear = 29;
-            if (maxCols > 31 && colMap.bmName === undefined) colMap.bmName = 31;
-            if (maxCols > 32 && colMap.qdapFlag === undefined) colMap.qdapFlag = 32;
-            if (maxCols > 33 && colMap.hpFlag === undefined) colMap.hpFlag = 33;
+            if (maxCols > 31) colMap.bmName = 31;
+            if (maxCols > 32) colMap.qdapFlag = 32;
+            if (maxCols > 33) colMap.hpFlag = 33;
 
             // Collect all candidate Upline Manager columns in the sheet that contain valid person names (in Upline 1 -> Upline 2 -> ... order)
             const sheetHeaderRow = rawMatrix[headerIdx] || [];
@@ -5106,13 +5112,20 @@
             }
         }
 
-        // Determine which Monthly Group Key a row in PP Raw belongs to
+        // Determine which Monthly Group Key a row in PP Raw belongs to (strictly by Raw Data Leader Name Col Y & BM Name Col AF)
         function getRowMonthlyGroupKey(row) {
             if (!row) return 'GROUP:OTHER';
             const rawLeaderUpper = String(row.rawLeaderName || row.leaderName || '').toUpperCase().trim();
             const normLeaderUpper = String(row.leaderName || '').toUpperCase().trim();
             const bmUpper = String(row.bmName || '').toUpperCase().trim();
-            const uplineStr = [row.agentName, row.bmName, row.uplineManager, ...(row.uplineManagersList || [])].join(' ').toUpperCase();
+
+            // Strictly check Raw Data BM Name (Col AF) first for BM: Tam Pan and BM: Hsui Man Lai
+            if (bmUpper.includes('TAM PAN')) {
+                return 'GROUP:CALVIN_BM_TAM_PAN';
+            }
+            if (bmUpper.includes('HSUI MAN LAI')) {
+                return 'GROUP:CALVIN_BM_HSUI_MAN_LAI';
+            }
 
             if (normLeaderUpper === 'PAGGIE LAW' || rawLeaderUpper.includes('PAGGIE LAW') || rawLeaderUpper.includes('LAW SUK KING') || rawLeaderUpper.includes('LAW PUI KI')) {
                 return 'GROUP:PAGGIE_LAW';
@@ -5124,13 +5137,7 @@
                 return 'GROUP:ANDY_TSE';
             }
             if (rawLeaderUpper.includes('CALVIN WONG') || normLeaderUpper.includes('CALVIN WONG')) {
-                if (bmUpper.includes('HSUI MAN LAI') || uplineStr.includes('HSUI MAN LAI')) {
-                    return 'GROUP:CALVIN_BM_HSUI_MAN_LAI';
-                }
-                if (bmUpper.includes('TAM PAN') || uplineStr.includes('TAM PAN')) {
-                    return 'GROUP:CALVIN_BM_TAM_PAN';
-                }
-                const otherBm = row.bmName ? row.bmName.trim().toUpperCase() : 'DIRECT';
+                const otherBm = bmUpper || 'DIRECT';
                 return `GROUP:CALVIN_BM_${otherBm}`;
             }
             const cleanLeader = (row.rawLeaderName || row.leaderName || 'Other').trim();
@@ -5245,44 +5252,67 @@
             const coreGroups = monthlyAvailableGroups.filter(g => g.isDefault);
             const otherGroups = monthlyAvailableGroups.filter(g => !g.isDefault);
 
-            // Collect individual agents per group
+            // Collect individual agents per group (strictly following Raw Data BM Name Col AF & Leader Name Col Y)
             const agentsMap = new Map();
+            const groupToAgentsMap = new Map();
             allSheetData.forEach(r => {
                 const ag = r.agentName;
                 if (!ag || ag === 'Unknown Agent') return;
                 const agKey = ag.toUpperCase().trim();
                 const gKey = getRowMonthlyGroupKey(r);
+                const rawBm = String(r.bmName || '').trim();
                 if (!agentsMap.has(agKey)) {
-                    agentsMap.set(agKey, {
+                    const agentObj = {
                         name: ag,
                         groupKey: gKey,
-                        groupLabel: getRowMonthlyGroupLabel(r)
-                    });
+                        groupLabel: getRowMonthlyGroupLabel(r),
+                        bmName: rawBm
+                    };
+                    agentsMap.set(agKey, agentObj);
+                } else if (rawBm && !agentsMap.get(agKey).bmName) {
+                    const existing = agentsMap.get(agKey);
+                    existing.bmName = rawBm;
+                    existing.groupKey = gKey;
+                    existing.groupLabel = getRowMonthlyGroupLabel(r);
                 }
             });
 
+            agentsMap.forEach(agObj => {
+                if (!groupToAgentsMap.has(agObj.groupKey)) {
+                    groupToAgentsMap.set(agObj.groupKey, []);
+                }
+                groupToAgentsMap.get(agObj.groupKey).push(agObj);
+            });
+            groupToAgentsMap.forEach(list => list.sort((a, b) => a.name.localeCompare(b.name)));
+
             const sortedAgents = Array.from(agentsMap.values()).sort((a, b) => {
-                const aDef = DEFAULT_MONTHLY_GROUP_KEYS.includes(a.groupKey) ? 0 : 1;
-                const bDef = DEFAULT_MONTHLY_GROUP_KEYS.includes(b.groupKey) ? 0 : 1;
-                if (aDef !== bDef) return aDef - bDef;
+                const aIdx = DEFAULT_MONTHLY_GROUP_KEYS.indexOf(a.groupKey);
+                const bIdx = DEFAULT_MONTHLY_GROUP_KEYS.indexOf(b.groupKey);
+                const aOrder = aIdx !== -1 ? aIdx : 999;
+                const bOrder = bIdx !== -1 ? bIdx : 999;
+                if (aOrder !== bOrder) return aOrder - bOrder;
                 return a.name.localeCompare(b.name);
             });
 
             let html = `
                 <div class="space-y-1">
                     <div class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200 flex items-center justify-between">
-                        <span>★ 預設指定 Agent / BM 團隊（自動勾選）</span>
+                        <span>★ 預設指定 Agent / BM 團隊（依 Raw Data BM Name 分組）</span>
                         <span>5 組</span>
                     </div>
                     ${coreGroups.map(g => {
                         const checked = monthlyCheckedGroups.has(g.key);
+                        const groupAgentCount = (groupToAgentsMap.get(g.key) || []).length;
                         return `
                             <label class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50/70 cursor-pointer select-none monthly-dropdown-item border border-transparent ${checked ? 'bg-emerald-50/40 border-emerald-200/70' : ''}" data-search="${escapeHtml(g.label.toLowerCase())}">
                                 <div class="flex items-center space-x-2 min-w-0">
                                     <input type="checkbox" ${checked ? 'checked' : ''} onchange="onMonthlyGroupCheckboxChanged('${escapeJsString(g.key)}', this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500 h-3.5 w-3.5 shrink-0">
                                     <span class="font-bold text-slate-900 truncate">${escapeHtml(g.label)}</span>
                                 </div>
-                                <span class="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold shrink-0">預設</span>
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <span class="text-[9px] bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-bold">${groupAgentCount} 人</span>
+                                    <span class="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">預設</span>
+                                </div>
                             </label>
                         `;
                     }).join('')}
@@ -5293,16 +5323,18 @@
                 html += `
                     <div class="space-y-1 pt-2 border-t border-slate-100">
                         <div class="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded">
-                            其他 District / Calvin Wong 其他 BM 團隊
+                            其他 District / Calvin Wong 其他 BM 團隊（依 Raw Data BM Name）
                         </div>
                         ${otherGroups.map(g => {
                             const checked = monthlyCheckedGroups.has(g.key);
+                            const groupAgentCount = (groupToAgentsMap.get(g.key) || []).length;
                             return `
                                 <label class="flex items-center justify-between gap-2 px-2 py-1 rounded-lg hover:bg-slate-50 cursor-pointer select-none monthly-dropdown-item" data-search="${escapeHtml(g.label.toLowerCase())}">
                                     <div class="flex items-center space-x-2 min-w-0">
                                         <input type="checkbox" ${checked ? 'checked' : ''} onchange="onMonthlyGroupCheckboxChanged('${escapeJsString(g.key)}', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 shrink-0">
                                         <span class="font-medium text-slate-700 truncate">${escapeHtml(g.label)}</span>
                                     </div>
+                                    <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-semibold shrink-0">${groupAgentCount} 人</span>
                                 </label>
                             `;
                         }).join('')}
@@ -5311,23 +5343,36 @@
             }
 
             if (sortedAgents.length > 0) {
+                const orderedGroupsForAgents = [...coreGroups, ...otherGroups].filter(g => (groupToAgentsMap.get(g.key) || []).length > 0);
                 html += `
-                    <div class="space-y-1 pt-2 border-t border-slate-100">
+                    <div class="space-y-2 pt-2 border-t border-slate-100">
                         <div class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-1 rounded flex items-center justify-between">
-                            <span>個別 Agent 顧問微調（共 ${sortedAgents.length} 人）</span>
+                            <span>各組別 Agent Name 明細（依 Raw Data BM Name 分組 · 共 ${sortedAgents.length} 人）</span>
                             <span>可單獨勾選</span>
                         </div>
-                        ${sortedAgents.map(ag => {
-                            const agKey = ag.name.toUpperCase().trim();
-                            const isChecked = !monthlyExcludedAgents.has(agKey) && (monthlyExtraIncludedAgents.has(agKey) || monthlyCheckedGroups.has(ag.groupKey));
+                        ${orderedGroupsForAgents.map(g => {
+                            const groupAgents = groupToAgentsMap.get(g.key) || [];
                             return `
-                                <label class="flex items-center justify-between gap-2 px-2 py-1 rounded-lg hover:bg-slate-50 cursor-pointer select-none monthly-dropdown-item" data-search="${escapeHtml((ag.name + ' ' + ag.groupLabel).toLowerCase())}">
-                                    <div class="flex items-center space-x-2 min-w-0">
-                                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="onMonthlyIndividualAgentCheckboxChanged('${escapeJsString(agKey)}', '${escapeJsString(ag.groupKey)}', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 shrink-0">
-                                        <span class="font-semibold text-slate-800 truncate">${escapeHtml(ag.name)}</span>
+                                <div class="space-y-0.5 border border-slate-100 rounded-lg p-1.5 bg-slate-50/40">
+                                    <div class="text-[10px] font-extrabold ${g.isDefault ? 'text-emerald-800 bg-emerald-50/80' : 'text-slate-700 bg-slate-100/80'} px-2 py-1 rounded flex items-center justify-between">
+                                        <span class="truncate">${escapeHtml(g.shortLabel)}</span>
+                                        <span class="shrink-0 ml-1">${groupAgents.length} 位 Agent</span>
                                     </div>
-                                    <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-medium truncate max-w-[130px] shrink-0">${escapeHtml(ag.groupLabel)}</span>
-                                </label>
+                                    ${groupAgents.map(ag => {
+                                        const agKey = ag.name.toUpperCase().trim();
+                                        const isChecked = !monthlyExcludedAgents.has(agKey) && (monthlyExtraIncludedAgents.has(agKey) || monthlyCheckedGroups.has(ag.groupKey));
+                                        const bmBadge = ag.bmName ? `BM: ${ag.bmName}` : ag.groupLabel;
+                                        return `
+                                            <label class="flex items-center justify-between gap-2 px-2 py-1 rounded-lg hover:bg-white cursor-pointer select-none monthly-dropdown-item" data-search="${escapeHtml((ag.name + ' ' + ag.groupLabel + ' ' + (ag.bmName || '')).toLowerCase())}">
+                                                <div class="flex items-center space-x-2 min-w-0">
+                                                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="onMonthlyIndividualAgentCheckboxChanged('${escapeJsString(agKey)}', '${escapeJsString(ag.groupKey)}', this.checked)" class="rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5 shrink-0">
+                                                    <span class="font-semibold text-slate-800 truncate">${escapeHtml(ag.name)}</span>
+                                                </div>
+                                                <span class="text-[9px] bg-white border border-slate-200 text-slate-600 px-1.5 py-0.2 rounded font-medium truncate max-w-[145px] shrink-0" title="${escapeHtml(bmBadge)}">${escapeHtml(bmBadge)}</span>
+                                            </label>
+                                        `;
+                                    }).join('')}
+                                </div>
                             `;
                         }).join('')}
                     </div>
