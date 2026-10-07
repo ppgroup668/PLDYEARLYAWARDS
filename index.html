@@ -864,7 +864,6 @@
                                 <tr class="bg-slate-50 text-slate-500 border-b border-slate-200/80 font-bold uppercase">
                                     <th class="p-2.5 w-10 text-center">排名</th>
                                     <th class="p-2.5">Agent 姓名</th>
-                                    <th class="p-2.5 text-center">保單數</th>
                                     <th class="p-2.5 text-right">月度全報 FYCC</th>
                                 </tr>
                             </thead>
@@ -893,7 +892,6 @@
                                 <tr class="bg-slate-50 text-slate-500 border-b border-slate-200/80 font-bold uppercase">
                                     <th class="p-2.5 w-10 text-center">排名</th>
                                     <th class="p-2.5">Agent 姓名</th>
-                                    <th class="p-2.5">保單編號 / 險種</th>
                                     <th class="p-2.5 text-right">單張保單 FYC</th>
                                 </tr>
                             </thead>
@@ -955,7 +953,6 @@
                                 <tr class="bg-rose-50/60 text-rose-900 border-b border-rose-100 font-bold uppercase">
                                     <th class="p-2.5 w-10 text-center">排名</th>
                                     <th class="p-2.5">Agent 姓名</th>
-                                    <th class="p-2.5">保單編號 / H&amp;P 險種</th>
                                     <th class="p-2.5 text-right">H&amp;P 保單 FYCC</th>
                                 </tr>
                             </thead>
@@ -2688,7 +2685,7 @@
             // Column AG (index 32) = QDAP Flag
             // Column AH (index 33) = HP Flag
             const maxCols = rawMatrix.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
-            if (maxCols > 1 && colMap.policyNo === undefined) colMap.policyNo = 1;
+            if (maxCols > 1) colMap.policyNo = 1;
             if (maxCols > 21) colMap.fycFinal = 21;
             if (maxCols > 25) colMap.agent = 25;
             if (maxCols > 29) colMap.submitYear = 29;
@@ -3515,7 +3512,7 @@
 
             setElemText('kpiTotalFYC', `$${Math.round(totalFYC).toLocaleString()}`);
             setElemText('kpiTotalFYP', `$${Math.round(totalFYP).toLocaleString()}`);
-            setElemText('kpiTotalCase1', `${Math.round(totalCase1).toLocaleString()}`);
+            setElemText('kpiTotalCase1', `${Number(totalCase1 || 0).toFixed(1)}`);
             setElemText('kpiPolicyCount', filteredRows.length);
             setElemText('kpiAgentCount', agentsSet.size);
         }
@@ -4864,7 +4861,7 @@
                         <div class="text-[10px] text-slate-400">${escapeHtml(item.leaderName)}</div>
                     </td>
                     <td class="p-2.5 text-right font-black ${colorClass}">
-                        ${prefix}${Math.round(item[metricKey]).toLocaleString()}
+                        ${metricKey === 'totalCase1' ? Number(item[metricKey] || 0).toFixed(1) : `${prefix}${Math.round(item[metricKey]).toLocaleString()}`}
                     </td>
                 </tr>
             `).join('');
@@ -5906,8 +5903,7 @@
         }
 
         function formatCaseNumber(val) {
-            if (!val) return '0';
-            return Number.isInteger(Number(val.toFixed(1))) ? String(Math.round(val)) : val.toFixed(1);
+            return Number(val || 0).toFixed(1);
         }
 
         function renderMonthlyPerformancesTables() {
@@ -5918,7 +5914,7 @@
             if (t1Badge) t1Badge.innerText = `${t1List.length} 人`;
             if (t1Body) {
                 if (t1List.length === 0) {
-                    t1Body.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">此篩選條件下無達 HK$50,000 之 Agent</td></tr>`;
+                    t1Body.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-400">此篩選條件下無達 HK$50,000 之 Agent</td></tr>`;
                 } else {
                     t1Body.innerHTML = t1List.map((item, idx) => `
                         <tr class="hover:bg-sky-50/60 transition-colors cursor-pointer" onclick="openMonthlyAgentDetail('${escapeJsString(item.agentName)}', 'month')">
@@ -5927,7 +5923,6 @@
                                 <div class="font-bold text-slate-900">${escapeHtml(item.agentName)}</div>
                                 <div class="text-[10px] text-slate-500">${escapeHtml(item.groupLabel)}</div>
                             </td>
-                            <td class="p-2.5 text-center font-bold text-slate-600">${formatCaseNumber(item.totalCases)} 張</td>
                             <td class="p-2.5 text-right font-black text-sky-700 whitespace-nowrap">$${Math.round(item.totalFYCC).toLocaleString()}</td>
                         </tr>
                     `).join('');
@@ -5941,7 +5936,7 @@
             if (t2Badge) t2Badge.innerText = `${t2List.length} 張`;
             if (t2Body) {
                 if (t2List.length === 0) {
-                    t2Body.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">此篩選條件下無單張 FYC ≥ HK$30,000 之保單</td></tr>`;
+                    t2Body.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-400">此篩選條件下無單張 FYC ≥ HK$30,000 之保單</td></tr>`;
                 } else {
                     t2Body.innerHTML = t2List.map((item, idx) => `
                         <tr class="hover:bg-emerald-50/60 transition-colors cursor-pointer" onclick="openMonthlyAgentDetail('${escapeJsString(item.agentName)}', 'month')">
@@ -5949,10 +5944,6 @@
                             <td class="p-2.5">
                                 <div class="font-bold text-slate-900">${escapeHtml(item.agentName)}</div>
                                 <div class="text-[10px] text-slate-500">${escapeHtml(item.groupLabel)}</div>
-                            </td>
-                            <td class="p-2.5">
-                                <div class="font-mono font-bold text-emerald-800 text-[11px]">#${escapeHtml(item.policyNo)}</div>
-                                <div class="text-[10px] text-slate-500 truncate max-w-[160px]" title="${escapeHtml(item.productName)}">${escapeHtml(item.productName)}</div>
                             </td>
                             <td class="p-2.5 text-right font-black text-emerald-700 whitespace-nowrap">$${Math.round(item.fyc).toLocaleString()}</td>
                         </tr>
@@ -5974,7 +5965,7 @@
                             <td class="p-2.5 text-center">${formatRankCell(idx)}</td>
                             <td class="p-2.5">
                                 <div class="font-bold text-slate-900">${escapeHtml(item.agentName)}</div>
-                                <div class="text-[10px] text-slate-500">${escapeHtml(item.groupLabel)} · 季度 ${formatCaseNumber(item.quarterCases)} 張</div>
+                                <div class="text-[10px] text-slate-500">${escapeHtml(item.groupLabel)}</div>
                             </td>
                             <td class="p-2.5 text-right font-black text-amber-700 whitespace-nowrap">$${Math.round(item.quarterFYCC).toLocaleString()}</td>
                         </tr>
@@ -5989,7 +5980,7 @@
             if (t4Badge) t4Badge.innerText = `${t4List.length} 張`;
             if (t4Body) {
                 if (t4List.length === 0) {
-                    t4Body.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400">當月無單張 FYCC ≥ HK$20,000 之 H&amp;P 保單</td></tr>`;
+                    t4Body.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-400">當月無單張 FYCC ≥ HK$20,000 之 H&amp;P 保單</td></tr>`;
                 } else {
                     t4Body.innerHTML = t4List.map((item, idx) => `
                         <tr class="hover:bg-rose-50/60 transition-colors cursor-pointer" onclick="openMonthlyAgentDetail('${escapeJsString(item.agentName)}', 'hp')">
@@ -5997,10 +5988,6 @@
                             <td class="p-2.5">
                                 <div class="font-bold text-slate-900">${escapeHtml(item.agentName)}</div>
                                 <div class="text-[10px] text-slate-500">${escapeHtml(item.groupLabel)}</div>
-                            </td>
-                            <td class="p-2.5">
-                                <div class="font-mono font-bold text-rose-800 text-[11px]">#${escapeHtml(item.policyNo)}</div>
-                                <div class="text-[10px] text-slate-500 truncate max-w-[180px]" title="${escapeHtml(item.productName)}">${escapeHtml(item.productName)}</div>
                             </td>
                             <td class="p-2.5 text-right font-black text-rose-700 whitespace-nowrap">$${Math.round(item.hpFycc).toLocaleString()}</td>
                         </tr>
