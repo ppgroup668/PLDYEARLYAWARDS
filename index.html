@@ -186,7 +186,7 @@
                 <button id="bannerBtnYearly" onclick="switchMainView('yearly')" class="px-4 py-2.5 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600 text-white shadow-sm">
                     <i class="fa-solid fa-trophy text-amber-300"></i>
                     <span>PLD Yearly Awards</span>
-                    <span class="hidden md:inline text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">年度榮譽 (表格 1-7)</span>
+                    <span class="hidden md:inline text-[10px] font-semibold bg-white/20 text-white px-2 py-0.5 rounded-full">年度榮譽 (表格 1-8)</span>
                 </button>
                 <button id="bannerBtnMonthly" onclick="switchMainView('monthly')" class="px-4 py-2.5 text-xs sm:text-sm font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700">
                     <i class="fa-solid fa-calendar-check text-emerald-600"></i>
@@ -339,46 +339,82 @@
             </div>
         </section>
 
+        <!-- 第一行 4 個格：Headcount · Active Ratio · Case per Active Agent · Case Size (只顯示總數) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'headcount')" class="bg-gradient-to-br from-white to-sky-50/60 rounded-2xl p-4 border border-sky-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between cursor-pointer group">
+                <div class="flex items-center justify-between text-sky-700 text-xs font-bold mb-1">
+                    <span>Headcount</span>
+                    <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-users"></i></span>
+                </div>
+                <div id="yearlyKpiHeadcount" class="text-2xl font-black text-sky-900">0</div>
+            </div>
+
+            <div onclick="openKpiDistrictMonthModal('yearly', 'activeRatio')" class="bg-gradient-to-br from-white to-emerald-50/60 rounded-2xl p-4 border border-emerald-200/90 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between cursor-pointer group">
+                <div class="flex items-center justify-between text-emerald-700 text-xs font-bold mb-1">
+                    <span>Active Ratio</span>
+                    <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-percent"></i></span>
+                </div>
+                <div id="yearlyKpiActiveRatio" class="text-2xl font-black text-emerald-900">0.0%</div>
+            </div>
+
+            <div onclick="openKpiDistrictMonthModal('yearly', 'casePerActive')" class="bg-gradient-to-br from-white to-amber-50/60 rounded-2xl p-4 border border-amber-200/90 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between cursor-pointer group">
+                <div class="flex items-center justify-between text-amber-700 text-xs font-bold mb-1">
+                    <span>Case per Active Agent</span>
+                    <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-briefcase"></i></span>
+                </div>
+                <div id="yearlyKpiCasePerActive" class="text-2xl font-black text-amber-900">0.0</div>
+            </div>
+
+            <div onclick="openKpiDistrictMonthModal('yearly', 'caseSize')" class="bg-gradient-to-br from-white to-purple-50/60 rounded-2xl p-4 border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between cursor-pointer group">
+                <div class="flex items-center justify-between text-purple-700 text-xs font-bold mb-1">
+                    <span>Case Size</span>
+                    <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-scale-balanced"></i></span>
+                </div>
+                <div id="yearlyKpiCaseSize" class="text-2xl font-black text-purple-900">$0</div>
+            </div>
+        </section>
+
+        <!-- 第二行 5 個格：Total FYC Final · Total FYP Final · Total Case · 總保單件數 · 活躍顧問人數 (只顯示總數) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div class="bg-gradient-to-br from-white to-sky-50/60 rounded-2xl p-4 border border-sky-200/90 shadow-sm flex flex-col justify-between">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'fyc')" class="bg-gradient-to-br from-white to-sky-50/60 rounded-2xl p-4 border border-sky-200/90 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between text-sky-700 text-xs font-bold mb-1">
                     <span>Total FYC Final</span>
-                    <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center"><i class="fa-solid fa-dollar-sign"></i></span>
+                    <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-dollar-sign"></i></span>
                 </div>
-                <div id="kpiTotalFYC" class="text-xl font-black text-sky-900">$0</div>
+                <div id="kpiTotalFYC" class="text-2xl font-black text-sky-900">$0</div>
             </div>
 
-            <div class="bg-gradient-to-br from-white to-emerald-50/60 rounded-2xl p-4 border border-emerald-200/90 shadow-sm flex flex-col justify-between">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'fyp')" class="bg-gradient-to-br from-white to-emerald-50/60 rounded-2xl p-4 border border-emerald-200/90 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between text-emerald-700 text-xs font-bold mb-1">
                     <span>Total FYP Final</span>
-                    <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-vault"></i></span>
+                    <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-vault"></i></span>
                 </div>
-                <div id="kpiTotalFYP" class="text-xl font-black text-emerald-900">$0</div>
+                <div id="kpiTotalFYP" class="text-2xl font-black text-emerald-900">$0</div>
             </div>
 
-            <div class="bg-gradient-to-br from-white to-amber-50/60 rounded-2xl p-4 border border-amber-200/90 shadow-sm flex flex-col justify-between">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'case1')" class="bg-gradient-to-br from-white to-amber-50/60 rounded-2xl p-4 border border-amber-200/90 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between text-amber-700 text-xs font-bold mb-1">
                     <span>Total Case</span>
-                    <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-chart-pie"></i></span>
+                    <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-chart-pie"></i></span>
                 </div>
-                <div id="kpiTotalCase1" class="text-xl font-black text-amber-900">0.0</div>
+                <div id="kpiTotalCase1" class="text-2xl font-black text-amber-900">0.0</div>
             </div>
 
-            <div class="bg-gradient-to-br from-white to-purple-50/60 rounded-2xl p-4 border border-purple-200/90 shadow-sm flex flex-col justify-between">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'policyCount')" class="bg-gradient-to-br from-white to-purple-50/60 rounded-2xl p-4 border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between text-purple-700 text-xs font-bold mb-1">
                     <span>總保單件數</span>
-                    <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></span>
+                    <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></span>
                 </div>
                 <div id="kpiTotalPolicyCount" class="hidden"></div>
-                <div id="kpiPolicyCount" class="text-xl font-black text-purple-900">0</div>
+                <div id="kpiPolicyCount" class="text-2xl font-black text-purple-900">0</div>
             </div>
 
-            <div class="bg-gradient-to-br from-white to-rose-50/60 rounded-2xl p-4 border border-rose-200/90 shadow-sm flex flex-col justify-between">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'agentCount')" class="bg-gradient-to-br from-white to-rose-50/60 rounded-2xl p-4 border border-rose-200/90 shadow-sm hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between text-rose-700 text-xs font-bold mb-1">
                     <span>活躍顧問人數</span>
-                    <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-user-check"></i></span>
+                    <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-user-check"></i></span>
                 </div>
-                <div id="kpiAgentCount" class="text-xl font-black text-rose-900">0</div>
+                <div id="kpiAgentCount" class="text-2xl font-black text-rose-900">0</div>
             </div>
         </section>
 
@@ -407,6 +443,11 @@
                             <option value="100">全部顧問</option>
                         </select>
                     </div>
+                    <!-- Download Tables 1-8 Results Button -->
+                    <button onclick="downloadTables1To8Results()" class="px-3.5 py-1.5 text-xs font-extrabold bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-lg transition-all flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer whitespace-nowrap">
+                        <i class="fa-solid fa-download"></i>
+                        <span>Download 表格 1-8 結果</span>
+                    </button>
                 </div>
             </div>
 
@@ -659,6 +700,43 @@
                     </div>
                 </div>
 
+                <!-- 表格 8：UPLINE MANAGER TOTAL RECRUIT (多層經理計算) -->
+                <div class="bg-white rounded-2xl border border-purple-200/90 shadow-sm flex flex-col overflow-hidden">
+                    <div class="p-3.5 border-b border-purple-100 bg-gradient-to-r from-purple-100/80 via-purple-50/50 to-white flex items-center justify-between gap-2">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                                8
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-extrabold text-purple-950 flex items-center gap-1">
+                                    TOP NEW RECRUIT (UPLINE MANAGER TOTAL)
+                                </h3>
+                                <p id="table8Subtext" class="text-[10px] text-purple-700 font-semibold">多層經理計算 · 顯示全部 Upline Manager</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span id="table8CountBadge" class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2.5 py-1 rounded-full">全部顯示</span>
+                            <button onclick="openAllTable8RecruitsModal()" class="text-[10px] bg-purple-600 hover:bg-purple-700 text-white font-bold px-2 py-1 rounded-full transition-colors cursor-pointer flex items-center gap-1 shadow-2xs" title="彈窗檢視全部 Upline Manager 的多層招募總覽">
+                                <i class="fa-solid fa-table-list text-[9px]"></i>
+                                <span>所有人總覽</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="table8ScrollContainer" class="overflow-x-auto max-h-[460px] overflow-y-auto flex-1">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="sticky top-0 z-10">
+                                <tr class="bg-purple-50/95 text-purple-900 border-b border-purple-100 font-bold uppercase backdrop-blur-xs">
+                                    <th class="p-2.5 w-8 text-center">排名</th>
+                                    <th class="p-2.5">Upline Manager 姓名</th>
+                                    <th class="p-2.5 text-right">Total Recruit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table8Body" class="divide-y divide-purple-50 font-medium text-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </section>
 
@@ -808,46 +886,81 @@
                 </div>
             </section>
 
-            <!-- Monthly & Quarterly KPI Summary Cards -->
-            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div class="bg-gradient-to-br from-sky-50 via-white to-blue-50/40 rounded-2xl p-4 border border-sky-200/80 shadow-sm flex flex-col justify-between relative overflow-hidden">
+            <!-- 第一行 4 個格：Headcount · Active Ratio · Case per Active Agent · Case Size (只顯示總數) -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div onclick="openKpiDistrictMonthModal('monthly', 'headcount')" class="bg-gradient-to-br from-sky-50 via-white to-blue-50/40 rounded-2xl p-4 border border-sky-200/80 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
                     <div class="flex items-center justify-between text-sky-800 text-xs font-bold mb-1">
-                        <span id="monthlyKpiLabel1">當月全報總 FYCC</span>
-                        <i class="fa-solid fa-sack-dollar text-sky-500"></i>
+                        <span>Headcount</span>
+                        <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-users"></i></span>
                     </div>
-                    <div id="monthlyKpiTotalFYCC" class="text-xl font-black text-sky-700">$0</div>
+                    <div id="monthlyKpiHeadcount" class="text-2xl font-black text-sky-700">0</div>
                 </div>
 
-                <div class="bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 rounded-2xl p-4 border border-emerald-200/80 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div onclick="openKpiDistrictMonthModal('monthly', 'activeRatio')" class="bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 rounded-2xl p-4 border border-emerald-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
                     <div class="flex items-center justify-between text-emerald-800 text-xs font-bold mb-1">
-                        <span id="monthlyKpiLabel2">當月大額保單 (≥$30k)</span>
-                        <i class="fa-solid fa-file-invoice-dollar text-emerald-500"></i>
+                        <span>Active Ratio</span>
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-percent"></i></span>
                     </div>
-                    <div id="monthlyKpiLargePolicies" class="text-xl font-black text-emerald-700">0 張</div>
+                    <div id="monthlyKpiActiveRatio" class="text-2xl font-black text-emerald-700">0.0%</div>
                 </div>
 
-                <div class="bg-gradient-to-br from-amber-50 via-white to-orange-50/40 rounded-2xl p-4 border border-amber-200/80 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div onclick="openKpiDistrictMonthModal('monthly', 'casePerActive')" class="bg-gradient-to-br from-amber-50 via-white to-orange-50/40 rounded-2xl p-4 border border-amber-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
                     <div class="flex items-center justify-between text-amber-800 text-xs font-bold mb-1">
-                        <span id="monthlyKpiLabel3">季度 PLD Club 達標人數</span>
-                        <i class="fa-solid fa-crown text-amber-500"></i>
+                        <span>Case per Active Agent</span>
+                        <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-briefcase"></i></span>
                     </div>
-                    <div id="monthlyKpiPldClubCount" class="text-xl font-black text-amber-700">0 人</div>
+                    <div id="monthlyKpiCasePerActive" class="text-2xl font-black text-amber-700">0.0</div>
                 </div>
 
-                <div class="bg-gradient-to-br from-rose-50 via-white to-pink-50/40 rounded-2xl p-4 border border-rose-200/80 shadow-sm flex flex-col justify-between relative overflow-hidden">
-                    <div class="flex items-center justify-between text-rose-800 text-xs font-bold mb-1">
-                        <span id="monthlyKpiLabel4">當月 H&amp;P 總 FYCC</span>
-                        <i class="fa-solid fa-heart-pulse text-rose-500"></i>
-                    </div>
-                    <div id="monthlyKpiHpFYCC" class="text-xl font-black text-rose-700">$0</div>
-                </div>
-
-                <div class="bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 rounded-2xl p-4 border border-purple-200/80 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div onclick="openKpiDistrictMonthModal('monthly', 'caseSize')" class="bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 rounded-2xl p-4 border border-purple-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
                     <div class="flex items-center justify-between text-purple-800 text-xs font-bold mb-1">
-                        <span id="monthlyKpiLabel5">當月活躍 Agent / 總單數</span>
-                        <i class="fa-solid fa-users text-purple-500"></i>
+                        <span>Case Size</span>
+                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-scale-balanced"></i></span>
                     </div>
-                    <div id="monthlyKpiActiveSummary" class="text-xl font-black text-purple-800">0 人 / 0 張</div>
+                    <div id="monthlyKpiCaseSize" class="text-2xl font-black text-purple-800">$0</div>
+                </div>
+            </section>
+
+            <!-- 第二行 5 個格：Total FYC Final · Total FYP Final · Total Case · 總保單件數 · 活躍顧問人數 (只顯示總數) -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div onclick="openKpiDistrictMonthModal('monthly', 'fyc')" class="bg-gradient-to-br from-sky-50 via-white to-blue-50/40 rounded-2xl p-4 border border-sky-200/80 shadow-sm hover:shadow-md hover:border-sky-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center justify-between text-sky-800 text-xs font-bold mb-1">
+                        <span id="monthlyKpiLabel1">Total FYC Final</span>
+                        <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-dollar-sign"></i></span>
+                    </div>
+                    <div id="monthlyKpiTotalFYCC" class="text-2xl font-black text-sky-700">$0</div>
+                </div>
+
+                <div onclick="openKpiDistrictMonthModal('monthly', 'fyp')" class="bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 rounded-2xl p-4 border border-emerald-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center justify-between text-emerald-800 text-xs font-bold mb-1">
+                        <span id="monthlyKpiLabel2">Total FYP Final</span>
+                        <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-vault"></i></span>
+                    </div>
+                    <div id="monthlyKpiTotalFYP" class="text-2xl font-black text-emerald-700">$0</div>
+                </div>
+
+                <div onclick="openKpiDistrictMonthModal('monthly', 'case1')" class="bg-gradient-to-br from-amber-50 via-white to-orange-50/40 rounded-2xl p-4 border border-amber-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center justify-between text-amber-800 text-xs font-bold mb-1">
+                        <span id="monthlyKpiLabel3">Total Case</span>
+                        <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-chart-pie"></i></span>
+                    </div>
+                    <div id="monthlyKpiTotalCase1" class="text-2xl font-black text-amber-700">0.0</div>
+                </div>
+
+                <div onclick="openKpiDistrictMonthModal('monthly', 'policyCount')" class="bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 rounded-2xl p-4 border border-purple-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center justify-between text-purple-800 text-xs font-bold mb-1">
+                        <span id="monthlyKpiLabel4">總保單件數</span>
+                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></span>
+                    </div>
+                    <div id="monthlyKpiPolicyCount" class="text-2xl font-black text-purple-800">0</div>
+                </div>
+
+                <div onclick="openKpiDistrictMonthModal('monthly', 'agentCount')" class="bg-gradient-to-br from-rose-50 via-white to-pink-50/40 rounded-2xl p-4 border border-rose-200/80 shadow-sm hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center justify-between text-rose-800 text-xs font-bold mb-1">
+                        <span id="monthlyKpiLabel5">活躍顧問人數</span>
+                        <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-user-check"></i></span>
+                    </div>
+                    <div id="monthlyKpiAgentCount" class="text-2xl font-black text-rose-700">0</div>
                 </div>
             </section>
 
@@ -1202,6 +1315,7 @@
         let table2Rankings = [];
         let table3Rankings = [];
         let table4RecruitRankings = [];
+        let table8RecruitRankings = [];
         let table5ProductivityRankings = [];
         let table5AllRankings = [];
         let table5ShowAll = false;
@@ -1278,11 +1392,57 @@
             uplineGrade: ['upline manager grade', 'upline_manager_grade', 'upline manager rank', 'upline grade', 'upline rank', 'upline level', 'upline title', 'manager grade', 'manager rank', 'leader grade', '上線職級', '主管職級'],
             uplineManager: ['upline manager name', 'upline_manager_name', 'upline manager full name', 'upline full name', 'upline name', 'direct upline name', 'recruiting manager name', '上線主管姓名', '上線主管全名', 'upline manager', '上線主管'],
             araName: ['ara name', 'ara_name', 'ara full name', 'ara manager name', 'ara leader name', 'recruiter name', 'ara 姓名', 'ara姓名', 'ara 全名', 'ara'],
+            bmName: ['bm or above manager name', 'bm or above name', 'bm name', 'bm_name', 'branch manager name', 'branch manager'],
             team: ['team name', 'team', 'leader name', '組別', '團隊', 'unit'],
             agentName: ['name (hkid)', 'name(hkid)', 'hkid name', 'agent name', 'agent full name', 'staff full name', 'staff name', 'advisor name', 'consultant name', 'producer name', 'fc name', 'full name', 'new recruit', 'name', '顧問姓名', '顧問全名', '新人姓名', '姓名'],
             englishName: ['english name', 'english_name', 'eng name', 'nickname', '英文名', '英文姓名'],
             agentCode: ['agent code', 'staff code', 'advisor code', 'producer code', '顧問編號', '代理人編號', '編號']
         };
+
+        // Exclusive 22-person whitelist for ANDY TSE's colleagues (Name & NICK NAME)
+        const ANDY_TSE_COLLEAGUES_ROSTER = [
+            { name: 'CHAN CHUN YIN', nickName: 'BILLY', aliases: ['CHAN CHUN YIN BILLY'] },
+            { name: 'CHAN CHUNG FAI', nickName: 'JADE', aliases: ['CHAN CHUNG FAI JADE'] },
+            { name: 'CHIU PANG TAT', nickName: 'ANDREW', aliases: ['CHIU PANG TAT ANDREW'] },
+            { name: 'CHOI KA HONG', nickName: 'ADRIAN', aliases: ['CHOI KA HONG ADRIAN'] },
+            { name: 'CHOW YUEN LAM SHARON', nickName: 'SHARON', aliases: ['CHOW YUEN LAM'] },
+            { name: 'CHU CHUN', nickName: 'Matthew', aliases: ['CHU CHUN MATTHEW'] },
+            { name: 'FAN PAK KIN', nickName: 'MARTIN', aliases: ['FAN PAK KIN MARTIN'] },
+            { name: 'HU TING', nickName: 'TINA', aliases: ['HU TING TINA'] },
+            { name: 'IU KAR CHEUK', nickName: 'LEO', aliases: ['IU KAR CHEUK LEO'] },
+            { name: 'LEUNG KWAN CHUN', nickName: 'ALVIN', aliases: ['LEUNG KWAN CHUN ALVIN'] },
+            { name: 'LI CHUN', nickName: 'SANFORD', aliases: ['LI CHUN SANFORD'] },
+            { name: 'LIU HOI MING', nickName: 'JENNIFER', aliases: ['LIU HOI MING JENNIFER'] },
+            { name: 'MOK PAK YUEN', nickName: 'RYAN', aliases: ['MOK PAK YUEN RYAN'] },
+            { name: 'NGAI CHUN SHING', nickName: 'EDISON', aliases: ['NGAI CHUN SHING EDISON'] },
+            { name: 'NGAN WAI LING', nickName: 'CINDY', aliases: ['NGAN WAI LING CINDY'] },
+            { name: 'TONG CHI YAN', nickName: 'JASON', aliases: ['TONG CHI YAN JASON'] },
+            { name: 'TSE MAN PO ANDY', nickName: 'ANDY', aliases: ['TSE MAN PO'] },
+            { name: 'WONG TSZ CHIU', nickName: 'CHRIS', aliases: ['WONG TSZ CHIU CHRIS'] },
+            { name: 'YUN SHING HUNG', nickName: 'INSON', aliases: ['YUN SHING HUNG INSON'] },
+            { name: 'NG TSOI PAN', nickName: 'ABBY', aliases: ['NG TSOI PAN ABBY'] },
+            { name: 'SAO HO CHUN', nickName: 'HENRY', aliases: ['SAO HO CHUN HENRY'] },
+            { name: 'TANG SHUK KWUN', nickName: 'SUSAN', aliases: ['TANG SHUK KWAN', 'TANG SHUK KWUN SUSAN', 'TANG SHUK KWAN SUSAN'] }
+        ];
+
+        function matchAndyTseColleague(rawName) {
+            if (!rawName) return null;
+            const cleaned = cleanPersonName(String(rawName).replace(/\([^)]*\)/g, '')).toUpperCase().replace(/\s+/g, ' ').trim();
+            if (!cleaned) return null;
+            for (const entry of ANDY_TSE_COLLEAGUES_ROSTER) {
+                const base = entry.name.toUpperCase().trim();
+                const nick = entry.nickName.toUpperCase().trim();
+                const withNick = `${base} ${nick}`;
+                const nickFirst = `${nick} ${base}`;
+                if (cleaned === base || cleaned === withNick || cleaned === nickFirst) {
+                    return entry;
+                }
+                if (Array.isArray(entry.aliases) && entry.aliases.some(a => a.toUpperCase().trim() === cleaned)) {
+                    return entry;
+                }
+            }
+            return null;
+        }
 
         function triggerFileInput() {
             const input = document.getElementById('fileInput');
@@ -1498,6 +1658,12 @@
                     colMap.araName = 13; // Column N: ARA Name
                 }
             }
+            if (maxHcCols > 15) {
+                const colPHeader = String(headerRow[15] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                if (!colPHeader || colPHeader.includes('bm') || colPHeader.includes('manager') || colMap.bmName === undefined) {
+                    colMap.bmName = 15; // Column P: BM or above Manager Name
+                }
+            }
 
             // Build known person names set from PP Raw (Col Z) and Headcount Col K to deterministically identify Agent Name column
             const knownNamesUpper = new Set();
@@ -1626,11 +1792,23 @@
                 // Strictly read Upline Manager Name from Column K (colMap.uplineManager) and ARA Name from Column N (colMap.araName)
                 const uplineManager = pickDirectRoleName(row, colMap.uplineManager);
                 const araName = pickDirectRoleName(row, colMap.araName);
+                const bmName = pickDirectRoleName(row, colMap.bmName) || getVal('bmName');
+                const englishName = pickDirectRoleName(row, colMap.englishName) || getVal('englishName');
                 const team = getVal('team') || 'Unassigned';
                 const { bestName: agentName, rowNames: rowPersonNames } = pickBestAgentNameFromRow(row, agentCandidateCols, colMap.agentName, uplineManager, araName, team);
                 const agentCode = getVal('agentCode');
 
                 if (!startDateRaw && !uplineManager && !agentName && !araName) continue;
+
+                // Strictly enforce Andy Tse 22-colleague whitelist in Headcount Report as well
+                const isAndyTseHcRow = String(team || '').toUpperCase().includes('TSE MAN PO') ||
+                                       String(team || '').toUpperCase().includes('ANDY TSE') ||
+                                       String(bmName || '').toUpperCase().includes('TSE MAN PO');
+                const matchedAndyHc = isAndyTseHcRow ? matchAndyTseColleague(agentName) : null;
+                if (isAndyTseHcRow && !matchedAndyHc) {
+                    continue;
+                }
+                const finalHcAgentName = matchedAndyHc ? `${matchedAndyHc.name} (${matchedAndyHc.nickName})` : (agentName || 'New Recruit');
 
                 const parsedDate = parseExcelOrStrDate(startDateRaw);
                 const parsedTermDate = parseExcelOrStrDate(termDateRaw);
@@ -1661,8 +1839,11 @@
                     uplineGrade: uplineGrade,
                     uplineManager: uplineManager || 'Unassigned Manager',
                     araName: araName,
+                    bmName: bmName || '',
+                    englishName: englishName || '',
+                    rawTeam: team,
                     team: team,
-                    agentName: agentName || 'New Recruit',
+                    agentName: finalHcAgentName,
                     rowPersonNames: rowPersonNames || [],
                     agentCode: agentCode
                 });
@@ -2242,6 +2423,7 @@
                     buildHeadcountFilters();
                     computeTopNewRecruits();
                     computeAgentRankings();
+                    computeAndRenderDistrictFourBoxes();
                 }
                 if (showSuccessToast) {
                     showToast(`已成功載入 Headcount Excel (${headcountRows.length} 筆記錄)！`, 'success');
@@ -2687,21 +2869,32 @@
 
             // Strictly enforce specified columns when present in the worksheet:
             // Column B (index 1) = Contno (Policy No)
+            // Column N (index 13) = FYC FinalCase1 (Case1)
+            // Column U (index 20) = FYP Final
             // Column V (index 21) = FYC Final
-            // Column Y (index 24) = Leader Name
+            // Column Y (index 24) = Leader Name (District)
             // Column Z (index 25) = Agent Name (Agent 顧問)
             // Column AD (index 29) = Submit Year
+            // Column AE (index 30) = Submit Month
             // Column AF (index 31) = BM Name
             // Column AG (index 32) = QDAP Flag
             // Column AH (index 33) = HP Flag
+            // Column AI (index 34) = Issue Year
+            // Column AJ (index 35) = Issue Month
             const maxCols = rawMatrix.reduce((max, r) => Math.max(max, Array.isArray(r) ? r.length : 0), 0);
             if (maxCols > 1) colMap.policyNo = 1;
+            if (maxCols > 13 && colMap.fycFinalCase1 === undefined) colMap.fycFinalCase1 = 13;
+            if (maxCols > 20 && colMap.fypFinal === undefined) colMap.fypFinal = 20;
             if (maxCols > 21) colMap.fycFinal = 21;
+            if (maxCols > 24 && colMap.leader === undefined) colMap.leader = 24;
             if (maxCols > 25) colMap.agent = 25;
             if (maxCols > 29) colMap.submitYear = 29;
+            if (maxCols > 30 && colMap.submitMonth === undefined) colMap.submitMonth = 30;
             if (maxCols > 31) colMap.bmName = 31;
             if (maxCols > 32) colMap.qdapFlag = 32;
             if (maxCols > 33) colMap.hpFlag = 33;
+            if (maxCols > 34 && colMap.issueYear === undefined) colMap.issueYear = 34;
+            if (maxCols > 35 && colMap.issueMonth === undefined) colMap.issueMonth = 35;
 
             // Collect all candidate Upline Manager columns in the sheet that contain valid person names (in Upline 1 -> Upline 2 -> ... order)
             const sheetHeaderRow = rawMatrix[headerIdx] || [];
@@ -2771,9 +2964,11 @@
                 const rawAgent = getVal('agent');
                 const rawPolNo = getVal('policyNo');
                 const rawSubYr = getVal('submitYear');
+                const rawCase1Cell = getVal('fycFinalCase1');
                 const fycVal = getNum('fycFinal');
                 const fypVal = getNum('fypFinal');
                 const case1Val = getNum('fycFinalCase1');
+                const hasCase1Row = colMap.fycFinalCase1 !== undefined ? (rawCase1Cell !== '') : true;
 
                 // Skip empty rows or total summary rows without agent/policy info
                 if (!rawAgent && !rawPolNo && fycVal === 0 && fypVal === 0 && case1Val === 0) continue;
@@ -2870,6 +3065,8 @@
                     fycFinal: fycVal,
                     fypFinal: fypVal,
                     fycFinalCase1: case1Val,
+                    hasCase1Row: hasCase1Row,
+                    hasAgentName: Boolean(rawAgent && rawAgent.trim() !== ''),
                     status: getVal('status') || 'Issued',
                     productionStartDate: parsedRowStartDate,
                     manMonth: rowManMonth > 0 ? rowManMonth : 0
@@ -3326,19 +3523,235 @@
             table4RecruitRankings = Object.values(recruitMap)
                 .filter(item => item.recruitsCount >= 3)
                 .sort((a, b) => b.recruitsCount - a.recruitsCount);
+
+            // =========================================================================
+            // Table 8: UPLINE MANAGER TOTAL RECRUIT (多層經理計算方法 · 全部 UPLINE MANAGER 顯示)
+            // =========================================================================
+            const isHcTeamMatched = (teamVal) => {
+                if (selectedHeadcountTeams.size === 0) return true;
+                if (!teamVal) return false;
+                if (selectedHeadcountTeams.has(teamVal)) return true;
+                const upper = String(teamVal).toUpperCase().trim();
+                return Array.from(selectedHeadcountTeams).some(sel => String(sel).toUpperCase().trim() === upper);
+            };
+
+            // 1. Build complete person -> direct Upline Manager map & metadata from all headcountRows
+            const hcUplineOfMap = new Map();
+            const hcTeamOfMap = new Map();
+            const hcRankOfMap = new Map();
+            const hcDisplayNameMap = new Map();
+
+            const registerHcPerson = (rawName, teamVal, rankVal) => {
+                if (!isValidPersonName(rawName) || rawName === 'New Recruit' || rawName === 'Unassigned Manager') return '';
+                const clean = cleanPersonName(rawName);
+                if (!clean) return '';
+                const key = clean.toUpperCase();
+                if (!hcDisplayNameMap.has(key) || clean.length > hcDisplayNameMap.get(key).length) {
+                    hcDisplayNameMap.set(key, clean);
+                }
+                if (teamVal && teamVal !== 'Unassigned' && !hcTeamOfMap.has(key)) {
+                    hcTeamOfMap.set(key, teamVal);
+                }
+                const extractedRank = extractManagerRank(rankVal) || '';
+                if (extractedRank) {
+                    const existingRank = hcRankOfMap.get(key) || '';
+                    if (!existingRank || (MANAGER_MIN_HEADCOUNT[extractedRank] || 0) >= (MANAGER_MIN_HEADCOUNT[existingRank] || 0)) {
+                        hcRankOfMap.set(key, extractedRank);
+                    }
+                }
+                return key;
+            };
+
+            headcountRows.forEach(hc => {
+                const agKey = registerHcPerson(hc.agentName, hc.team, hc.agentGrade);
+                const upKey = registerHcPerson(hc.uplineManager, '', hc.uplineGrade);
+                if (agKey && upKey && agKey !== upKey) {
+                    hcUplineOfMap.set(agKey, upKey);
+                }
+            });
+
+            // Supplement upline links and ranks from Direct District Report if not already in headcountRows
+            directDistrictReportRows.forEach(ddr => {
+                if (!isValidPersonName(ddr.agentNameEN)) return;
+                const agKey = registerHcPerson(ddr.agentNameEN, '', ddr.position);
+                if (isValidPersonName(ddr.managerEN)) {
+                    const upKey = registerHcPerson(ddr.managerEN, '', '');
+                    if (agKey && upKey && agKey !== upKey && !hcUplineOfMap.has(agKey)) {
+                        hcUplineOfMap.set(agKey, upKey);
+                    }
+                }
+            });
+
+            const resolveHcManagerKey = (nameOrKey) => {
+                if (!nameOrKey) return '';
+                const clean = cleanPersonName(nameOrKey).toUpperCase();
+                if (!clean) return '';
+                if (hcDisplayNameMap.has(clean)) return clean;
+                for (const [k, disp] of hcDisplayNameMap.entries()) {
+                    if (getPersonMatchInfo(clean).clean === getPersonMatchInfo(disp).clean) {
+                        return k;
+                    }
+                }
+                return clean;
+            };
+
+            // 2. Collect ALL Upline Managers in the selected Headcount Teams (even if they have 0 recruits in the period)
+            const uplineManagerEntryMap = new Map();
+            const ensureUplineManagerEntry = (mgrKey, fallbackTeam = '') => {
+                if (!mgrKey) return null;
+                const resolvedKey = resolveHcManagerKey(mgrKey);
+                if (!resolvedKey) return null;
+                const mgrOwnTeam = hcTeamOfMap.get(resolvedKey) || '';
+                // If manager has an explicit team in Headcount and that team is NOT in selectedHeadcountTeams, skip external division head (e.g. WONG LUK KWAN in CALVIN WONG when only JERRY LO & PAGGIE LAW are selected)
+                if (mgrOwnTeam && !isHcTeamMatched(mgrOwnTeam)) {
+                    return null;
+                }
+                const effectiveTeam = mgrOwnTeam || fallbackTeam || '';
+                if (!uplineManagerEntryMap.has(resolvedKey)) {
+                    const dispName = hcDisplayNameMap.get(resolvedKey) || cleanPersonName(mgrKey);
+                    const upOfMgrKey = hcUplineOfMap.get(resolvedKey) || '';
+                    const upOfMgrName = upOfMgrKey ? (hcDisplayNameMap.get(upOfMgrKey) || upOfMgrKey) : '';
+                    uplineManagerEntryMap.set(resolvedKey, {
+                        key: resolvedKey,
+                        name: dispName,
+                        managerRank: hcRankOfMap.get(resolvedKey) || '',
+                        uplineManager: upOfMgrName,
+                        recruitsCount: 0,
+                        directCount: 0,
+                        indirectCount: 0,
+                        teams: new Set(effectiveTeam ? [effectiveTeam] : []),
+                        downlineManagersSet: new Set(),
+                        recruitsList: [],
+                        uplineAllRecruitsList: []
+                    });
+                } else if (effectiveTeam) {
+                    uplineManagerEntryMap.get(resolvedKey).teams.add(effectiveTeam);
+                }
+                return uplineManagerEntryMap.get(resolvedKey);
+            };
+
+            // Seed all Upline Managers (Column K) from headcountRows belonging to selectedHeadcountTeams
+            headcountRows.forEach(hc => {
+                if (!isHcTeamMatched(hc.team)) return;
+                if (isValidPersonName(hc.uplineManager) && hc.uplineManager.trim() !== 'Unassigned Manager') {
+                    const upKey = cleanPersonName(hc.uplineManager).toUpperCase();
+                    const entry = ensureUplineManagerEntry(upKey, hc.team);
+                    // Also walk up the manager chain to ensure upper-level Upline Managers in the same team/district are seeded
+                    let currKey = entry ? entry.key : '';
+                    const visitedChain = new Set(currKey ? [currKey] : []);
+                    while (currKey) {
+                        const parentKey = hcUplineOfMap.get(currKey);
+                        if (!parentKey || visitedChain.has(parentKey)) break;
+                        visitedChain.add(parentKey);
+                        const currTeam = hcTeamOfMap.get(currKey) || hc.team || '';
+                        const parentTeam = hcTeamOfMap.get(parentKey) || currTeam;
+                        const currDist = canonicalDistrictLeaderKey(currTeam || currKey);
+                        const parentDist = canonicalDistrictLeaderKey(parentTeam || parentKey);
+                        // Stop at District boundary so separate District Leaders (e.g. JERRY LO vs PAGGIE LAW vs CALVIN WONG) stay distinct
+                        if (currDist && parentDist && currDist !== parentDist) break;
+                        const parentEntry = ensureUplineManagerEntry(parentKey, parentTeam);
+                        if (parentEntry) {
+                            parentEntry.downlineManagersSet.add(hcDisplayNameMap.get(currKey) || currKey);
+                        }
+                        currKey = parentKey;
+                    }
+                }
+            });
+
+            // 3. Multi-Layer Roll-up of filteredHeadcountRows recruits up the Upline Manager hierarchy
+            filteredHeadcountRows.forEach(r => {
+                const hasUpline = isValidPersonName(r.uplineManager) && r.uplineManager.trim() !== 'Unassigned Manager';
+                if (!hasUpline) return;
+                const exactUpline = cleanPersonName(r.uplineManager);
+                const exactAra = isValidPersonName(r.araName) ? cleanPersonName(r.araName) : '';
+                const exactAgent = (isValidPersonName(r.agentName) ? cleanPersonName(r.agentName) : r.agentName) || 'New Recruit';
+                const mm = calcRecruitManMonth(r);
+                const recruitTeam = r.team || '';
+                const recruitDist = canonicalDistrictLeaderKey(recruitTeam);
+
+                let currKey = resolveHcManagerKey(exactUpline);
+                const visitedMgrs = new Set([cleanPersonName(exactAgent).toUpperCase()]);
+                let layer = 1;
+                const chainNames = [];
+
+                while (currKey && !visitedMgrs.has(currKey) && layer <= 15) {
+                    visitedMgrs.add(currKey);
+                    const mgrOwnTeam = hcTeamOfMap.get(currKey) || '';
+                    const mgrDist = canonicalDistrictLeaderKey(mgrOwnTeam || recruitTeam);
+
+                    // Do not cross into a different District Leader's team (e.g. JERRY LO -> PAGGIE LAW -> CALVIN WONG)
+                    if (layer > 1 && recruitDist && mgrDist && recruitDist !== mgrDist) {
+                        break;
+                    }
+
+                    const mgrEntry = ensureUplineManagerEntry(currKey, recruitTeam);
+                    if (!mgrEntry) break;
+
+                    chainNames.push(mgrEntry.name);
+                    const isDirect = layer === 1;
+                    const detailItem = {
+                        agentName: exactAgent,
+                        manMonth: mm,
+                        startDate: r.productionStartDate,
+                        team: recruitTeam,
+                        uplineManager: exactUpline,
+                        araName: exactAra,
+                        creditedTo: mgrEntry.name,
+                        layer,
+                        isDirectUpline: isDirect,
+                        viaManager: isDirect ? '直屬招募 (第 1 層)' : `下線經理團隊 (第 ${layer} 層 · 直屬: ${exactUpline})`,
+                        chainPath: chainNames.join(' → ')
+                    };
+
+                    mgrEntry.recruitsCount += 1;
+                    if (isDirect) {
+                        mgrEntry.directCount += 1;
+                    } else {
+                        mgrEntry.indirectCount += 1;
+                        mgrEntry.downlineManagersSet.add(exactUpline);
+                    }
+                    if (recruitTeam) mgrEntry.teams.add(recruitTeam);
+                    mgrEntry.recruitsList.push(detailItem);
+                    mgrEntry.uplineAllRecruitsList.push(detailItem);
+
+                    const nextKey = hcUplineOfMap.get(currKey);
+                    if (!nextKey) break;
+                    currKey = resolveHcManagerKey(nextKey);
+                    layer++;
+                }
+            });
+
+            // Sort all Upline Managers by total multi-layer recruits desc, then direct recruits desc, then manager rank, then name
+            table8RecruitRankings = Array.from(uplineManagerEntryMap.values()).sort((a, b) => {
+                if (b.recruitsCount !== a.recruitsCount) return b.recruitsCount - a.recruitsCount;
+                if (b.directCount !== a.directCount) return b.directCount - a.directCount;
+                const rankWeightA = MANAGER_MIN_HEADCOUNT[a.managerRank] || 0;
+                const rankWeightB = MANAGER_MIN_HEADCOUNT[b.managerRank] || 0;
+                if (rankWeightB !== rankWeightA) return rankWeightB - rankWeightA;
+                return String(a.name).localeCompare(String(b.name));
+            });
+
             renderTable4TopNewRecruits();
+            renderTable8TopNewRecruits();
         }
 
-        function renderTable4TopNewRecruits() {
-            const tbody = document.getElementById('table4Body');
-            const subtext = document.getElementById('table4Subtext');
+        function renderTopNewRecruitsTableCard(tbodyId, subtextId, rankingsList) {
+            const tbody = document.getElementById(tbodyId);
+            const subtext = document.getElementById(subtextId);
             if (!tbody) return;
 
             if (subtext) {
                 subtext.innerText = '4 OR ABOVE';
             }
 
-            if (table4RecruitRankings.length === 0) {
+            const filteredList = yearlyAgentSearchQuery
+                ? rankingsList.filter(item =>
+                    String(item.name || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                    Array.from(item.teams || []).some(t => String(t).toLowerCase().includes(yearlyAgentSearchQuery))
+                )
+                : rankingsList;
+
+            if (filteredList.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="3" class="text-center py-6 text-stone-400">當前篩選範圍內無新招募人數達 3 位或以上的記錄</td>
@@ -3347,7 +3760,7 @@
                 return;
             }
 
-            const top5List = table4RecruitRankings.slice(0, 5);
+            const top5List = yearlyAgentSearchQuery ? filteredList : filteredList.slice(0, 5);
 
             tbody.innerHTML = top5List.map((item, idx) => {
                 const teamString = Array.from(item.teams).join(', ');
@@ -3364,6 +3777,238 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+        function renderTable4TopNewRecruits() {
+            renderTopNewRecruitsTableCard('table4Body', 'table4Subtext', table4RecruitRankings);
+        }
+
+        function renderTable8TopNewRecruits() {
+            const tbody = document.getElementById('table8Body');
+            const subtext = document.getElementById('table8Subtext');
+            const badge = document.getElementById('table8CountBadge');
+            if (!tbody) return;
+
+            const displayList = yearlyAgentSearchQuery
+                ? table8RecruitRankings.filter(item =>
+                    String(item.name || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                    Array.from(item.teams || []).some(t => String(t).toLowerCase().includes(yearlyAgentSearchQuery)) ||
+                    (item.recruitsList && item.recruitsList.some(r => String(r.agentName || '').toLowerCase().includes(yearlyAgentSearchQuery)))
+                )
+                : table8RecruitRankings;
+
+            if (subtext) {
+                subtext.innerText = '多層經理計算 · 顯示全部 Upline Manager';
+            }
+            if (badge) {
+                badge.innerText = `共 ${displayList.length} 位 Upline Manager`;
+            }
+
+            if (displayList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center py-6 text-stone-400">當前篩選範圍內無 Upline Manager 記錄</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = displayList.map((item, idx) => {
+                const teamString = Array.from(item.teams).join(', ');
+                const rankBadge = item.managerRank
+                    ? `<span class="text-[9px] bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded font-bold ml-1">${escapeHtml(item.managerRank)}</span>`
+                    : '';
+                const teamBadge = teamString
+                    ? `<span class="text-[9px] bg-stone-100 text-stone-600 px-1.5 py-0.2 rounded font-semibold ml-1">${escapeHtml(teamString)}</span>`
+                    : '';
+                const breakdownText = item.indirectCount > 0
+                    ? `直屬 ${item.directCount} 人 + 下線經理團隊 ${item.indirectCount} 人`
+                    : `直屬招募 ${item.directCount} 人`;
+                const uplineNote = item.uplineManager
+                    ? ` · 上線: ${item.uplineManager}`
+                    : '';
+                return `
+                    <tr class="hover:bg-purple-50/60 transition-colors cursor-pointer" onclick="openTable8UplineRecruitDetail('${escapeJsString(item.name)}')">
+                        <td class="p-2.5 text-center font-black ${idx === 0 ? 'text-amber-500 font-extrabold text-sm' : idx === 1 ? 'text-stone-400 font-extrabold' : idx === 2 ? 'text-amber-700 font-extrabold' : 'text-stone-400'}">${idx + 1}</td>
+                        <td class="p-2.5">
+                            <div class="font-bold text-stone-900 break-words leading-snug flex items-center flex-wrap">${escapeHtml(item.name)}${rankBadge}${teamBadge}</div>
+                            <div class="text-[10px] text-purple-700 font-medium">${escapeHtml(breakdownText)}${escapeHtml(uplineNote)}</div>
+                        </td>
+                        <td class="p-2.5 text-right font-black ${item.recruitsCount > 0 ? 'text-purple-800' : 'text-stone-400'} text-sm whitespace-nowrap">
+                            ${item.recruitsCount} <span class="text-[10px] font-medium text-stone-500">位</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openTable8UplineRecruitDetail(managerName) {
+            const targetGroup = table8RecruitRankings.find(item => item.name === managerName);
+            if (!targetGroup) {
+                openRecruitDetail(managerName);
+                return;
+            }
+
+            const displayList = targetGroup.recruitsList || [];
+            const totalCreditedMM = displayList.reduce((s, r) => s + (r.manMonth || 0), 0);
+            const teamStr = Array.from(targetGroup.teams).join(', ') || '-';
+            const rankStr = targetGroup.managerRank ? ` (${targetGroup.managerRank})` : '';
+
+            document.getElementById('modalTitle').innerText = `[表格 8 · 多層經理計算] Upline Manager: ${targetGroup.name}${rankStr}`;
+            document.getElementById('modalSubtitle').innerText = `所屬團隊: ${teamStr} | 上線主管: ${targetGroup.uplineManager || '-'} | 直屬招募 ${targetGroup.directCount} 人 + 下線經理團隊 ${targetGroup.indirectCount} 人 = 合共 ${targetGroup.recruitsCount} 人`;
+
+            const kpi1Label = document.getElementById('modalKpi1Label');
+            const kpi2Label = document.getElementById('modalKpi2Label');
+            const kpi3Label = document.getElementById('modalKpi3Label');
+            if (kpi1Label) kpi1Label.innerText = 'Upline Manager Total Recruit (多層總計)';
+            if (kpi2Label) kpi2Label.innerText = '直屬招募 / 下線經理團隊招募';
+            if (kpi3Label) kpi3Label.innerText = '新招募成員總在職月數 (Man Month)';
+
+            document.getElementById('modalKpiFYC').innerText = `${targetGroup.recruitsCount} 位`;
+            document.getElementById('modalKpiFYP').innerText = `直屬 ${targetGroup.directCount} 位 / 下線 ${targetGroup.indirectCount} 位`;
+            document.getElementById('modalKpiCases').innerText = `${totalCreditedMM} 個月`;
+
+            const rosterSection = document.getElementById('modalRosterSection');
+            const rosterTitle = document.getElementById('modalRosterTitle');
+            const rosterNote = document.getElementById('modalRosterNote');
+            const rosterThead = document.getElementById('modalRosterThead');
+            const rosterBody = document.getElementById('modalRosterBody');
+
+            if (rosterSection && rosterBody) {
+                rosterSection.classList.remove('hidden');
+                if (rosterTitle) {
+                    rosterTitle.innerHTML = `<i class="fa-solid fa-sitemap text-purple-600"></i> 多層經理計算 — 旗下新招募成員明細 (${escapeHtml(targetGroup.name)})`;
+                }
+                if (rosterNote) {
+                    rosterNote.innerText = `合共 ${targetGroup.recruitsCount} 位新招募 (直屬 ${targetGroup.directCount} 位 · 下線團隊 ${targetGroup.indirectCount} 位)`;
+                }
+                if (rosterThead) {
+                    rosterThead.innerHTML = `
+                        <tr class="bg-purple-50/70 text-purple-950 font-bold border-b border-purple-100">
+                            <th class="p-2">新招募顧問 (Agent Name)</th>
+                            <th class="p-2 text-center">在職月數 (MM)</th>
+                            <th class="p-2">直屬 Upline Manager (Col K)</th>
+                            <th class="p-2">ARA Name (Col N)</th>
+                            <th class="p-2">LIS 入職日期</th>
+                            <th class="p-2 text-right">多層經理計算層級</th>
+                        </tr>
+                    `;
+                }
+
+                if (displayList.length === 0) {
+                    rosterBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="p-4 text-center text-slate-400">此 Upline Manager 於當前篩選年份/月份內無新招募記錄 (0 位)</td>
+                        </tr>
+                    `;
+                } else {
+                    rosterBody.innerHTML = displayList.map(r => {
+                        const dateStr = formatLocalDateYMD(r.startDate);
+                        const layerBadge = r.isDirectUpline
+                            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">第 1 層 · 直屬招募 (+1)</span>`
+                            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">第 ${r.layer} 層 · 下線 ${escapeHtml(r.uplineManager)} 團隊 (+1)</span>`;
+                        return `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-2 font-bold text-slate-900">${escapeHtml(r.agentName)}</td>
+                                <td class="p-2 text-center font-bold text-indigo-700">${r.manMonth || 1} 個月</td>
+                                <td class="p-2 font-semibold text-slate-700">${escapeHtml(r.uplineManager)}</td>
+                                <td class="p-2 font-semibold text-purple-700">${escapeHtml(r.araName || '-')}</td>
+                                <td class="p-2 font-mono text-slate-500">${dateStr}</td>
+                                <td class="p-2 text-right">${layerBadge}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            }
+
+            const recruitNamesUpper = new Set(displayList.map(r => cleanPersonName(r.agentName).toUpperCase()));
+            const recruitPolicies = filteredRows.filter(row => recruitNamesUpper.has(cleanPersonName(row.agentName).toUpperCase()));
+            const policiesSection = document.getElementById('modalPoliciesSection');
+            if (policiesSection) {
+                if (recruitPolicies.length > 0) {
+                    policiesSection.classList.remove('hidden');
+                    renderModalPoliciesTable(recruitPolicies, true);
+                } else {
+                    policiesSection.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function openAllTable8RecruitsModal() {
+            const allList = table8RecruitRankings || [];
+            const teamsArr = selectedHeadcountTeams ? Array.from(selectedHeadcountTeams) : [];
+            const teamLabel = teamsArr.length > 0 ? teamsArr.join(', ') : '全部 Team';
+            const totalDirectRecruits = filteredHeadcountRows.length;
+
+            document.getElementById('modalTitle').innerText = `表格 8 全部 UPLINE MANAGER TOTAL RECRUIT 總覽 (${allList.length} 位主管)`;
+            document.getElementById('modalSubtitle').innerText = `計算方法: 多層經理計算方法 (直屬招募 + 下線各層經理團隊招募) | 生效 Team: ${teamLabel}`;
+
+            const kpi1Label = document.getElementById('modalKpi1Label');
+            const kpi2Label = document.getElementById('modalKpi2Label');
+            const kpi3Label = document.getElementById('modalKpi3Label');
+            if (kpi1Label) kpi1Label.innerText = 'Upline Manager 總人數';
+            if (kpi2Label) kpi2Label.innerText = '篩選範圍新招募總人數';
+            if (kpi3Label) kpi3Label.innerText = '生效 Headcount Team';
+
+            document.getElementById('modalKpiFYC').innerText = `${allList.length} 位主管`;
+            document.getElementById('modalKpiFYP').innerText = `${totalDirectRecruits} 位新人`;
+            document.getElementById('modalKpiCases').innerText = teamLabel;
+
+            const rosterSection = document.getElementById('modalRosterSection');
+            const rosterTitle = document.getElementById('modalRosterTitle');
+            const rosterNote = document.getElementById('modalRosterNote');
+            const rosterThead = document.getElementById('modalRosterThead');
+            const rosterBody = document.getElementById('modalRosterBody');
+
+            if (rosterSection && rosterBody) {
+                rosterSection.classList.remove('hidden');
+                if (rosterTitle) {
+                    rosterTitle.innerHTML = `<i class="fa-solid fa-ranking-star text-purple-600"></i> 全部 UPLINE MANAGER 多層招募完整排行榜`;
+                }
+                if (rosterNote) {
+                    rosterNote.innerText = `共 ${allList.length} 位 Upline Manager · 點擊任何一行可檢視其直屬及下線各層招募名單`;
+                }
+                if (rosterThead) {
+                    rosterThead.innerHTML = `
+                        <tr class="bg-purple-50/70 text-purple-950 font-bold border-b border-purple-100">
+                            <th class="p-2 w-10 text-center">排名</th>
+                            <th class="p-2">Upline Manager 姓名</th>
+                            <th class="p-2">上線主管 (Upline)</th>
+                            <th class="p-2 text-center">直屬招募 (第1層)</th>
+                            <th class="p-2 text-center">下線經理團隊招募 (第2層+)</th>
+                            <th class="p-2 text-right">Upline Manager Total Recruit</th>
+                        </tr>
+                    `;
+                }
+
+                rosterBody.innerHTML = allList.map((item, idx) => {
+                    const rankBadge = item.managerRank
+                        ? `<span class="ml-1.5 text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.2 rounded font-bold">${escapeHtml(item.managerRank)}</span>`
+                        : '';
+                    const teamStr = Array.from(item.teams).join(', ');
+                    const teamBadge = teamStr
+                        ? `<span class="ml-1 text-[10px] bg-stone-100 text-stone-600 px-1.5 py-0.2 rounded font-semibold">${escapeHtml(teamStr)}</span>`
+                        : '';
+                    return `
+                        <tr class="hover:bg-purple-50/70 transition-colors cursor-pointer" onclick="openTable8UplineRecruitDetail('${escapeJsString(item.name)}')">
+                            <td class="p-2 text-center font-black ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-stone-400' : idx === 2 ? 'text-amber-700' : 'text-stone-400'}">${idx + 1}</td>
+                            <td class="p-2">
+                                <div class="font-bold text-stone-900 flex items-center flex-wrap">${escapeHtml(item.name)}${rankBadge}${teamBadge}</div>
+                            </td>
+                            <td class="p-2 text-slate-600 font-medium">${escapeHtml(item.uplineManager || '-')}</td>
+                            <td class="p-2 text-center font-bold text-slate-700">${item.directCount} 位</td>
+                            <td class="p-2 text-center font-bold text-indigo-700">${item.indirectCount} 位</td>
+                            <td class="p-2 text-right font-black ${item.recruitsCount > 0 ? 'text-purple-800' : 'text-stone-400'}">${item.recruitsCount} 位</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            const policiesSection = document.getElementById('modalPoliciesSection');
+            if (policiesSection) policiesSection.classList.add('hidden');
+            document.getElementById('detailModal').classList.remove('hidden');
         }
 
         function clearAllData(showNotification = false) {
@@ -3420,6 +4065,7 @@
             updateKPICards();
             computeAgentRankings();
             computeTopNewRecruits();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function formatLocalDateYMD(dVal) {
@@ -3517,12 +4163,266 @@
             document.getElementById('detailModal').classList.remove('hidden');
         }
 
-        function updateKPICards() {
-            const totalFYC = filteredRows.reduce((sum, r) => sum + (r.fycFinal || 0), 0);
-            const totalFYP = filteredRows.reduce((sum, r) => sum + (r.fypFinal || 0), 0);
-            const totalCase1 = filteredRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
+        function summarizeDistrictBreakdownForRows(rows, metricKey, useMonthlyGroupLabel = false) {
+            const distMap = new Map();
+            rows.forEach(r => {
+                const dist = useMonthlyGroupLabel
+                    ? getRowMonthlyGroupLabel(r)
+                    : (normalizeDistrictLeaderName(r.leaderName) || r.leaderName || 'Unassigned');
+                if (!distMap.has(dist)) {
+                    distMap.set(dist, {
+                        fyc: 0,
+                        fyp: 0,
+                        case1: 0,
+                        policyRows: 0,
+                        agents: new Set()
+                    });
+                }
+                const d = distMap.get(dist);
+                d.fyc += (r.fycFinal || 0);
+                d.fyp += (r.fypFinal || 0);
+                d.case1 += (r.fycFinalCase1 || 0);
+                if (r.hasCase1Row !== false) d.policyRows += 1;
+                if (r.agentName && r.hasAgentName !== false) {
+                    d.agents.add(cleanPersonName(r.agentName).toUpperCase());
+                }
+            });
 
-            const agentsSet = new Set(filteredRows.map(r => r.agentName));
+            const entries = Array.from(distMap.entries());
+            if (entries.length === 0) return '無符合條件之 District / Month 數據';
+
+            entries.sort((a, b) => {
+                if (metricKey === 'fyc') return b[1].fyc - a[1].fyc;
+                if (metricKey === 'fyp') return b[1].fyp - a[1].fyp;
+                if (metricKey === 'case1') return b[1].case1 - a[1].case1;
+                if (metricKey === 'policyCount') return b[1].policyRows - a[1].policyRows;
+                return b[1].agents.size - a[1].agents.size;
+            });
+
+            const parts = entries.slice(0, 3).map(([dist, d]) => {
+                if (metricKey === 'fyc') return `${dist}: $${Math.round(d.fyc).toLocaleString()}`;
+                if (metricKey === 'fyp') return `${dist}: $${Math.round(d.fyp).toLocaleString()}`;
+                if (metricKey === 'case1') return `${dist}: ${Number(d.case1 || 0).toFixed(1)}`;
+                if (metricKey === 'policyCount') return `${dist}: ${d.policyRows}件`;
+                return `${dist}: ${d.agents.size}人`;
+            });
+            return parts.join(' · ') + (entries.length > 3 ? ` (+${entries.length - 3} District)` : '');
+        }
+
+        function canonicalDistrictLeaderKey(name) {
+            if (!name) return '';
+            const u = String(name).toUpperCase().trim().replace(/\s+/g, ' ');
+            if (u.includes('PAGGIE') || (u.includes('LAW') && u.includes('SUK') && u.includes('KING')) || (u.includes('LAW') && u.includes('PUI') && u.includes('KI'))) return 'PAGGIE LAW';
+            if (u.includes('JERRY') || (u.includes('LO') && u.includes('CHAK') && u.includes('WAI')) || (u.includes('LO') && u.includes('CHUN') && u.includes('KIT'))) return 'JERRY LO';
+            if (u.includes('ANDY TSE') || u.includes('TSE MAN PO')) return 'ANDY TSE';
+            if (u.includes('CALVIN WONG') || u.includes('WONG LUK KWAN')) return 'CALVIN WONG';
+            if (u.includes('ANDY CHUI')) return 'ANDY CHUI';
+            if (u.includes('DENNIS PANG')) return 'DENNIS PANG';
+            if (u.includes('JACKY YEUNG')) return 'JACKY YEUNG';
+            if (u.includes('CYRUS YAN')) return 'CYRUS YAN';
+            if (u.includes('CYRUS HUI')) return 'CYRUS HUI';
+            if (u.includes('KENNY KWONG')) return 'KENNY KWONG';
+            if (u.includes('KIM CHAN') || u.includes('CHAN HIM YEUNG')) return 'KIM CHAN';
+            if (u.includes('CECI CHAN')) return 'CECI CHAN';
+            if (u.includes('MING LAW') || u.includes('LAW SUK MING')) return 'MING LAW';
+            if (u.includes('CLOVIS CHANG')) return 'CLOVIS CHANG';
+            if (u.includes('WINNIE WONG')) return 'WINNIE WONG';
+            if (u.includes('LINCOLN TZAN')) return 'LINCOLN TZAN';
+            if (u.includes('ANTHONY LAU') || u.includes('LAU KA HIN')) return 'ANTHONY LAU';
+            if (u.includes('KELVIS YIM')) return 'KELVIS YIM';
+            return u;
+        }
+
+        function getHcRowMonthlyGroupKey(hcRow) {
+            if (!hcRow) return 'GROUP:OTHER';
+            const teamUpper = String(hcRow.rawTeam || hcRow.team || '').toUpperCase().trim();
+            const bmUpper = String(hcRow.bmName || '').toUpperCase().trim();
+            const upUpper = String(hcRow.uplineManager || '').toUpperCase().trim();
+            const agUpper = String(hcRow.agentName || '').toUpperCase().trim();
+
+            if (bmUpper.includes('TAM PAN') || bmUpper.includes('GARY TAM') || upUpper.includes('TAM PAN') || agUpper.includes('TAM PAN')) {
+                return 'GROUP:CALVIN_BM_TAM_PAN';
+            }
+            if (bmUpper.includes('HSUI MAN LAI') || (upUpper.includes('HSUI MAN LAI') && !bmUpper.includes('GARY TAM')) || agUpper.includes('HSUI MAN LAI')) {
+                return 'GROUP:CALVIN_BM_HSUI_MAN_LAI';
+            }
+            const cKey = canonicalDistrictLeaderKey(teamUpper);
+            if (cKey === 'PAGGIE LAW') return 'GROUP:PAGGIE_LAW';
+            if (cKey === 'JERRY LO') return 'GROUP:JERRY_LO';
+            if (cKey === 'ANDY TSE') return 'GROUP:ANDY_TSE';
+            if (cKey === 'CALVIN WONG') {
+                return `GROUP:CALVIN_BM_${bmUpper || 'DIRECT'}`;
+            }
+            return `GROUP:LEADER_${cKey || 'OTHER'}`;
+        }
+
+        function computeHcManMonthForSelectedMonths(hcRow, selectedYearsArr, selectedMonthsArr) {
+            const years = (Array.isArray(selectedYearsArr) && selectedYearsArr.length > 0) ? selectedYearsArr : [2026];
+            const months = (Array.isArray(selectedMonthsArr) && selectedMonthsArr.length > 0) ? selectedMonthsArr : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+            if (hcRow.manMonth && hcRow.manMonth > 0) return hcRow.manMonth;
+
+            let startYM = 0;
+            if (hcRow.productionStartDate && !isNaN(new Date(hcRow.productionStartDate).getTime())) {
+                const startD = new Date(hcRow.productionStartDate);
+                startYM = startD.getFullYear() * 12 + (startD.getMonth() + 1);
+            }
+            let endYM = 999999;
+            if (hcRow.terminationDate && !isNaN(new Date(hcRow.terminationDate).getTime())) {
+                const termD = new Date(hcRow.terminationDate);
+                endYM = termD.getFullYear() * 12 + (termD.getMonth() + 1);
+            }
+            if (startYM > endYM) return 0;
+
+            let mmCount = 0;
+            for (const yr of years) {
+                for (const m of months) {
+                    const ym = yr * 12 + m;
+                    if (ym >= startYM && ym <= endYM) {
+                        mmCount += 1;
+                    }
+                }
+            }
+            return mmCount;
+        }
+
+        // 活躍顧問人數 = 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總, 例如1月有FYCC,2月也有FYCC 是計2個
+        function countMonthlyActiveAgentsWithFycc(rows) {
+            if (!Array.isArray(rows) || rows.length === 0) return 0;
+            const monthAgentsMap = new Map();
+            rows.forEach(r => {
+                if (!r.agentName || r.hasAgentName === false) return;
+                if ((r.fycFinal || 0) === 0) return;
+                const agKey = cleanPersonName(r.agentName).toUpperCase();
+                if (!agKey) return;
+                const ymKey = `${r.issueYear || 2026}-${r.issueMonth || 1}`;
+                if (!monthAgentsMap.has(ymKey)) {
+                    monthAgentsMap.set(ymKey, new Set());
+                }
+                monthAgentsMap.get(ymKey).add(agKey);
+            });
+            let total = 0;
+            monthAgentsMap.forEach(agentSet => {
+                total += agentSet.size;
+            });
+            return total;
+        }
+
+        function computeAndRenderDistrictFourBoxes() {
+            const setElemText = (id, text) => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = text;
+            };
+
+            // =================================================================
+            // 1. YEARLY VIEW 4 BOXES (Headcount, Active Ratio, Case per Active Agent, Case Size)
+            // =================================================================
+            const selectedLeaderKeys = new Set(
+                Array.from(selectedFilters.LeaderName || []).map(canonicalDistrictLeaderKey).filter(Boolean)
+            );
+            const yearlyMatchedHc = headcountRows.filter(hc => {
+                if (selectedLeaderKeys.size === 0) return false;
+                const hcDistKey = canonicalDistrictLeaderKey(hc.rawTeam || hc.team);
+                return selectedLeaderKeys.has(hcDistKey);
+            });
+
+            const selIssueYears = selectedFilters.IssueYear && selectedFilters.IssueYear.size > 0
+                ? Array.from(selectedFilters.IssueYear)
+                : [2026];
+            const selIssueMonths = selectedFilters.IssueMonth && selectedFilters.IssueMonth.size > 0
+                ? Array.from(selectedFilters.IssueMonth)
+                : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+            // Box 1: Headcount (每個District 現時人數, 跟Headcount Report)
+            const yearlyHeadcountTotal = yearlyMatchedHc.length;
+
+            // 活躍顧問人數 (YTD ACTIVE AGENT / Active Agent): 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, 分開每個月加總
+            const yearlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(filteredRows);
+
+            // Box 2: Active Ratio = Active Agent / Man Month
+            const yearlyTotalManMonth = yearlyMatchedHc.reduce(
+                (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, selIssueYears, selIssueMonths),
+                0
+            );
+            const yearlyActiveRatio = yearlyTotalManMonth > 0 ? (yearlyActiveAgentsCount / yearlyTotalManMonth) * 100 : 0;
+
+            // Box 3: Case per Active Agent = YTD CASE / YTD ACTIVE AGENT
+            const yearlyTotalCase1 = filteredRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
+            const yearlyCasePerActive = yearlyActiveAgentsCount > 0 ? (yearlyTotalCase1 / yearlyActiveAgentsCount) : 0;
+
+            // Box 4: Case Size (全District 的FYCC 除以 CASE 的數量)
+            const yearlyTotalFYC = filteredRows.reduce((sum, r) => sum + (r.fycFinal || 0), 0);
+            const yearlyCaseSize = yearlyTotalCase1 > 0 ? (yearlyTotalFYC / yearlyTotalCase1) : 0;
+
+            setElemText('yearlyKpiHeadcount', yearlyHeadcountTotal.toLocaleString());
+            setElemText('yearlyKpiActiveRatio', `${yearlyActiveRatio.toFixed(1)}%`);
+            setElemText('yearlyKpiCasePerActive', yearlyCasePerActive.toFixed(1));
+            setElemText('yearlyKpiCaseSize', `$${Math.round(yearlyCaseSize).toLocaleString()}`);
+
+            // =================================================================
+            // 2. MONTHLY VIEW 4 BOXES (Headcount, Active Ratio, Case per Active Agent, Case Size)
+            // =================================================================
+            const mYearVal = parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10);
+            const mMonthRaw = document.getElementById('monthlyIssueMonthSelect')?.value || '8';
+            const mIsAllMonths = mMonthRaw === 'ALL';
+            const mMonthVal = mIsAllMonths ? null : parseInt(mMonthRaw, 10);
+
+            const mYearAndAgentRows = allSheetData.filter(r => r.issueYear === mYearVal && isRowMatchedByMonthlyAgentFilter(r));
+            const mFilteredRows = mIsAllMonths ? mYearAndAgentRows : mYearAndAgentRows.filter(r => r.issueMonth === mMonthVal);
+
+            const maxDataMonthInYear = mYearAndAgentRows.reduce((max, r) => Math.max(max, r.issueMonth || 1), 1);
+            const ytdCutoffMonth = mIsAllMonths ? maxDataMonthInYear : Math.max(mMonthVal || 1, 1);
+            const ytdMonthsList = Array.from({ length: ytdCutoffMonth }, (_, i) => i + 1);
+            const monthlyActiveMonthsList = mIsAllMonths ? ytdMonthsList : [mMonthVal || 1];
+
+            const monthlyMatchedHc = headcountRows.filter(hc => {
+                const gKey = getHcRowMonthlyGroupKey(hc);
+                const agKey = String(hc.agentName || '').toUpperCase().trim();
+                if (monthlyExcludedAgents.has(agKey)) return false;
+                if (monthlyExtraIncludedAgents.has(agKey)) return true;
+                return monthlyCheckedGroups.has(gKey);
+            });
+
+            // Box 1: Headcount
+            const monthlyHeadcountTotal = monthlyMatchedHc.length;
+
+            // Active Agent (根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, 分開每個月加總)
+            const monthlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(mFilteredRows);
+
+            // Box 2: Active Ratio = Active Agent / Man Month
+            const monthlyTotalManMonth = monthlyMatchedHc.reduce(
+                (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [mYearVal], monthlyActiveMonthsList),
+                0
+            );
+            const monthlyActiveRatio = monthlyTotalManMonth > 0 ? (monthlyActiveAgentsCount / monthlyTotalManMonth) * 100 : 0;
+
+            // Box 3: Case per Active Agent = YTD CASE / YTD ACTIVE AGENT
+            const monthlyYtdRows = mYearAndAgentRows.filter(r => (r.issueMonth || 1) <= ytdCutoffMonth);
+            const monthlyYtdTotalCase1 = monthlyYtdRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
+            const monthlyYtdActiveAgents = countMonthlyActiveAgentsWithFycc(monthlyYtdRows);
+            const monthlyCasePerActive = monthlyYtdActiveAgents > 0 ? (monthlyYtdTotalCase1 / monthlyYtdActiveAgents) : 0;
+
+            // Box 4: Case Size (全District 的FYCC 除以 CASE 的數量)
+            const monthlyTotalCase1 = mFilteredRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
+            const monthlyTotalFYC = mFilteredRows.reduce((sum, r) => sum + (r.fycFinal || 0), 0);
+            const monthlyCaseSize = monthlyTotalCase1 > 0 ? (monthlyTotalFYC / monthlyTotalCase1) : 0;
+
+            setElemText('monthlyKpiHeadcount', monthlyHeadcountTotal.toLocaleString());
+            setElemText('monthlyKpiActiveRatio', `${monthlyActiveRatio.toFixed(1)}%`);
+            setElemText('monthlyKpiCasePerActive', monthlyCasePerActive.toFixed(1));
+            setElemText('monthlyKpiCaseSize', `$${Math.round(monthlyCaseSize).toLocaleString()}`);
+        }
+
+        function updateKPICards() {
+            // 1. Total FYC Final = 根據 Raw data 內的 FYC Final 數值加總, 分到 District 同 Issue Month
+            const totalFYC = filteredRows.reduce((sum, r) => sum + (r.fycFinal || 0), 0);
+            // 2. Total FYP Final = 根據 Raw data 內的 FYP Final 數值加總, 分到 District 同 Issue Month
+            const totalFYP = filteredRows.reduce((sum, r) => sum + (r.fypFinal || 0), 0);
+            // 3. Total Case = 根據 Raw data 內的 Case1 數值加總, 分到 District 同 Month
+            const totalCase1 = filteredRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
+            // 4. 總保單件數 = 根據 Raw data 內的 CASE1 行數加總, 分到 District 同 Month
+            const totalCase1RowCount = filteredRows.filter(r => r.hasCase1Row !== false).length;
+            // 5. 活躍顧問人數 = 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總 (例如1月有FYCC,2月也有FYCC 是計2個)
+            const monthlySummedActiveAgents = countMonthlyActiveAgentsWithFycc(filteredRows);
 
             const setElemText = (id, text) => {
                 const el = document.getElementById(id);
@@ -3532,8 +4432,268 @@
             setElemText('kpiTotalFYC', `$${Math.round(totalFYC).toLocaleString()}`);
             setElemText('kpiTotalFYP', `$${Math.round(totalFYP).toLocaleString()}`);
             setElemText('kpiTotalCase1', `${Number(totalCase1 || 0).toFixed(1)}`);
-            setElemText('kpiPolicyCount', filteredRows.length);
-            setElemText('kpiAgentCount', agentsSet.size);
+            setElemText('kpiPolicyCount', totalCase1RowCount.toLocaleString());
+            setElemText('kpiAgentCount', monthlySummedActiveAgents.toLocaleString());
+        }
+
+        function openKpiDistrictMonthModal(viewMode = 'yearly', metricKey = 'fyc') {
+            let sourceRows = [];
+            let periodDesc = '';
+
+            if (viewMode === 'monthly') {
+                const yearVal = parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10);
+                const monthRaw = document.getElementById('monthlyIssueMonthSelect')?.value || '8';
+                const isAllMonths = monthRaw === 'ALL';
+                const monthVal = isAllMonths ? null : parseInt(monthRaw, 10);
+                const yearAndAgentRows = allSheetData.filter(r => r.issueYear === yearVal && isRowMatchedByMonthlyAgentFilter(r));
+                if (metricKey === 'casePerActive') {
+                    const maxDataMonthInYear = yearAndAgentRows.reduce((max, r) => Math.max(max, r.issueMonth || 1), 1);
+                    const ytdCutoffMonth = isAllMonths ? maxDataMonthInYear : Math.max(monthVal || 1, 1);
+                    sourceRows = yearAndAgentRows.filter(r => (r.issueMonth || 1) <= ytdCutoffMonth);
+                    periodDesc = `Monthly View (YTD 1-${ytdCutoffMonth}月) · Issue Year: ${yearVal}年`;
+                } else {
+                    sourceRows = isAllMonths ? yearAndAgentRows : yearAndAgentRows.filter(r => r.issueMonth === monthVal);
+                    periodDesc = `Monthly View · Issue Year: ${yearVal}年 · Issue Month: ${isAllMonths ? '全年 (1-12月)' : monthVal + '月'}`;
+                }
+            } else {
+                sourceRows = filteredRows;
+                const selYears = selectedFilters.IssueYear ? Array.from(selectedFilters.IssueYear).sort((a,b)=>a-b).join(', ') : '全部';
+                const selMonths = selectedFilters.IssueMonth ? Array.from(selectedFilters.IssueMonth).sort((a,b)=>a-b).map(m => `${m}月`).join(', ') : '全部';
+                periodDesc = `Yearly View · Issue Year: ${selYears} · Issue Month: ${selMonths}`;
+            }
+
+            const metricMetaMap = {
+                fyc: {
+                    title: 'Total FYC Final — 按 District 及 Issue Month 明細',
+                    formula: '根據 Raw Data 內的 FYC Final (Col V) 數值加總，分到 District 同 Issue Month',
+                    format: v => `$${Math.round(v || 0).toLocaleString()}`
+                },
+                fyp: {
+                    title: 'Total FYP Final — 按 District 及 Issue Month 明細',
+                    formula: '根據 Raw Data 內的 FYP Final (Col U) 數值加總，分到 District 同 Issue Month',
+                    format: v => `$${Math.round(v || 0).toLocaleString()}`
+                },
+                case1: {
+                    title: 'Total Case — 按 District 及 Issue Month 明細',
+                    formula: '根據 Raw Data 內的 Case1 (Col N) 數值加總，分到 District 同 Issue Month',
+                    format: v => `${Number(v || 0).toFixed(1)}`
+                },
+                policyCount: {
+                    title: '總保單件數 — 按 District 及 Issue Month 明細',
+                    formula: '根據 Raw Data 內的 CASE1 (Col N) 行數加總，分到 District 同 Issue Month',
+                    format: v => `${Math.round(v || 0).toLocaleString()} 件`
+                },
+                agentCount: {
+                    title: '活躍顧問人數 (Active Agent) — 按 District 及 Issue Month 明細',
+                    formula: '根據選擇的月份，把有 FYCC 的 Agent 都計 1 個數量，再分開每個月加總 (例如 1月有 FYCC、2月也有 FYCC 計 2 個)',
+                    format: v => `${Math.round(v || 0).toLocaleString()} 人`
+                },
+                casePerActive: {
+                    title: 'Case per Active Agent — 按 District 及 Issue Month 明細',
+                    formula: 'Case per Active Agent = YTD CASE / YTD ACTIVE AGENT (有 FYCC 的 Agent 按每月分開加總)',
+                    format: v => `${Number(v || 0).toFixed(1)}`
+                },
+                caseSize: {
+                    title: 'Case Size — 按 District 及 Issue Month 明細',
+                    formula: 'Case Size = 全 District 的 FYCC 除以 CASE 的數量',
+                    format: v => `$${Math.round(v || 0).toLocaleString()}`
+                },
+                activeRatio: {
+                    title: 'Active Ratio — 按 District 及 Issue Month 明細',
+                    formula: 'Active Ratio = Active Agent / Man Month (有 FYCC 的 Agent 按每月分開加總 ÷ Man Month)',
+                    format: v => `${Math.round(v || 0).toLocaleString()} 人`
+                },
+                headcount: {
+                    title: 'Headcount — 按 District 明細',
+                    formula: '每個 District 現時人數 (跟 Headcount Report)',
+                    format: v => `${Math.round(v || 0).toLocaleString()} 人`
+                }
+            };
+
+            const meta = metricMetaMap[metricKey] || metricMetaMap.fyc;
+
+            const totalFYC = sourceRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+            const totalFYP = sourceRows.reduce((s, r) => s + (r.fypFinal || 0), 0);
+            const totalCase1 = sourceRows.reduce((s, r) => s + (r.fycFinalCase1 || 0), 0);
+            const totalPolicyRows = sourceRows.filter(r => r.hasCase1Row !== false).length;
+            const totalMonthlySummedActiveAgents = countMonthlyActiveAgentsWithFycc(sourceRows);
+
+            const kpi1Label = document.getElementById('modalKpi1Label');
+            const kpi2Label = document.getElementById('modalKpi2Label');
+            const kpi3Label = document.getElementById('modalKpi3Label');
+            if (kpi1Label) kpi1Label.innerText = 'Total FYC Final / FYP Final';
+            if (kpi2Label) kpi2Label.innerText = 'Total Case (YTD CASE)';
+            if (kpi3Label) kpi3Label.innerText = '活躍顧問人數 (YTD ACTIVE AGENT) / Case per Active';
+
+            document.getElementById('modalTitle').innerText = meta.title;
+            document.getElementById('modalSubtitle').innerText = `${meta.formula} | ${periodDesc}`;
+            document.getElementById('modalKpiFYC').innerText = `$${Math.round(totalFYC).toLocaleString()} / $${Math.round(totalFYP).toLocaleString()}`;
+            document.getElementById('modalKpiFYP').innerText = `${Number(totalCase1 || 0).toFixed(1)}`;
+            const overallCasePerActive = totalMonthlySummedActiveAgents > 0 ? (totalCase1 / totalMonthlySummedActiveAgents).toFixed(1) : '0.0';
+            document.getElementById('modalKpiCases').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人 (Case/Active: ${overallCasePerActive})`;
+
+            // Build District x Issue Month breakdown
+            const monthsSet = new Set();
+            const districtMap = new Map();
+
+            sourceRows.forEach(r => {
+                const m = r.issueMonth || 1;
+                monthsSet.add(m);
+                const dist = (viewMode === 'monthly')
+                    ? getRowMonthlyGroupLabel(r)
+                    : (normalizeDistrictLeaderName(r.leaderName) || r.leaderName || 'Unassigned');
+
+                if (!districtMap.has(dist)) {
+                    districtMap.set(dist, {
+                        district: dist,
+                        byMonth: new Map(),
+                        totalFyc: 0,
+                        totalFyp: 0,
+                        totalCase1: 0,
+                        totalPolicyRows: 0,
+                        totalAgentsSet: new Set()
+                    });
+                }
+                const dEntry = districtMap.get(dist);
+                if (!dEntry.byMonth.has(m)) {
+                    dEntry.byMonth.set(m, {
+                        fyc: 0,
+                        fyp: 0,
+                        case1: 0,
+                        policyRows: 0,
+                        agentsSet: new Set()
+                    });
+                }
+                const mCell = dEntry.byMonth.get(m);
+                const agKey = (r.agentName && r.hasAgentName !== false && (r.fycFinal || 0) !== 0)
+                    ? cleanPersonName(r.agentName).toUpperCase()
+                    : '';
+
+                mCell.fyc += (r.fycFinal || 0);
+                mCell.fyp += (r.fypFinal || 0);
+                mCell.case1 += (r.fycFinalCase1 || 0);
+                if (r.hasCase1Row !== false) mCell.policyRows += 1;
+                if (agKey) mCell.agentsSet.add(agKey);
+
+                dEntry.totalFyc += (r.fycFinal || 0);
+                dEntry.totalFyp += (r.fypFinal || 0);
+                dEntry.totalCase1 += (r.fycFinalCase1 || 0);
+                if (r.hasCase1Row !== false) dEntry.totalPolicyRows += 1;
+                if (agKey) dEntry.totalAgentsSet.add(`${r.issueYear || 2026}-${m}|${agKey}`);
+            });
+
+            const sortedMonths = Array.from(monthsSet).sort((a, b) => a - b);
+            const getCellMetricVal = (cellObj) => {
+                if (!cellObj) return 0;
+                if (metricKey === 'fyc') return cellObj.fyc;
+                if (metricKey === 'fyp') return cellObj.fyp;
+                if (metricKey === 'case1') return cellObj.case1;
+                if (metricKey === 'policyCount') return cellObj.policyRows;
+                if (metricKey === 'casePerActive') return cellObj.agentsSet.size > 0 ? (cellObj.case1 / cellObj.agentsSet.size) : 0;
+                if (metricKey === 'caseSize') return cellObj.case1 > 0 ? (cellObj.fyc / cellObj.case1) : 0;
+                return cellObj.agentsSet.size;
+            };
+            const getDistrictTotalVal = (dEntry) => {
+                let distMonthlySummedAgents = 0;
+                dEntry.byMonth.forEach(cObj => { distMonthlySummedAgents += cObj.agentsSet.size; });
+                if (metricKey === 'fyc') return dEntry.totalFyc;
+                if (metricKey === 'fyp') return dEntry.totalFyp;
+                if (metricKey === 'case1') return dEntry.totalCase1;
+                if (metricKey === 'policyCount') return dEntry.totalPolicyRows;
+                if (metricKey === 'casePerActive') return distMonthlySummedAgents > 0 ? (dEntry.totalCase1 / distMonthlySummedAgents) : 0;
+                if (metricKey === 'caseSize') return dEntry.totalCase1 > 0 ? (dEntry.totalFyc / dEntry.totalCase1) : 0;
+                return distMonthlySummedAgents;
+            };
+
+            const sortedDistricts = Array.from(districtMap.values()).sort((a, b) => getDistrictTotalVal(b) - getDistrictTotalVal(a));
+
+            const rosterSection = document.getElementById('modalRosterSection');
+            const rosterTitle = document.getElementById('modalRosterTitle');
+            const rosterNote = document.getElementById('modalRosterNote');
+            const rosterThead = document.getElementById('modalRosterThead');
+            const rosterBody = document.getElementById('modalRosterBody');
+
+            if (rosterSection && rosterThead && rosterBody) {
+                rosterSection.classList.remove('hidden');
+                if (rosterTitle) {
+                    rosterTitle.innerHTML = `<i class="fa-solid fa-table-cells text-indigo-600"></i> 各 District × Issue Month 矩陣明細 (${escapeHtml(meta.title.split('—')[0].trim())})`;
+                }
+                if (rosterNote) {
+                    rosterNote.innerText = `共 ${sortedDistricts.length} 個 District · ${sortedMonths.length} 個 Issue Month`;
+                }
+
+                const monthHeadersHtml = sortedMonths.map(m => `<th class="p-2 text-right whitespace-nowrap">${m}月</th>`).join('');
+                rosterThead.innerHTML = `
+                    <tr class="bg-indigo-50/80 text-indigo-950 font-bold border-b border-indigo-100">
+                        <th class="p-2 whitespace-nowrap">District</th>
+                        ${monthHeadersHtml}
+                        <th class="p-2 text-right bg-indigo-100/70 whitespace-nowrap">District 合計</th>
+                    </tr>
+                `;
+
+                if (sortedDistricts.length === 0) {
+                    rosterBody.innerHTML = `<tr><td colspan="${sortedMonths.length + 2}" class="p-4 text-center text-slate-400">當前篩選條件下無數據</td></tr>`;
+                } else {
+                    const districtRowsHtml = sortedDistricts.map(dEntry => {
+                        const cellsHtml = sortedMonths.map(m => {
+                            const cObj = dEntry.byMonth.get(m);
+                            const val = getCellMetricVal(cObj);
+                            return `<td class="p-2 text-right font-mono text-slate-700 whitespace-nowrap">${val > 0 ? meta.format(val) : '-'}</td>`;
+                        }).join('');
+                        const distTotal = getDistrictTotalVal(dEntry);
+                        return `
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="p-2 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(dEntry.district)}</td>
+                                ${cellsHtml}
+                                <td class="p-2 text-right font-black text-indigo-700 bg-indigo-50/40 whitespace-nowrap">${meta.format(distTotal)}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // Month Totals Row
+                    const monthTotalsHtml = sortedMonths.map(m => {
+                        const mRows = sourceRows.filter(r => (r.issueMonth || 1) === m);
+                        const mFyc = mRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+                        const mFyp = mRows.reduce((s, r) => s + (r.fypFinal || 0), 0);
+                        const mCase1 = mRows.reduce((s, r) => s + (r.fycFinalCase1 || 0), 0);
+                        const mPolRows = mRows.filter(r => r.hasCase1Row !== false).length;
+                        const mActiveAg = countMonthlyActiveAgentsWithFycc(mRows);
+                        let mTotal = 0;
+                        if (metricKey === 'fyc') mTotal = mFyc;
+                        else if (metricKey === 'fyp') mTotal = mFyp;
+                        else if (metricKey === 'case1') mTotal = mCase1;
+                        else if (metricKey === 'policyCount') mTotal = mPolRows;
+                        else if (metricKey === 'casePerActive') mTotal = mActiveAg > 0 ? (mCase1 / mActiveAg) : 0;
+                        else if (metricKey === 'caseSize') mTotal = mCase1 > 0 ? (mFyc / mCase1) : 0;
+                        else mTotal = mActiveAg;
+                        return `<td class="p-2 text-right font-extrabold text-slate-900 bg-slate-100/80 whitespace-nowrap">${meta.format(mTotal)}</td>`;
+                    }).join('');
+
+                    const grandTotalVal = metricKey === 'fyc' ? totalFYC
+                        : metricKey === 'fyp' ? totalFYP
+                        : metricKey === 'case1' ? totalCase1
+                        : metricKey === 'policyCount' ? totalPolicyRows
+                        : metricKey === 'casePerActive' ? (totalMonthlySummedActiveAgents > 0 ? (totalCase1 / totalMonthlySummedActiveAgents) : 0)
+                        : metricKey === 'caseSize' ? (totalCase1 > 0 ? (totalFYC / totalCase1) : 0)
+                        : totalMonthlySummedActiveAgents;
+
+                    rosterBody.innerHTML = districtRowsHtml + `
+                        <tr class="border-t-2 border-indigo-200 bg-slate-100/90 font-black">
+                            <td class="p-2 text-slate-900 whitespace-nowrap">全部 District 總計</td>
+                            ${monthTotalsHtml}
+                            <td class="p-2 text-right text-indigo-900 bg-indigo-100 whitespace-nowrap">${meta.format(grandTotalVal)}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            const policiesSection = document.getElementById('modalPoliciesSection');
+            if (policiesSection) {
+                policiesSection.classList.remove('hidden');
+                renderModalPoliciesTable(sourceRows.slice(0, 300), true);
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
         }
 
         const _personMatchInfoCache = new Map();
@@ -4839,9 +5999,11 @@
                 else clearBtn.classList.add('hidden');
             }
             renderAgentRankingsTables();
+            renderTable4TopNewRecruits();
             renderTable5Productivity();
             renderTable6ActiveElite();
             renderTable7Productivity();
+            renderTable8TopNewRecruits();
         }
 
         function renderAgentRankingsTables() {
@@ -4957,75 +6119,230 @@
             document.getElementById('detailModal').classList.add('hidden');
         }
 
-        function exportComprehensiveReport() {
-            if (filteredRows.length === 0) {
-                showToast("當前無篩選數據可供匯出！", "warning");
-                return;
-            }
-
+        function downloadTables1To8Results() {
             try {
                 const wb = XLSX.utils.book_new();
+                const limit = currentTopN === 100 ? 9999 : currentTopN;
+                const filterAgentByQuery = (arr) => {
+                    if (!yearlyAgentSearchQuery) return arr;
+                    return arr.filter(item =>
+                        String(item.agentName || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                        String(item.leaderName || '').toLowerCase().includes(yearlyAgentSearchQuery)
+                    );
+                };
+                const filterRecruitByQuery = (arr) => {
+                    if (!yearlyAgentSearchQuery) return arr;
+                    return arr.filter(item =>
+                        String(item.name || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                        Array.from(item.teams || []).some(t => String(t).toLowerCase().includes(yearlyAgentSearchQuery))
+                    );
+                };
+                const filterTeamProdByQuery = (arr) => {
+                    if (!yearlyAgentSearchQuery) return arr;
+                    return arr.filter(item =>
+                        String(item.managerName || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                        String(item.uplineManager || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                        (item.teamMembers && item.teamMembers.some(m => String(m.name || '').toLowerCase().includes(yearlyAgentSearchQuery)))
+                    );
+                };
 
-                const rawExportData = filteredRows.map(r => ({
-                    "Submit Year": r.submitYear,
-                    "Submit Month": r.submitMonth,
-                    "Issue Year": r.issueYear,
-                    "Issue Month": r.issueMonth,
-                    "Leader Name": r.leaderName,
-                    "Agent Name": r.agentName,
-                    "Policy No": r.policyNo,
-                    "Product Name": r.productName,
-                    "FYC Final (Col V)": r.fycFinal,
-                    "FYP Final": r.fypFinal,
-                    "FYC Final Case1": r.fycFinalCase1,
-                    "Status": r.status
-                }));
-                const rawWs = XLSX.utils.json_to_sheet(rawExportData);
-                XLSX.utils.book_append_sheet(wb, rawWs, "Filtered Raw Data");
+                // Exact displayed lists for Tables 1 to 8 (數據不變)
+                const t1Displayed = filterAgentByQuery(table1Rankings).slice(0, limit);
+                const t2Displayed = filterAgentByQuery(table2Rankings).slice(0, limit);
+                const t3Displayed = filterAgentByQuery(table3Rankings).slice(0, limit);
+                const t4Filtered = filterRecruitByQuery(table4RecruitRankings);
+                const t4Displayed = yearlyAgentSearchQuery ? t4Filtered : t4Filtered.slice(0, 5);
+                const t5Filtered = filterTeamProdByQuery(table5ProductivityRankings);
+                const t5Displayed = (table5ShowAll || yearlyAgentSearchQuery) ? t5Filtered : t5Filtered.slice(0, 5);
+                const t6Displayed = table6ActiveEliteRankings.slice(0, 5);
+                const t7Filtered = filterTeamProdByQuery(table7ProductivityRankings);
+                const t7Displayed = (table7ShowAll || yearlyAgentSearchQuery) ? t7Filtered : t7Filtered.slice(0, 5);
+                const t8Displayed = yearlyAgentSearchQuery
+                    ? table8RecruitRankings.filter(item =>
+                        String(item.name || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
+                        Array.from(item.teams || []).some(t => String(t).toLowerCase().includes(yearlyAgentSearchQuery)) ||
+                        (item.recruitsList && item.recruitsList.some(r => String(r.agentName || '').toLowerCase().includes(yearlyAgentSearchQuery)))
+                    )
+                    : table8RecruitRankings;
 
-                const recruitExportData = table4RecruitRankings.map((item, idx) => ({
-                    "Rank": idx + 1,
-                    "Leader / ARA Name": item.name,
-                    "Recruits Count": item.recruitsCount,
-                    "Teams": Array.from(item.teams).join(', ')
-                }));
-                const recruitWs = XLSX.utils.json_to_sheet(recruitExportData);
-                XLSX.utils.book_append_sheet(wb, recruitWs, "Top New Recruits");
+                // Sheet 1: 表格 1-8 綜合總覽 (All Tables 1-8 in one combined sheet)
+                const overviewRows = [];
+                const pushSection = (title, headers, rowsArr) => {
+                    overviewRows.push([title]);
+                    overviewRows.push(headers);
+                    if (rowsArr.length === 0) {
+                        overviewRows.push(['無數據']);
+                    } else {
+                        rowsArr.forEach(r => overviewRows.push(r));
+                    }
+                    overviewRows.push([]);
+                };
 
-                const productivityExportData = table5ProductivityRankings.slice(0, 5).map((item, idx) => ({
-                    "Rank": idx + 1,
-                    "Team / Manager Name": item.managerName,
-                    "Team Members Count": item.memberCount,
-                    "Team Members": item.teamMembers.map(m => m.name).join(' + '),
-                    "Team Total FYC Final": Math.round(item.teamTotalFYC),
-                    "Team Total Man Month": item.teamTotalManMonth,
-                    "Team Productivity": Math.round(item.productivity)
-                }));
-                const prodWs = XLSX.utils.json_to_sheet(productivityExportData);
-                XLSX.utils.book_append_sheet(wb, prodWs, "Team Top Productivity");
+                pushSection(
+                    '【表格 1】TOP FYCC (2027 MDRT C)',
+                    ['排名', 'Agent 顧問', 'District', 'FYC Final ($)'],
+                    t1Displayed.map((item, idx) => [idx + 1, item.agentName, item.leaderName, Math.round(item.totalFYC || 0)])
+                );
+                pushSection(
+                    '【表格 2】TOP FYP (2027 MDRT P)',
+                    ['排名', 'Agent 顧問', 'District', 'FYP Final ($)'],
+                    t2Displayed.map((item, idx) => [idx + 1, item.agentName, item.leaderName, Math.round(item.totalFYP || 0)])
+                );
+                pushSection(
+                    '【表格 3】Top Case (50Cases OR ABOVE)',
+                    ['排名', 'Agent 顧問', 'District', 'Case'],
+                    t3Displayed.map((item, idx) => [idx + 1, item.agentName, item.leaderName, Number((item.totalCase1 || 0).toFixed(1))])
+                );
+                pushSection(
+                    '【表格 4】TOP NEW RECRUIT (4 OR ABOVE)',
+                    ['排名', '主管 / ARA 姓名', 'Team', '新招募人數'],
+                    t4Displayed.map((item, idx) => [idx + 1, item.name, Array.from(item.teams || []).join(', '), item.recruitsCount])
+                );
+                pushSection(
+                    '【表格 5】TEAM TOP PRODUCTIVITY (FYCC $15,000/Month · 根據 Sales Production Report)',
+                    ['排名', 'NAME', '職級', 'Team', '團隊人數', '總 FYCC ($)', '計算 Man Month', 'Productivity ($)'],
+                    t5Displayed.map((item, idx) => [
+                        idx + 1,
+                        item.managerName,
+                        item.managerRank || '-',
+                        item.uplineManager || '-',
+                        item.memberCount,
+                        Math.round(item.teamTotalFYC || 0),
+                        item.teamTotalManMonth,
+                        Math.round(item.productivity || 0)
+                    ])
+                );
+                pushSection(
+                    '【表格 6】TOP ACTIVE ELITE (FULLYEAR80%+ & FYCC200,000+)',
+                    ['排名', 'Agent 顧問', '活躍月數 / 在職月數', 'Active Ratio (%)', 'FYC Final ($)'],
+                    t6Displayed.map((item, idx) => [
+                        idx + 1,
+                        item.agentName,
+                        `${item.activeMonthsCount}/${item.manMonth}`,
+                        Number(item.activeRatio.toFixed(1)),
+                        Math.round(item.totalFYC || 0)
+                    ])
+                );
+                pushSection(
+                    '【表格 7】TEAM TOP PRODUCTIVITY (FYCC $15,000/Month · 根據 Raw Data)',
+                    ['排名', 'NAME', '職級', 'Team', '團隊人數', '總 FYC Final ($)', '計算 Man Month', 'Productivity ($)'],
+                    t7Displayed.map((item, idx) => [
+                        idx + 1,
+                        item.managerName,
+                        item.managerRank || '-',
+                        item.uplineManager || '-',
+                        item.memberCount,
+                        Math.round(item.teamTotalFYC || 0),
+                        item.teamTotalManMonth,
+                        Math.round(item.productivity || 0)
+                    ])
+                );
+                pushSection(
+                    '【表格 8】TOP NEW RECRUIT (UPLINE MANAGER TOTAL · 多層經理計算)',
+                    ['排名', 'Upline Manager 姓名', '職級', 'Team', '上線主管', '直屬招募人數', '下線經理團隊招募人數', 'Total Recruit'],
+                    t8Displayed.map((item, idx) => [
+                        idx + 1,
+                        item.name,
+                        item.managerRank || '-',
+                        Array.from(item.teams || []).join(', '),
+                        item.uplineManager || '-',
+                        item.directCount,
+                        item.indirectCount,
+                        item.recruitsCount
+                    ])
+                );
 
-                const activeEliteExportData = table6ActiveEliteRankings.slice(0, 5).map((item, idx) => ({
-                    "Rank": idx + 1,
-                    "Agent Name": item.agentName,
-                    "Leader Name": item.leaderName,
-                    "Active Months": item.activeMonthsCount,
-                    "Man Month": item.manMonth,
+                const overviewWs = XLSX.utils.aoa_to_sheet(overviewRows);
+                XLSX.utils.book_append_sheet(wb, overviewWs, "表格1-8總覽");
+
+                // Individual Sheets for Tables 1 to 8
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t1Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "Agent 顧問": item.agentName,
+                    "District": item.leaderName,
+                    "FYC Final ($)": Math.round(item.totalFYC || 0)
+                }))), "表格1_TOP_FYCC");
+
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t2Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "Agent 顧問": item.agentName,
+                    "District": item.leaderName,
+                    "FYP Final ($)": Math.round(item.totalFYP || 0)
+                }))), "表格2_TOP_FYP");
+
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t3Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "Agent 顧問": item.agentName,
+                    "District": item.leaderName,
+                    "Case": Number((item.totalCase1 || 0).toFixed(1))
+                }))), "表格3_Top_Case");
+
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t4Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "主管 / ARA 姓名": item.name,
+                    "Team": Array.from(item.teams || []).join(', '),
+                    "新招募人數": item.recruitsCount
+                }))), "表格4_TOP_NEW_RECRUIT");
+
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t5Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "NAME": item.managerName,
+                    "職級": item.managerRank || '-',
+                    "Team": item.uplineManager || '-',
+                    "團隊人數": item.memberCount,
+                    "團隊成員": (item.teamMembers || []).map(m => m.name).join(' + '),
+                    "總 FYCC ($)": Math.round(item.teamTotalFYC || 0),
+                    "計算 Man Month": item.teamTotalManMonth,
+                    "Productivity ($)": Math.round(item.productivity || 0)
+                }))), "表格5_PRODUCTIVITY_DDR");
+
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t6Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "Agent 顧問": item.agentName,
+                    "District": item.leaderName,
+                    "活躍月數": item.activeMonthsCount,
+                    "在職月數 (Man Month)": item.manMonth,
                     "Active Ratio (%)": Number(item.activeRatio.toFixed(1)),
-                    "Total FYC Final": Math.round(item.totalFYC)
-                }));
-                const activeWs = XLSX.utils.json_to_sheet(activeEliteExportData);
-                XLSX.utils.book_append_sheet(wb, activeWs, "Top Active Elite");
+                    "FYC Final ($)": Math.round(item.totalFYC || 0)
+                }))), "表格6_TOP_ACTIVE_ELITE");
 
-                XLSX.writeFile(wb, `PP_Raw_Comprehensive_Report_${new Date().toISOString().slice(0,10)}.xlsx`);
-                showToast("已成功匯出完整 Excel 分析報表！", "success");
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t7Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "NAME": item.managerName,
+                    "職級": item.managerRank || '-',
+                    "Team": item.uplineManager || '-',
+                    "團隊人數": item.memberCount,
+                    "團隊成員": (item.teamMembers || []).map(m => m.name).join(' + '),
+                    "總 FYC Final ($)": Math.round(item.teamTotalFYC || 0),
+                    "計算 Man Month": item.teamTotalManMonth,
+                    "Productivity ($)": Math.round(item.productivity || 0)
+                }))), "表格7_PRODUCTIVITY_Raw");
+
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(t8Displayed.map((item, idx) => ({
+                    "排名": idx + 1,
+                    "Upline Manager 姓名": item.name,
+                    "職級": item.managerRank || '-',
+                    "Team": Array.from(item.teams || []).join(', '),
+                    "上線主管": item.uplineManager || '-',
+                    "直屬招募人數": item.directCount,
+                    "下線經理團隊招募人數": item.indirectCount,
+                    "Total Recruit": item.recruitsCount
+                }))), "表格8_UPLINE_RECRUIT");
+
+                XLSX.writeFile(wb, `PLD_Yearly_Awards_Tables_1_to_8_${new Date().toISOString().slice(0, 10)}.xlsx`);
+                showToast("已成功下載 表格 1-8 完整結果 Excel！", "success");
             } catch (err) {
-                console.error("Export error:", err);
-                showToast("匯出 Excel 時發生錯誤", "error");
+                console.error("Download Tables 1-8 error:", err);
+                showToast("下載表格 1-8 時發生錯誤", "error");
             }
         }
 
+        function exportComprehensiveReport() {
+            downloadTables1To8Results();
+        }
+
         function exportTableSummary(tableType) {
-            exportComprehensiveReport();
+            downloadTables1To8Results();
         }
 
         // ============================================================================
@@ -5054,51 +6371,6 @@
             { key: 'GROUP:CALVIN_BM_HSUI_MAN_LAI', label: 'Calvin Wong 內的 BM: Hsui Man Lai (HSUI MAN LAI WINNIE)', shortLabel: 'Calvin Wong · BM: Hsui Man Lai', isDefault: true },
             { key: 'GROUP:CALVIN_BM_TAM_PAN', label: 'Calvin Wong 內的 BM: Tam Pan (TAM PAN)', shortLabel: 'Calvin Wong · BM: Tam Pan', isDefault: true }
         ];
-
-        // Exclusive 22-person whitelist for ANDY TSE's colleagues (Name & NICK NAME)
-        const ANDY_TSE_COLLEAGUES_ROSTER = [
-            { name: 'CHAN CHUN YIN', nickName: 'BILLY', aliases: ['CHAN CHUN YIN BILLY'] },
-            { name: 'CHAN CHUNG FAI', nickName: 'JADE', aliases: ['CHAN CHUNG FAI JADE'] },
-            { name: 'CHIU PANG TAT', nickName: 'ANDREW', aliases: ['CHIU PANG TAT ANDREW'] },
-            { name: 'CHOI KA HONG', nickName: 'ADRIAN', aliases: ['CHOI KA HONG ADRIAN'] },
-            { name: 'CHOW YUEN LAM SHARON', nickName: 'SHARON', aliases: ['CHOW YUEN LAM'] },
-            { name: 'CHU CHUN', nickName: 'Matthew', aliases: ['CHU CHUN MATTHEW'] },
-            { name: 'FAN PAK KIN', nickName: 'MARTIN', aliases: ['FAN PAK KIN MARTIN'] },
-            { name: 'HU TING', nickName: 'TINA', aliases: ['HU TING TINA'] },
-            { name: 'IU KAR CHEUK', nickName: 'LEO', aliases: ['IU KAR CHEUK LEO'] },
-            { name: 'LEUNG KWAN CHUN', nickName: 'ALVIN', aliases: ['LEUNG KWAN CHUN ALVIN'] },
-            { name: 'LI CHUN', nickName: 'SANFORD', aliases: ['LI CHUN SANFORD'] },
-            { name: 'LIU HOI MING', nickName: 'JENNIFER', aliases: ['LIU HOI MING JENNIFER'] },
-            { name: 'MOK PAK YUEN', nickName: 'RYAN', aliases: ['MOK PAK YUEN RYAN'] },
-            { name: 'NGAI CHUN SHING', nickName: 'EDISON', aliases: ['NGAI CHUN SHING EDISON'] },
-            { name: 'NGAN WAI LING', nickName: 'CINDY', aliases: ['NGAN WAI LING CINDY'] },
-            { name: 'TONG CHI YAN', nickName: 'JASON', aliases: ['TONG CHI YAN JASON'] },
-            { name: 'TSE MAN PO ANDY', nickName: 'ANDY', aliases: ['TSE MAN PO'] },
-            { name: 'WONG TSZ CHIU', nickName: 'CHRIS', aliases: ['WONG TSZ CHIU CHRIS'] },
-            { name: 'YUN SHING HUNG', nickName: 'INSON', aliases: ['YUN SHING HUNG INSON'] },
-            { name: 'NG TSOI PAN', nickName: 'ABBY', aliases: ['NG TSOI PAN ABBY'] },
-            { name: 'SAO HO CHUN', nickName: 'HENRY', aliases: ['SAO HO CHUN HENRY'] },
-            { name: 'TANG SHUK KWUN', nickName: 'SUSAN', aliases: ['TANG SHUK KWAN', 'TANG SHUK KWUN SUSAN', 'TANG SHUK KWAN SUSAN'] }
-        ];
-
-        function matchAndyTseColleague(rawName) {
-            if (!rawName) return null;
-            const cleaned = cleanPersonName(String(rawName).replace(/\([^)]*\)/g, '')).toUpperCase().replace(/\s+/g, ' ').trim();
-            if (!cleaned) return null;
-            for (const entry of ANDY_TSE_COLLEAGUES_ROSTER) {
-                const base = entry.name.toUpperCase().trim();
-                const nick = entry.nickName.toUpperCase().trim();
-                const withNick = `${base} ${nick}`;
-                const nickFirst = `${nick} ${base}`;
-                if (cleaned === base || cleaned === withNick || cleaned === nickFirst) {
-                    return entry;
-                }
-                if (Array.isArray(entry.aliases) && entry.aliases.some(a => a.toUpperCase().trim() === cleaned)) {
-                    return entry;
-                }
-            }
-            return null;
-        }
 
         let monthlyAvailableGroups = [...CORE_MONTHLY_GROUPS_META];
         let monthlyCheckedGroups = new Set(DEFAULT_MONTHLY_GROUP_KEYS);
@@ -5326,6 +6598,7 @@
                 const agKey = displayName.toUpperCase().trim();
                 agentsMap.set(agKey, {
                     name: displayName,
+                    nick: entry.nickName,
                     groupKey: 'GROUP:ANDY_TSE',
                     groupLabel: 'Andy Tse',
                     bmName: `NICK: ${entry.nickName}`
@@ -5472,7 +6745,7 @@
             // Clear individual overrides for agents in this group so group toggle acts cleanly
             if (groupKey === 'GROUP:ANDY_TSE') {
                 ANDY_TSE_COLLEAGUES_ROSTER.forEach(entry => {
-                    const agKey = `${entry.name} (${entry.nick})`.toUpperCase().trim();
+                    const agKey = `${entry.name} (${entry.nickName})`.toUpperCase().trim();
                     monthlyExcludedAgents.delete(agKey);
                     monthlyExtraIncludedAgents.delete(agKey);
                 });
@@ -5938,26 +7211,29 @@
                     return b.quarterFYCC - a.quarterFYCC;
                 });
 
-            // Update Monthly KPIs
+            // Update Monthly KPIs (strictly matching the 5 Raw Data formulas by District & Issue Month)
+            // 1. Total FYC Final = 根據 Raw data 內的 FYC Final 數值加總, 分到 District 同 Issue Month
             const totalMonthlyFYCC = monthRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
-            const totalMonthlyHpFYCC = hpMonthRows.reduce((s, r) => s + (r.fycFinal || 0), 0);
+            // 2. Total FYP Final = 根據 Raw data 內的 FYP Final 數值加總, 分到 District 同 Issue Month
+            const totalMonthlyFYP = monthRows.reduce((s, r) => s + (r.fypFinal || 0), 0);
+            // 3. Total Case = 根據 Raw data 內的 Case1 數值加總, 分到 District 同 Month
             const totalMonthlyCases = monthRows.reduce((s, r) => s + (r.fycFinalCase1 || 0), 0);
-            const activeMonthlyAgentsCount = new Set(monthRows.filter(r => r.fycFinal > 0 || r.fycFinalCase1 > 0).map(r => r.agentName.toUpperCase())).size;
+            // 4. 總保單件數 = 根據 Raw data 內的 CASE1 行數加總, 分到 District 同 Month
+            const totalMonthlyPolicyRowCount = monthRows.filter(r => r.hasCase1Row !== false).length;
+            // 5. 活躍顧問人數 = 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總
+            const activeMonthlyAgentsCount = countMonthlyActiveAgentsWithFycc(monthRows);
 
             const kpi1 = document.getElementById('monthlyKpiTotalFYCC');
-            const kpi2 = document.getElementById('monthlyKpiLargePolicies');
-            const kpi3 = document.getElementById('monthlyKpiPldClubCount');
-            const kpi4 = document.getElementById('monthlyKpiHpFYCC');
-            const kpi5 = document.getElementById('monthlyKpiActiveSummary');
+            const kpi2 = document.getElementById('monthlyKpiTotalFYP');
+            const kpi3 = document.getElementById('monthlyKpiTotalCase1');
+            const kpi4 = document.getElementById('monthlyKpiPolicyCount');
+            const kpi5 = document.getElementById('monthlyKpiAgentCount');
 
             if (kpi1) kpi1.innerText = `$${Math.round(totalMonthlyFYCC).toLocaleString()}`;
-            if (kpi2) kpi2.innerText = `${monthlyComputed.table2LargePolicies.length} 張`;
-            if (kpi3) kpi3.innerText = `${monthlyComputed.table3PldClub.length} 人 (${quarterVal})`;
-            if (kpi4) kpi4.innerText = `$${Math.round(totalMonthlyHpFYCC).toLocaleString()}`;
-            if (kpi5) {
-                const caseFmt = Number.isInteger(Number(totalMonthlyCases.toFixed(1))) ? Math.round(totalMonthlyCases) : totalMonthlyCases.toFixed(1);
-                kpi5.innerText = `${activeMonthlyAgentsCount} 人 / ${caseFmt} 張`;
-            }
+            if (kpi2) kpi2.innerText = `$${Math.round(totalMonthlyFYP).toLocaleString()}`;
+            if (kpi3) kpi3.innerText = `${Number(totalMonthlyCases || 0).toFixed(1)}`;
+            if (kpi4) kpi4.innerText = `${totalMonthlyPolicyRowCount.toLocaleString()}`;
+            if (kpi5) kpi5.innerText = `${activeMonthlyAgentsCount.toLocaleString()}`;
 
             // Update table subtitles with active period
             const t1Sub = document.getElementById('monthlyT1Subtitle');
@@ -5972,6 +7248,7 @@
             if (t5Sub) t5Sub.innerText = `${yearVal}年${monthLabel} H&P 保單數目 ≥ 3 張（按張數 → 總 FYCC 降序）`;
 
             renderMonthlyPerformancesTables();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function matchesMonthlySearch(item) {
