@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
+import fs from 'fs';
 
 const DEFAULT_GDRIVE_FOLDER_ID = '1d9k5SpBXItTqVYF2z3_6ZsKo5w4p8Tmn';
 
@@ -101,6 +102,26 @@ async function createServer() {
     if (!fileId) {
       res.status(400).json({ error: 'Missing fileId' });
       return;
+    }
+
+    // Check local filesystem cache first for instant reliable delivery
+    try {
+      const localDir = path.join(process.cwd(), 'public', 'gdrive');
+      if (fs.existsSync(localDir)) {
+        const localMatch = fs.readdirSync(localDir).find(f => f.startsWith(fileId));
+        if (localMatch) {
+          const filePath = path.join(localDir, localMatch);
+          const buf = fs.readFileSync(filePath);
+          if (buf.length > 256) {
+            res.setHeader('Content-Type', 'application/octet-stream');
+            res.setHeader('Content-Length', String(buf.length));
+            res.send(buf);
+            return;
+          }
+        }
+      }
+    } catch (localErr) {
+      console.warn('Local cache read error, falling back to remote:', localErr);
     }
 
     const uaHeaders = {

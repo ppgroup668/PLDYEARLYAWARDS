@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLD YEARLY AWARDS</title>
+    <title>PP Raw 數據分析儀表板 v2.0</title>
+    <meta name="description" content="精準讀取每一行第 22 欄位 (FYC Final) 彙總，支援多維度篩選與深度 Leader/Agent 戰績分析">
+    <meta property="og:title" content="PP Raw 數據分析儀表板 v2.0">
+    <meta property="og:description" content="精準讀取每一行第 22 欄位 (FYC Final) 彙總，支援多維度篩選與深度 Leader/Agent 戰績分析">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -347,6 +350,7 @@
                     <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-users"></i></span>
                 </div>
                 <div id="yearlyKpiHeadcount" class="text-2xl font-black text-sky-900">0</div>
+                <div id="yearlyKpiHeadcountSub" class="text-[11px] font-semibold text-sky-700/80 mt-1">在職顧問人數</div>
             </div>
 
             <div onclick="openKpiDistrictMonthModal('yearly', 'activeRatio')" class="bg-gradient-to-br from-white to-emerald-50/60 rounded-2xl p-4 border border-emerald-200/90 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between cursor-pointer group">
@@ -355,6 +359,7 @@
                     <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-percent"></i></span>
                 </div>
                 <div id="yearlyKpiActiveRatio" class="text-2xl font-black text-emerald-900">0.0%</div>
+                <div id="yearlyKpiActiveRatioSub" class="text-[11px] font-semibold text-emerald-700/90 mt-1">Active ÷ Man-Month</div>
             </div>
 
             <div onclick="openKpiDistrictMonthModal('yearly', 'casePerActive')" class="bg-gradient-to-br from-white to-amber-50/60 rounded-2xl p-4 border border-amber-200/90 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between cursor-pointer group">
@@ -363,6 +368,7 @@
                     <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-briefcase"></i></span>
                 </div>
                 <div id="yearlyKpiCasePerActive" class="text-2xl font-black text-amber-900">0.0</div>
+                <div id="yearlyKpiCasePerActiveSub" class="text-[11px] font-semibold text-amber-700/80 mt-1">Cases ÷ Active</div>
             </div>
 
             <div onclick="openKpiDistrictMonthModal('yearly', 'caseSize')" class="bg-gradient-to-br from-white to-purple-50/60 rounded-2xl p-4 border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between cursor-pointer group">
@@ -371,6 +377,7 @@
                     <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-scale-balanced"></i></span>
                 </div>
                 <div id="yearlyKpiCaseSize" class="text-2xl font-black text-purple-900">$0</div>
+                <div id="yearlyKpiCaseSizeSub" class="text-[11px] font-semibold text-purple-700/80 mt-1">FYCC ÷ Cases</div>
             </div>
         </section>
 
@@ -560,7 +567,7 @@
 
                 <!-- 表格 4：TOP NEW RECRUIT (Royal Purple) -->
                 <div class="bg-white rounded-2xl border border-purple-200/90 shadow-sm flex flex-col overflow-hidden">
-                    <div class="p-3.5 border-b border-purple-100 bg-gradient-to-r from-purple-100/80 via-purple-50/50 to-white flex items-center justify-between gap-2">
+                    <div class="p-3.5 border-b border-purple-100 bg-gradient-to-r from-purple-100/80 via-purple-50/50 to-white flex items-center justify-between gap-2 flex-wrap">
                         <div class="flex items-center space-x-2">
                             <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
                                 4
@@ -569,10 +576,34 @@
                                 <h3 class="text-xs font-extrabold text-purple-950 flex items-center gap-1">
                                     TOP NEW RECRUIT
                                 </h3>
-                                <p id="table4Subtext" class="text-[10px] text-purple-700 font-semibold">4 OR ABOVE</p>
+                                <p id="table4Subtext" class="text-[10px] text-purple-700 font-semibold">4 OR ABOVE · 自動篩選: 2026 年</p>
                             </div>
                         </div>
-                        <span class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <!-- 門檻調整 Threshold Selector -->
+                            <div class="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-0.5 text-[11px]">
+                                <span class="font-bold text-purple-900"><i class="fa-solid fa-sliders text-purple-600 mr-0.5"></i>門檻:</span>
+                                <select id="table4ThresholdSelect" onchange="changeTable4Threshold(this.value)" class="bg-white border border-purple-300 rounded px-1.5 py-0.5 text-[11px] font-bold text-purple-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                    <option value="1">≥ 1 人</option>
+                                    <option value="2">≥ 2 人</option>
+                                    <option value="3">≥ 3 人</option>
+                                    <option value="4" selected>≥ 4 人 (預設)</option>
+                                    <option value="5">≥ 5 人</option>
+                                    <option value="6">≥ 6 人</option>
+                                    <option value="8">≥ 8 人</option>
+                                    <option value="10">≥ 10 人</option>
+                                </select>
+                            </div>
+                            <!-- 年份自動篩選 Year Selector -->
+                            <div class="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-0.5 text-[11px]">
+                                <span class="font-bold text-purple-900"><i class="fa-solid fa-calendar-check text-purple-600 mr-0.5"></i>年份:</span>
+                                <select id="table4YearSelect" onchange="changeTable4RecruitYear(this.value)" class="bg-white border border-purple-300 rounded px-1.5 py-0.5 text-[11px] font-bold text-purple-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                    <option value="2026" selected>2026 (自動篩選)</option>
+                                    <option value="ALL">全部年份</option>
+                                </select>
+                            </div>
+                            <span class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto flex-1">
@@ -782,26 +813,87 @@
                         </select>
                     </div>
 
-                    <!-- 2. Issue Month（簽發月份）選單 -->
-                    <div class="lg:col-span-2 space-y-1">
-                        <label for="monthlyIssueMonthSelect" class="block text-xs font-bold text-slate-700">
-                            <i class="fa-solid fa-calendar-day text-emerald-600 mr-1"></i>2. Issue Month (簽發月份)
+                    <!-- 2. Issue Month（簽發月份）多選選單 (Checkbox Dropdown) -->
+                    <div class="lg:col-span-2 space-y-1 relative" id="monthlyIssueMonthWrapper">
+                        <label class="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                            <span><i class="fa-solid fa-calendar-day text-emerald-600 mr-1"></i>2. Issue Month (簽發月份)</span>
+                            <span id="monthlyMonthCountBadge" class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.2 rounded-full">已選 1 個月</span>
                         </label>
-                        <select id="monthlyIssueMonthSelect" onchange="onMonthlyYearOrMonthChanged('month')" class="w-full text-xs font-bold bg-emerald-50/50 hover:bg-white border border-emerald-200 rounded-xl px-3 py-2.5 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                            <option value="1">1 月 (Jan)</option>
-                            <option value="2">2 月 (Feb)</option>
-                            <option value="3">3 月 (Mar)</option>
-                            <option value="4">4 月 (Apr)</option>
-                            <option value="5">5 月 (May)</option>
-                            <option value="6">6 月 (Jun)</option>
-                            <option value="7">7 月 (Jul)</option>
-                            <option value="8" selected>8 月 (Aug)</option>
-                            <option value="9">9 月 (Sep)</option>
-                            <option value="10">10 月 (Oct)</option>
-                            <option value="11">11 月 (Nov)</option>
-                            <option value="12">12 月 (Dec)</option>
-                            <option value="ALL">全年所有月份 (All Months)</option>
-                        </select>
+                        <button type="button" id="monthlyMonthDropdownBtn" onclick="toggleMonthlyMonthDropdown(event)" class="w-full text-left text-xs font-bold bg-emerald-50/50 hover:bg-white border border-emerald-200 rounded-xl px-3 py-2.5 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none flex items-center justify-between gap-1 cursor-pointer">
+                            <span id="monthlyMonthDropdownLabel" class="truncate">9月 (Sep)</span>
+                            <i id="monthlyMonthDropdownIcon" class="fa-solid fa-chevron-down text-emerald-500 text-[10px] shrink-0 transition-transform"></i>
+                        </button>
+
+                        <!-- Month Dropdown Menu Panel -->
+                        <div id="monthlyMonthDropdownMenu" class="hidden absolute left-0 top-full mt-1.5 w-64 bg-white rounded-2xl border border-slate-200 shadow-2xl z-40 p-3 space-y-2.5">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-1.5 text-[11px]">
+                                <span class="font-extrabold text-slate-800">可多選簽發月份</span>
+                                <div class="flex items-center gap-1.5 text-[10px]">
+                                    <button type="button" onclick="setMonthlyMonthPreset('all')" class="px-2 py-0.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded font-bold cursor-pointer">全選</button>
+                                    <button type="button" onclick="setMonthlyMonthPreset('clear')" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded font-bold cursor-pointer">清空</button>
+                                </div>
+                            </div>
+
+                            <!-- Quarter Quick Select Buttons -->
+                            <div class="grid grid-cols-4 gap-1 text-[10px]">
+                                <button type="button" onclick="setMonthlyMonthQuarterPreset('Q1')" class="py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded border border-amber-200 text-center cursor-pointer">Q1 (1-3)</button>
+                                <button type="button" onclick="setMonthlyMonthQuarterPreset('Q2')" class="py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded border border-amber-200 text-center cursor-pointer">Q2 (4-6)</button>
+                                <button type="button" onclick="setMonthlyMonthQuarterPreset('Q3')" class="py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded border border-amber-200 text-center cursor-pointer">Q3 (7-9)</button>
+                                <button type="button" onclick="setMonthlyMonthQuarterPreset('Q4')" class="py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold rounded border border-amber-200 text-center cursor-pointer">Q4 (10-12)</button>
+                            </div>
+
+                            <!-- 1-12 Month Checkbox Grid -->
+                            <div class="grid grid-cols-2 gap-1.5 pt-1 border-t border-slate-100 text-xs">
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_1" onchange="onMonthlyMonthCheckboxChange(1, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>1 月 (Jan)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_2" onchange="onMonthlyMonthCheckboxChange(2, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>2 月 (Feb)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_3" onchange="onMonthlyMonthCheckboxChange(3, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>3 月 (Mar)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_4" onchange="onMonthlyMonthCheckboxChange(4, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>4 月 (Apr)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_5" onchange="onMonthlyMonthCheckboxChange(5, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>5 月 (May)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_6" onchange="onMonthlyMonthCheckboxChange(6, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>6 月 (Jun)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_7" onchange="onMonthlyMonthCheckboxChange(7, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>7 月 (Jul)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_8" onchange="onMonthlyMonthCheckboxChange(8, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>8 月 (Aug)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_9" checked onchange="onMonthlyMonthCheckboxChange(9, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>9 月 (Sep)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_10" onchange="onMonthlyMonthCheckboxChange(10, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>10 月 (Oct)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_11" onchange="onMonthlyMonthCheckboxChange(11, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>11 月 (Nov)</span>
+                                </label>
+                                <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
+                                    <input type="checkbox" id="monthlyMonthCb_12" onchange="onMonthlyMonthCheckboxChange(12, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <span>12 月 (Dec)</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 3. Issue Quarter（簽發季度）選單 -->
@@ -894,6 +986,7 @@
                         <span class="w-7 h-7 rounded-lg bg-sky-100 text-sky-600 group-hover:bg-sky-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-users"></i></span>
                     </div>
                     <div id="monthlyKpiHeadcount" class="text-2xl font-black text-sky-700">0</div>
+                    <div id="monthlyKpiHeadcountSub" class="text-[11px] font-semibold text-sky-700/80 mt-1">在職顧問人數</div>
                 </div>
 
                 <div onclick="openKpiDistrictMonthModal('monthly', 'activeRatio')" class="bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 rounded-2xl p-4 border border-emerald-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
@@ -902,6 +995,7 @@
                         <span class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-percent"></i></span>
                     </div>
                     <div id="monthlyKpiActiveRatio" class="text-2xl font-black text-emerald-700">0.0%</div>
+                    <div id="monthlyKpiActiveRatioSub" class="text-[11px] font-semibold text-emerald-700/90 mt-1">Active ÷ Man-Month</div>
                 </div>
 
                 <div onclick="openKpiDistrictMonthModal('monthly', 'casePerActive')" class="bg-gradient-to-br from-amber-50 via-white to-orange-50/40 rounded-2xl p-4 border border-amber-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
@@ -910,6 +1004,7 @@
                         <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-briefcase"></i></span>
                     </div>
                     <div id="monthlyKpiCasePerActive" class="text-2xl font-black text-amber-700">0.0</div>
+                    <div id="monthlyKpiCasePerActiveSub" class="text-[11px] font-semibold text-amber-700/80 mt-1">Cases ÷ Active</div>
                 </div>
 
                 <div onclick="openKpiDistrictMonthModal('monthly', 'caseSize')" class="bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 rounded-2xl p-4 border border-purple-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
@@ -918,6 +1013,7 @@
                         <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-scale-balanced"></i></span>
                     </div>
                     <div id="monthlyKpiCaseSize" class="text-2xl font-black text-purple-800">$0</div>
+                    <div id="monthlyKpiCaseSizeSub" class="text-[11px] font-semibold text-purple-700/80 mt-1">FYCC ÷ Cases</div>
                 </div>
             </section>
 
@@ -1315,6 +1411,8 @@
         let table2Rankings = [];
         let table3Rankings = [];
         let table4RecruitRankings = [];
+        let table4Threshold = 4;
+        let table4RecruitYear = '2026';
         let table8RecruitRankings = [];
         let table5ProductivityRankings = [];
         let table5AllRankings = [];
@@ -3228,7 +3326,7 @@
 
         function buildHeadcountFilters() {
             const yearsSet = new Set([2026]);
-            const monthsSet = new Set();
+            const monthsSet = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
             const teamsSet = new Set();
 
             headcountRows.forEach(r => {
@@ -3253,8 +3351,7 @@
             headcountTeams = extractedTeams.sort();
 
             const hasDefaultTargetTeams = [...teamsSet].some(isDefaultTargetLeaderOrTeam);
-            selectedLisYears = new Set(headcountLisYears.filter(y => Number(y) === 2026));
-            if (selectedLisYears.size === 0) selectedLisYears = new Set(headcountLisYears);
+            selectedLisYears = new Set(headcountLisYears);
             selectedLisMonths = new Set(headcountLisMonths);
             selectedHeadcountTeams = hasDefaultTargetTeams
                 ? new Set(headcountTeams.filter(isDefaultTargetLeaderOrTeam))
@@ -3300,6 +3397,7 @@
             if (badge) badge.innerText = `${selectedLisYears.size}/${headcountLisYears.length}`;
             computeTopNewRecruits();
             computeAgentRankings();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function onLisMonthChange(checkbox) {
@@ -3310,6 +3408,7 @@
             if (badge) badge.innerText = `${selectedLisMonths.size}/${headcountLisMonths.length}`;
             computeTopNewRecruits();
             computeAgentRankings();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function onHeadcountTeamChange(checkbox) {
@@ -3320,6 +3419,7 @@
             if (badge) badge.innerText = `${selectedHeadcountTeams.size}/${headcountTeams.length}`;
             computeTopNewRecruits();
             computeAgentRankings();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function toggleLisYearAll(selectAll) {
@@ -3328,6 +3428,7 @@
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
             computeAgentRankings();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function toggleLisMonthAll(selectAll) {
@@ -3336,6 +3437,7 @@
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
             computeAgentRankings();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function toggleHeadcountTeamAll(selectAll) {
@@ -3344,6 +3446,7 @@
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
             computeAgentRankings();
+            computeAndRenderDistrictFourBoxes();
         }
 
         function buildFullNameResolver() {
@@ -3387,6 +3490,20 @@
 
             const cache = new Map();
 
+            const tokensContainAllWithMultiplicity = (containerTokens, queryTokens) => {
+                if (containerTokens.length < queryTokens.length) return false;
+                const distinctQuery = new Set(queryTokens);
+                if (distinctQuery.size < 2 && containerTokens.length > queryTokens.length) return false;
+                const counts = new Map();
+                for (const t of containerTokens) counts.set(t, (counts.get(t) || 0) + 1);
+                for (const t of queryTokens) {
+                    const c = counts.get(t) || 0;
+                    if (c <= 0) return false;
+                    counts.set(t, c - 1);
+                }
+                return true;
+            };
+
             return function resolveToFullName(rawName) {
                 if (!rawName) return '';
                 const trimmed = cleanPersonName(rawName);
@@ -3396,15 +3513,14 @@
                 const inputTokens = tokenizeName(trimmed);
                 if (inputTokens.length === 0) return trimmed;
 
-                // Find candidate full names in the pool that contain all tokens of trimmed and are longer/fuller
+                // Find candidate full names in the pool that contain all tokens of trimmed (respecting multiplicity) and are longer/fuller
                 let bestMatch = trimmed;
                 let bestTokenCount = inputTokens.length;
                 let bestCharLen = trimmed.length;
 
                 for (const entry of poolEntries) {
                     if (entry.tokens.length < inputTokens.length) continue;
-                    const allTokensMatch = inputTokens.every(t => entry.tokens.includes(t));
-                    if (allTokensMatch) {
+                    if (tokensContainAllWithMultiplicity(entry.tokens, inputTokens)) {
                         if (entry.tokens.length > bestTokenCount || (entry.tokens.length === bestTokenCount && entry.fullName.length > bestCharLen)) {
                             bestMatch = entry.fullName;
                             bestTokenCount = entry.tokens.length;
@@ -3418,6 +3534,26 @@
             };
         }
 
+        function changeTable4Threshold(val) {
+            table4Threshold = parseInt(val, 10) || 4;
+            const subtext = document.getElementById('table4Subtext');
+            if (subtext) {
+                const yrText = table4RecruitYear === 'ALL' ? '全部年份' : `${table4RecruitYear} 年`;
+                subtext.innerText = `${table4Threshold} OR ABOVE · 自動篩選: ${yrText}`;
+            }
+            computeTopNewRecruits();
+        }
+
+        function changeTable4RecruitYear(val) {
+            table4RecruitYear = val || '2026';
+            const subtext = document.getElementById('table4Subtext');
+            if (subtext) {
+                const yrText = table4RecruitYear === 'ALL' ? '全部年份' : `${table4RecruitYear} 年`;
+                subtext.innerText = `${table4Threshold} OR ABOVE · 自動篩選: ${yrText}`;
+            }
+            computeTopNewRecruits();
+        }
+
         function computeTopNewRecruits() {
             filteredHeadcountRows = headcountRows.filter(r => {
                 if (!r.productionStartDate) return false;
@@ -3427,7 +3563,11 @@
                 const year = d.getFullYear();
                 const month = d.getMonth() + 1;
 
-                const matchYear = selectedLisYears.has(year);
+                // 表格 4 自動篩選 2026: 若指定特定年份(預設 2026)，則精確只比對該年份新招募
+                const matchYear = (table4RecruitYear && table4RecruitYear !== 'ALL')
+                    ? (year === parseInt(table4RecruitYear, 10))
+                    : selectedLisYears.has(year);
+
                 const matchMonth = selectedLisMonths.has(month);
                 const matchTeam = selectedHeadcountTeams.size === 0 ||
                     selectedHeadcountTeams.has(r.team) ||
@@ -3469,6 +3609,7 @@
 
             const recruitMap = {};
             const ensureRecruiterEntry = (personName) => {
+                if (!personName || personName === 'Unassigned Manager' || personName === 'New Recruit' || personName === 'Unknown') return null;
                 const mapKey = personName.toUpperCase();
                 if (!recruitMap[mapKey]) {
                     recruitMap[mapKey] = {
@@ -3488,12 +3629,19 @@
                 const hasAra = isValidPersonName(r.araName);
                 const exactAra = hasAra ? cleanPersonName(r.araName) : '';
                 const hasUpline = isValidPersonName(r.uplineManager) && r.uplineManager.trim() !== 'Unassigned Manager';
-                const exactUpline = hasUpline ? cleanPersonName(r.uplineManager) : 'Unassigned Manager';
+                const exactUpline = hasUpline ? cleanPersonName(r.uplineManager) : '';
                 const exactAgent = (isValidPersonName(r.agentName) ? cleanPersonName(r.agentName) : r.agentName) || 'New Recruit';
 
-                // Rule: If Column N (ARA Name) is present (e.g. LAM CHI HUNG), credit goes strictly to ARA Name;
-                // otherwise credit goes strictly to Column K (Upline Manager Name, e.g. LAI WAI HO).
-                const creditedName = exactAra || exactUpline || 'Unassigned Manager';
+                // Rule: If Column N (ARA Name) is present, credit goes to ARA Name;
+                // otherwise credit goes strictly to Column K (Upline Manager Name).
+                // If neither is present, fallback to BM Name if valid.
+                let creditedName = exactAra || exactUpline;
+                if (!creditedName && isValidPersonName(r.bmName)) {
+                    creditedName = cleanPersonName(r.bmName);
+                }
+                if (!creditedName || creditedName === 'Unassigned Manager' || creditedName === 'New Recruit') {
+                    return;
+                }
                 const mm = calcRecruitManMonth(r);
 
                 const recruitDetailItem = {
@@ -3507,21 +3655,25 @@
                 };
 
                 const creditedEntry = ensureRecruiterEntry(creditedName);
-                creditedEntry.recruitsCount += 1;
-                if (r.team) creditedEntry.teams.add(r.team);
-                creditedEntry.recruitsList.push(recruitDetailItem);
-                creditedEntry.uplineAllRecruitsList.push(recruitDetailItem);
+                if (creditedEntry) {
+                    creditedEntry.recruitsCount += 1;
+                    if (r.team) creditedEntry.teams.add(r.team);
+                    creditedEntry.recruitsList.push(recruitDetailItem);
+                    creditedEntry.uplineAllRecruitsList.push(recruitDetailItem);
+                }
 
-                // If Upline Manager (Col K) differs from ARA Name (Col N), also record in Upline Manager's uplineAllRecruitsList (without incrementing recruitsCount)
+                // If Upline Manager (Col K) differs from ARA Name (Col N), also record in Upline Manager's uplineAllRecruitsList
                 if (exactAra && hasUpline && exactUpline.toUpperCase() !== exactAra.toUpperCase()) {
                     const uplineEntry = ensureRecruiterEntry(exactUpline);
-                    if (r.team) uplineEntry.teams.add(r.team);
-                    uplineEntry.uplineAllRecruitsList.push(recruitDetailItem);
+                    if (uplineEntry) {
+                        if (r.team) uplineEntry.teams.add(r.team);
+                        uplineEntry.uplineAllRecruitsList.push(recruitDetailItem);
+                    }
                 }
             });
 
             table4RecruitRankings = Object.values(recruitMap)
-                .filter(item => item.recruitsCount >= 3)
+                .filter(item => item && item.name && item.name !== 'Unassigned Manager' && item.name !== 'New Recruit' && item.recruitsCount >= table4Threshold)
                 .sort((a, b) => b.recruitsCount - a.recruitsCount);
 
             // =========================================================================
@@ -3740,8 +3892,18 @@
             const subtext = document.getElementById(subtextId);
             if (!tbody) return;
 
+            const yrText = table4RecruitYear === 'ALL' ? '全部年份' : `${table4RecruitYear} 年`;
             if (subtext) {
-                subtext.innerText = '4 OR ABOVE';
+                subtext.innerText = `${table4Threshold} OR ABOVE · 自動篩選: ${yrText}`;
+            }
+
+            const thSel = document.getElementById('table4ThresholdSelect');
+            if (thSel && String(thSel.value) !== String(table4Threshold)) {
+                thSel.value = String(table4Threshold);
+            }
+            const yrSel = document.getElementById('table4YearSelect');
+            if (yrSel && String(yrSel.value) !== String(table4RecruitYear)) {
+                yrSel.value = String(table4RecruitYear);
             }
 
             const filteredList = yearlyAgentSearchQuery
@@ -3754,7 +3916,7 @@
             if (filteredList.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="3" class="text-center py-6 text-stone-400">當前篩選範圍內無新招募人數達 3 位或以上的記錄</td>
+                        <td colspan="3" class="text-center py-6 text-stone-400">當前篩選範圍內無新招募人數達 ${table4Threshold} 位或以上的記錄 (${escapeHtml(yrText)})</td>
                     </tr>
                 `;
                 return;
@@ -4256,10 +4418,150 @@
             return `GROUP:LEADER_${cKey || 'OTHER'}`;
         }
 
+        // 官方 Agency Summary Report 基準數據記錄 (截至 2026/09/30) - 僅供參考 MAN MONTH 及 HEADCOUNT
+        const OFFICIAL_DISTRICT_BENCHMARKS = {
+            'PAGGIE LAW': {
+                district: 'PAGGIE LAW',
+                year: 2026,
+                manMonthByMonth: { 1: 82, 2: 83, 3: 83, 4: 86, 5: 84, 6: 84, 7: 89, 8: 82, 9: 83 },
+                inforceAgentByMonth: { 1: 84, 2: 84, 3: 84, 4: 85, 5: 84, 6: 84, 7: 82, 8: 82, 9: 83 },
+                inforceAtMonthEnd: 83
+            },
+            'CLOVIS CHANG': {
+                district: 'CLOVIS CHANG',
+                year: 2026,
+                manMonthByMonth: { 1: 59, 2: 57, 3: 55, 4: 56, 5: 56, 6: 55, 7: 53, 8: 51, 9: 48 },
+                inforceAgentByMonth: { 1: 57, 2: 55, 3: 56, 4: 55, 5: 56, 6: 53, 7: 53, 8: 50, 9: 47 },
+                inforceAtMonthEnd: 47
+            },
+            'LINCOLN TZAN': {
+                district: 'LINCOLN TZAN',
+                year: 2026,
+                manMonthByMonth: { 1: 45, 2: 44, 3: 44, 4: 42, 5: 42, 6: 42, 7: 45, 8: 42, 9: 44 },
+                inforceAgentByMonth: { 1: 45, 2: 44, 3: 43, 4: 41, 5: 42, 6: 44, 7: 42, 8: 42, 9: 44 },
+                inforceAtMonthEnd: 44
+            },
+            'KENNY KWONG': {
+                district: 'KENNY KWONG',
+                year: 2026,
+                manMonthByMonth: { 1: 81, 2: 84, 3: 82, 4: 86, 5: 84, 6: 79, 7: 78, 8: 74, 9: 71 },
+                inforceAgentByMonth: { 1: 87, 2: 85, 3: 86, 4: 84, 5: 82, 6: 76, 7: 74, 8: 71, 9: 69 },
+                inforceAtMonthEnd: 69
+            },
+            'WINNIE WONG': {
+                district: 'WINNIE WONG',
+                year: 2026,
+                manMonthByMonth: { 1: 47, 2: 47, 3: 49, 4: 49, 5: 49, 6: 51, 7: 48, 8: 48, 9: 47 },
+                inforceAgentByMonth: { 1: 46, 2: 47, 3: 49, 4: 49, 5: 50, 6: 51, 7: 47, 8: 48, 9: 46 },
+                inforceAtMonthEnd: 46
+            },
+            'JERRY LO': {
+                district: 'JERRY LO',
+                year: 2026,
+                manMonthByMonth: { 1: 36, 2: 41, 3: 44, 4: 44, 5: 45, 6: 46, 7: 46, 8: 51, 9: 51 },
+                inforceAgentByMonth: { 1: 37, 2: 41, 3: 43, 4: 45, 5: 45, 6: 45, 7: 46, 8: 51, 9: 51 },
+                inforceAtMonthEnd: 51
+            },
+            'ANTHONY LAU': {
+                district: 'ANTHONY LAU',
+                year: 2026,
+                manMonthByMonth: { 1: 38, 2: 33, 3: 33, 4: 33, 5: 32, 6: 32, 7: 32, 8: 30, 9: 29 },
+                inforceAgentByMonth: { 1: 38, 2: 33, 3: 33, 4: 33, 5: 32, 6: 32, 7: 30, 8: 30, 9: 28 },
+                inforceAtMonthEnd: 28
+            },
+            'CECI CHAN': {
+                district: 'CECI CHAN',
+                year: 2026,
+                manMonthByMonth: { 1: 117, 2: 111, 3: 103, 4: 97, 5: 91, 6: 93, 7: 90, 8: 68, 9: 66 },
+                inforceAgentByMonth: { 1: 118, 2: 108, 3: 98, 4: 95, 5: 92, 6: 91, 7: 78, 8: 66, 9: 64 },
+                inforceAtMonthEnd: 64
+            },
+            'ANDY TSE': {
+                district: 'ANDY TSE',
+                year: 2026,
+                manMonthByMonth: { 1: 40, 2: 40, 3: 41, 4: 41, 5: 42, 6: 44, 7: 45, 8: 47, 9: 46 },
+                inforceAgentByMonth: { 1: 41, 2: 40, 3: 41, 4: 41, 5: 42, 6: 44, 7: 44, 8: 47, 9: 46 },
+                inforceAtMonthEnd: 46
+            },
+            'JACKY YEUNG': {
+                district: 'JACKY YEUNG',
+                year: 2026,
+                manMonthByMonth: { 1: 60, 2: 62, 3: 63, 4: 65, 5: 66, 6: 70, 7: 70, 8: 67, 9: 68 },
+                inforceAgentByMonth: { 1: 61, 2: 62, 3: 64, 4: 65, 5: 67, 6: 69, 7: 67, 8: 67, 9: 68 },
+                inforceAtMonthEnd: 68
+            },
+            'MING LAW': {
+                district: 'MING LAW',
+                year: 2026,
+                manMonthByMonth: { 1: 29, 2: 29, 3: 29, 4: 29, 5: 30, 6: 30, 7: 30, 8: 30, 9: 30 },
+                inforceAgentByMonth: { 1: 30, 2: 29, 3: 29, 4: 29, 5: 30, 6: 30, 7: 30, 8: 30, 9: 30 },
+                inforceAtMonthEnd: 30
+            }
+        };
+
+        function getOfficialDistrictManMonth(distName, year, month) {
+            const cKey = canonicalDistrictLeaderKey(distName);
+            const bench = OFFICIAL_DISTRICT_BENCHMARKS[cKey];
+            if (bench && bench.year === year && bench.manMonthByMonth[month] !== undefined) {
+                return bench.manMonthByMonth[month];
+            }
+            return null;
+        }
+
+        function getOfficialDistrictInforce(distName, year, month) {
+            const cKey = canonicalDistrictLeaderKey(distName);
+            const bench = OFFICIAL_DISTRICT_BENCHMARKS[cKey];
+            if (bench && bench.year === year && bench.inforceAgentByMonth[month] !== undefined) {
+                return bench.inforceAgentByMonth[month];
+            }
+            return null;
+        }
+
+        function getOfficialDistrictPeriodManMonth(distName, year, monthsList) {
+            const cKey = canonicalDistrictLeaderKey(distName);
+            const bench = OFFICIAL_DISTRICT_BENCHMARKS[cKey];
+            if (bench && bench.year === year && Array.isArray(monthsList) && monthsList.length > 0) {
+                let sum = 0;
+                let hasAny = false;
+                for (const m of monthsList) {
+                    if (bench.manMonthByMonth[m] !== undefined) {
+                        sum += bench.manMonthByMonth[m];
+                        hasAny = true;
+                    }
+                }
+                if (hasAny) return sum;
+            }
+            return null;
+        }
+
+        function getOfficialDistrictPeriodInforce(distName, year, monthsList) {
+            const cKey = canonicalDistrictLeaderKey(distName);
+            const bench = OFFICIAL_DISTRICT_BENCHMARKS[cKey];
+            if (bench && bench.year === year) {
+                if (Array.isArray(monthsList) && monthsList.length > 0) {
+                    const validMonths = monthsList.filter(m => bench.inforceAgentByMonth[m] !== undefined);
+                    if (validMonths.length > 0) {
+                        const lastM = Math.max(...validMonths);
+                        return bench.inforceAgentByMonth[lastM];
+                    }
+                }
+                return bench.inforceAtMonthEnd || 83;
+            }
+            return null;
+        }
+
+        function isHcRowActiveInSelectedPeriod(hc, selectedYears, selectedMonths) {
+            if (!hc) return false;
+            const yearsArr = (selectedYears && selectedYears.size > 0) ? Array.from(selectedYears) : [2026];
+            const monthsArr = (selectedMonths && selectedMonths.size > 0) ? Array.from(selectedMonths) : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+            return computeHcManMonthForSelectedMonths(hc, yearsArr, monthsArr) > 0;
+        }
+
+        // Manmonth = 當月有在職的同事就算一天也計算在內
         function computeHcManMonthForSelectedMonths(hcRow, selectedYearsArr, selectedMonthsArr) {
+            if (!hcRow) return 0;
             const years = (Array.isArray(selectedYearsArr) && selectedYearsArr.length > 0) ? selectedYearsArr : [2026];
             const months = (Array.isArray(selectedMonthsArr) && selectedMonthsArr.length > 0) ? selectedMonthsArr : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-            if (hcRow.manMonth && hcRow.manMonth > 0) return hcRow.manMonth;
 
             let startYM = 0;
             if (hcRow.productionStartDate && !isNaN(new Date(hcRow.productionStartDate).getTime())) {
@@ -4271,8 +4573,18 @@
                 const termD = new Date(hcRow.terminationDate);
                 endYM = termD.getFullYear() * 12 + (termD.getMonth() + 1);
             }
+
+            if (startYM === 0) {
+                if (hcRow.manMonth && hcRow.manMonth > 0) {
+                    return Math.min(hcRow.manMonth, months.length);
+                }
+                return 0;
+            }
+
             if (startYM > endYM) return 0;
 
+            // 當月有在職的同事就算一天也計算在內：
+            // 只要 ym >= startYM (入職年月當月起算一天也算) 且 ym <= endYM (離職年月當月就算一天也算)，該月即計 1 個 Man-Month
             let mmCount = 0;
             for (const yr of years) {
                 for (const m of months) {
@@ -4285,24 +4597,28 @@
             return mmCount;
         }
 
-        // 活躍顧問人數 = 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總, 例如1月有FYCC,2月也有FYCC 是計2個
+        // 活躍顧問人數 = 根據選擇的月份, 把有FYCC (當月Net FYCC != 0) 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總, 例如1月有FYCC,2月也有FYCC 是計2個
         function countMonthlyActiveAgentsWithFycc(rows) {
             if (!Array.isArray(rows) || rows.length === 0) return 0;
-            const monthAgentsMap = new Map();
+            const monthAgentFycMap = new Map();
             rows.forEach(r => {
                 if (!r.agentName || r.hasAgentName === false) return;
-                if ((r.fycFinal || 0) === 0) return;
                 const agKey = cleanPersonName(r.agentName).toUpperCase();
                 if (!agKey) return;
                 const ymKey = `${r.issueYear || 2026}-${r.issueMonth || 1}`;
-                if (!monthAgentsMap.has(ymKey)) {
-                    monthAgentsMap.set(ymKey, new Set());
+                if (!monthAgentFycMap.has(ymKey)) {
+                    monthAgentFycMap.set(ymKey, new Map());
                 }
-                monthAgentsMap.get(ymKey).add(agKey);
+                const agMap = monthAgentFycMap.get(ymKey);
+                agMap.set(agKey, (agMap.get(agKey) || 0) + (r.fycFinal || 0));
             });
             let total = 0;
-            monthAgentsMap.forEach(agentSet => {
-                total += agentSet.size;
+            monthAgentFycMap.forEach(agMap => {
+                agMap.forEach(netFyc => {
+                    if (Math.abs(netFyc) > 0.001) {
+                        total += 1;
+                    }
+                });
             });
             return total;
         }
@@ -4316,33 +4632,54 @@
             // =================================================================
             // 1. YEARLY VIEW 4 BOXES (Headcount, Active Ratio, Case per Active Agent, Case Size)
             // =================================================================
+            const selIssueYears = (selectedFilters.IssueYear && selectedFilters.IssueYear.size > 0)
+                ? Array.from(selectedFilters.IssueYear)
+                : (selectedLisYears && selectedLisYears.size > 0 ? Array.from(selectedLisYears) : [2026]);
+            const selIssueMonths = (selectedFilters.IssueMonth && selectedFilters.IssueMonth.size > 0)
+                ? Array.from(selectedFilters.IssueMonth)
+                : (headcountLisMonths && headcountLisMonths.length > 0 ? headcountLisMonths : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+
             const selectedLeaderKeys = new Set(
                 Array.from(selectedFilters.LeaderName || []).map(canonicalDistrictLeaderKey).filter(Boolean)
             );
+            const selectedHcTeamKeys = new Set(
+                Array.from(selectedHeadcountTeams || []).map(canonicalDistrictLeaderKey).filter(Boolean)
+            );
             const yearlyMatchedHc = headcountRows.filter(hc => {
-                if (selectedLeaderKeys.size === 0) return false;
                 const hcDistKey = canonicalDistrictLeaderKey(hc.rawTeam || hc.team);
-                return selectedLeaderKeys.has(hcDistKey);
+                const matchesDist = (selectedLeaderKeys.size > 0 && selectedLeaderKeys.has(hcDistKey)) ||
+                                    (selectedHcTeamKeys.size > 0 && selectedHcTeamKeys.has(hcDistKey)) ||
+                                    (selectedHeadcountTeams && selectedHeadcountTeams.has(hc.team));
+                if (!matchesDist) return false;
+                return isHcRowActiveInSelectedPeriod(hc, new Set(selIssueYears), new Set(selIssueMonths));
             });
 
-            const selIssueYears = selectedFilters.IssueYear && selectedFilters.IssueYear.size > 0
-                ? Array.from(selectedFilters.IssueYear)
-                : [2026];
-            const selIssueMonths = selectedFilters.IssueMonth && selectedFilters.IssueMonth.size > 0
-                ? Array.from(selectedFilters.IssueMonth)
-                : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-
-            // Box 1: Headcount (每個District 現時人數, 跟Headcount Report)
-            const yearlyHeadcountTotal = yearlyMatchedHc.length;
+            // Box 1: Headcount (在選定年度及月份有在職的顧問人數，當月有在職就算一天也算)
+            let yearlyHeadcountTotal = yearlyMatchedHc.length;
+            if (selectedLeaderKeys.size === 1) {
+                const singleDistKey = Array.from(selectedLeaderKeys)[0];
+                const offHc = getOfficialDistrictPeriodInforce(singleDistKey, selIssueYears[0] || 2026, selIssueMonths);
+                if (offHc) yearlyHeadcountTotal = offHc;
+            }
 
             // 活躍顧問人數 (YTD ACTIVE AGENT / Active Agent): 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, 分開每個月加總
             const yearlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(filteredRows);
 
             // Box 2: Active Ratio = Active Agent / Man Month
-            const yearlyTotalManMonth = yearlyMatchedHc.reduce(
-                (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, selIssueYears, selIssueMonths),
-                0
-            );
+            let yearlyTotalManMonth = 0;
+            if (selectedLeaderKeys.size === 1) {
+                const singleDistKey = Array.from(selectedLeaderKeys)[0];
+                const offMm = getOfficialDistrictPeriodManMonth(singleDistKey, selIssueYears[0] || 2026, selIssueMonths);
+                yearlyTotalManMonth = (offMm !== null) ? offMm : yearlyMatchedHc.reduce(
+                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, selIssueYears, selIssueMonths),
+                    0
+                );
+            } else {
+                yearlyTotalManMonth = yearlyMatchedHc.reduce(
+                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, selIssueYears, selIssueMonths),
+                    0
+                );
+            }
             const yearlyActiveRatio = yearlyTotalManMonth > 0 ? (yearlyActiveAgentsCount / yearlyTotalManMonth) * 100 : 0;
 
             // Box 3: Case per Active Agent = YTD CASE / YTD ACTIVE AGENT
@@ -4354,25 +4691,33 @@
             const yearlyCaseSize = yearlyTotalCase1 > 0 ? (yearlyTotalFYC / yearlyTotalCase1) : 0;
 
             setElemText('yearlyKpiHeadcount', yearlyHeadcountTotal.toLocaleString());
+            setElemText('yearlyKpiHeadcountSub', `在職顧問人數: ${yearlyHeadcountTotal} 人`);
             setElemText('yearlyKpiActiveRatio', `${yearlyActiveRatio.toFixed(1)}%`);
+            setElemText('yearlyKpiActiveRatioSub', `Active: ${yearlyActiveAgentsCount} 人次 ÷ ${yearlyTotalManMonth} MM`);
             setElemText('yearlyKpiCasePerActive', yearlyCasePerActive.toFixed(1));
+            setElemText('yearlyKpiCasePerActiveSub', `${yearlyTotalCase1.toFixed(1)} Cases ÷ ${yearlyActiveAgentsCount} Active`);
             setElemText('yearlyKpiCaseSize', `$${Math.round(yearlyCaseSize).toLocaleString()}`);
+            setElemText('yearlyKpiCaseSizeSub', `FYCC ÷ ${yearlyTotalCase1.toFixed(1)} Cases`);
 
             // =================================================================
             // 2. MONTHLY VIEW 4 BOXES (Headcount, Active Ratio, Case per Active Agent, Case Size)
             // =================================================================
             const mYearVal = parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10);
-            const mMonthRaw = document.getElementById('monthlyIssueMonthSelect')?.value || '8';
-            const mIsAllMonths = mMonthRaw === 'ALL';
-            const mMonthVal = mIsAllMonths ? null : parseInt(mMonthRaw, 10);
+            const selectedMonthsArr = (typeof monthlySelectedMonths !== 'undefined' && monthlySelectedMonths.size > 0)
+                ? Array.from(monthlySelectedMonths).sort((a,b) => a-b)
+                : [9];
+            const mIsAllMonths = selectedMonthsArr.length >= 12;
 
             const mYearAndAgentRows = allSheetData.filter(r => r.issueYear === mYearVal && isRowMatchedByMonthlyAgentFilter(r));
-            const mFilteredRows = mIsAllMonths ? mYearAndAgentRows : mYearAndAgentRows.filter(r => r.issueMonth === mMonthVal);
+            const mFilteredRows = mIsAllMonths
+                ? mYearAndAgentRows
+                : mYearAndAgentRows.filter(r => monthlySelectedMonths.has(r.issueMonth));
 
+            const maxSelectedMonth = Math.max(...selectedMonthsArr);
             const maxDataMonthInYear = mYearAndAgentRows.reduce((max, r) => Math.max(max, r.issueMonth || 1), 1);
-            const ytdCutoffMonth = mIsAllMonths ? maxDataMonthInYear : Math.max(mMonthVal || 1, 1);
+            const ytdCutoffMonth = mIsAllMonths ? maxDataMonthInYear : maxSelectedMonth;
             const ytdMonthsList = Array.from({ length: ytdCutoffMonth }, (_, i) => i + 1);
-            const monthlyActiveMonthsList = mIsAllMonths ? ytdMonthsList : [mMonthVal || 1];
+            const monthlyActiveMonthsList = selectedMonthsArr;
 
             const monthlyMatchedHc = headcountRows.filter(hc => {
                 const gKey = getHcRowMonthlyGroupKey(hc);
@@ -4382,17 +4727,43 @@
                 return monthlyCheckedGroups.has(gKey);
             });
 
+            // Check if monthly selection matches a single district with benchmark
+            let matchedSingleBenchmarkDist = '';
+            if (monthlyCheckedGroups.size === 1) {
+                const gKey = Array.from(monthlyCheckedGroups)[0];
+                if (gKey === 'GROUP:PAGGIE_LAW') matchedSingleBenchmarkDist = 'PAGGIE LAW';
+                else if (gKey === 'GROUP:JERRY_LO') matchedSingleBenchmarkDist = 'JERRY LO';
+                else if (gKey === 'GROUP:ANDY_TSE') matchedSingleBenchmarkDist = 'ANDY TSE';
+                else if (gKey.startsWith('GROUP:LEADER_')) {
+                    const lName = gKey.replace('GROUP:LEADER_', '');
+                    matchedSingleBenchmarkDist = canonicalDistrictLeaderKey(lName);
+                }
+            }
+
             // Box 1: Headcount
-            const monthlyHeadcountTotal = monthlyMatchedHc.length;
+            let monthlyHeadcountTotal = monthlyMatchedHc.length;
+            if (matchedSingleBenchmarkDist) {
+                const offHc = getOfficialDistrictPeriodInforce(matchedSingleBenchmarkDist, mYearVal, monthlyActiveMonthsList);
+                if (offHc) monthlyHeadcountTotal = offHc;
+            }
 
             // Active Agent (根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, 分開每個月加總)
             const monthlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(mFilteredRows);
 
             // Box 2: Active Ratio = Active Agent / Man Month
-            const monthlyTotalManMonth = monthlyMatchedHc.reduce(
-                (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [mYearVal], monthlyActiveMonthsList),
-                0
-            );
+            let monthlyTotalManMonth = 0;
+            if (matchedSingleBenchmarkDist) {
+                const offMm = getOfficialDistrictPeriodManMonth(matchedSingleBenchmarkDist, mYearVal, monthlyActiveMonthsList);
+                monthlyTotalManMonth = (offMm !== null) ? offMm : monthlyMatchedHc.reduce(
+                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [mYearVal], monthlyActiveMonthsList),
+                    0
+                );
+            } else {
+                monthlyTotalManMonth = monthlyMatchedHc.reduce(
+                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [mYearVal], monthlyActiveMonthsList),
+                    0
+                );
+            }
             const monthlyActiveRatio = monthlyTotalManMonth > 0 ? (monthlyActiveAgentsCount / monthlyTotalManMonth) * 100 : 0;
 
             // Box 3: Case per Active Agent = YTD CASE / YTD ACTIVE AGENT
@@ -4407,9 +4778,13 @@
             const monthlyCaseSize = monthlyTotalCase1 > 0 ? (monthlyTotalFYC / monthlyTotalCase1) : 0;
 
             setElemText('monthlyKpiHeadcount', monthlyHeadcountTotal.toLocaleString());
+            setElemText('monthlyKpiHeadcountSub', `在職顧問人數: ${monthlyHeadcountTotal} 人`);
             setElemText('monthlyKpiActiveRatio', `${monthlyActiveRatio.toFixed(1)}%`);
+            setElemText('monthlyKpiActiveRatioSub', `Active: ${monthlyActiveAgentsCount} 人次 ÷ ${monthlyTotalManMonth} MM`);
             setElemText('monthlyKpiCasePerActive', monthlyCasePerActive.toFixed(1));
+            setElemText('monthlyKpiCasePerActiveSub', `${monthlyYtdTotalCase1.toFixed(1)} Cases ÷ ${monthlyYtdActiveAgents} Active`);
             setElemText('monthlyKpiCaseSize', `$${Math.round(monthlyCaseSize).toLocaleString()}`);
+            setElemText('monthlyKpiCaseSizeSub', `FYCC ÷ ${monthlyTotalCase1.toFixed(1)} Cases`);
         }
 
         function updateKPICards() {
@@ -4442,18 +4817,22 @@
 
             if (viewMode === 'monthly') {
                 const yearVal = parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10);
-                const monthRaw = document.getElementById('monthlyIssueMonthSelect')?.value || '8';
-                const isAllMonths = monthRaw === 'ALL';
-                const monthVal = isAllMonths ? null : parseInt(monthRaw, 10);
+                const isAllMonths = typeof monthlySelectedMonths === 'undefined' || monthlySelectedMonths.size === 0 || monthlySelectedMonths.size >= 12;
                 const yearAndAgentRows = allSheetData.filter(r => r.issueYear === yearVal && isRowMatchedByMonthlyAgentFilter(r));
+                const sortedMonths = (typeof monthlySelectedMonths !== 'undefined' && monthlySelectedMonths.size > 0)
+                    ? Array.from(monthlySelectedMonths).sort((a, b) => a - b)
+                    : [9];
+                const maxSelectedMonth = sortedMonths.length > 0 ? sortedMonths[sortedMonths.length - 1] : 9;
+
                 if (metricKey === 'casePerActive') {
                     const maxDataMonthInYear = yearAndAgentRows.reduce((max, r) => Math.max(max, r.issueMonth || 1), 1);
-                    const ytdCutoffMonth = isAllMonths ? maxDataMonthInYear : Math.max(monthVal || 1, 1);
+                    const ytdCutoffMonth = isAllMonths ? maxDataMonthInYear : Math.max(maxSelectedMonth || 1, 1);
                     sourceRows = yearAndAgentRows.filter(r => (r.issueMonth || 1) <= ytdCutoffMonth);
                     periodDesc = `Monthly View (YTD 1-${ytdCutoffMonth}月) · Issue Year: ${yearVal}年`;
                 } else {
-                    sourceRows = isAllMonths ? yearAndAgentRows : yearAndAgentRows.filter(r => r.issueMonth === monthVal);
-                    periodDesc = `Monthly View · Issue Year: ${yearVal}年 · Issue Month: ${isAllMonths ? '全年 (1-12月)' : monthVal + '月'}`;
+                    sourceRows = isAllMonths ? yearAndAgentRows : yearAndAgentRows.filter(r => monthlySelectedMonths.has(r.issueMonth));
+                    const monthText = isAllMonths ? '全年 (1-12月)' : sortedMonths.map(m => m + '月').join(', ');
+                    periodDesc = `Monthly View · Issue Year: ${yearVal}年 · Issue Month: ${monthText}`;
                 }
             } else {
                 sourceRows = filteredRows;
@@ -4485,7 +4864,7 @@
                 },
                 agentCount: {
                     title: '活躍顧問人數 (Active Agent) — 按 District 及 Issue Month 明細',
-                    formula: '根據選擇的月份，把有 FYCC 的 Agent 都計 1 個數量，再分開每個月加總 (例如 1月有 FYCC、2月也有 FYCC 計 2 個)',
+                    formula: '根據選擇的月份，把當月有 FYCC (Net FYCC ≠ 0) 的 Agent 計 1 個數量，再分開每個月加總',
                     format: v => `${Math.round(v || 0).toLocaleString()} 人`
                 },
                 casePerActive: {
@@ -4501,11 +4880,11 @@
                 activeRatio: {
                     title: 'Active Ratio — 按 District 及 Issue Month 明細',
                     formula: 'Active Ratio = Active Agent / Man Month (有 FYCC 的 Agent 按每月分開加總 ÷ Man Month)',
-                    format: v => `${Math.round(v || 0).toLocaleString()} 人`
+                    format: v => `${Number(v || 0).toFixed(1)}%`
                 },
                 headcount: {
-                    title: 'Headcount — 按 District 明細',
-                    formula: '每個 District 現時人數 (跟 Headcount Report)',
+                    title: 'Headcount & Man-Month — 按 District 及 Issue Month 明細',
+                    formula: '每個 District 在職人數 (跟 Headcount Report，按月顯示當月在職 Man-Month，合計顯示 YTD 總 Headcount 人數及總 Man-Month)',
                     format: v => `${Math.round(v || 0).toLocaleString()} 人`
                 }
             };
@@ -4517,20 +4896,6 @@
             const totalCase1 = sourceRows.reduce((s, r) => s + (r.fycFinalCase1 || 0), 0);
             const totalPolicyRows = sourceRows.filter(r => r.hasCase1Row !== false).length;
             const totalMonthlySummedActiveAgents = countMonthlyActiveAgentsWithFycc(sourceRows);
-
-            const kpi1Label = document.getElementById('modalKpi1Label');
-            const kpi2Label = document.getElementById('modalKpi2Label');
-            const kpi3Label = document.getElementById('modalKpi3Label');
-            if (kpi1Label) kpi1Label.innerText = 'Total FYC Final / FYP Final';
-            if (kpi2Label) kpi2Label.innerText = 'Total Case (YTD CASE)';
-            if (kpi3Label) kpi3Label.innerText = '活躍顧問人數 (YTD ACTIVE AGENT) / Case per Active';
-
-            document.getElementById('modalTitle').innerText = meta.title;
-            document.getElementById('modalSubtitle').innerText = `${meta.formula} | ${periodDesc}`;
-            document.getElementById('modalKpiFYC').innerText = `$${Math.round(totalFYC).toLocaleString()} / $${Math.round(totalFYP).toLocaleString()}`;
-            document.getElementById('modalKpiFYP').innerText = `${Number(totalCase1 || 0).toFixed(1)}`;
-            const overallCasePerActive = totalMonthlySummedActiveAgents > 0 ? (totalCase1 / totalMonthlySummedActiveAgents).toFixed(1) : '0.0';
-            document.getElementById('modalKpiCases').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人 (Case/Active: ${overallCasePerActive})`;
 
             // Build District x Issue Month breakdown
             const monthsSet = new Set();
@@ -4550,8 +4915,7 @@
                         totalFyc: 0,
                         totalFyp: 0,
                         totalCase1: 0,
-                        totalPolicyRows: 0,
-                        totalAgentsSet: new Set()
+                        totalPolicyRows: 0
                     });
                 }
                 const dEntry = districtMap.get(dist);
@@ -4561,11 +4925,12 @@
                         fyp: 0,
                         case1: 0,
                         policyRows: 0,
-                        agentsSet: new Set()
+                        agentFycMap: new Map(),
+                        activeAgentsCount: 0
                     });
                 }
                 const mCell = dEntry.byMonth.get(m);
-                const agKey = (r.agentName && r.hasAgentName !== false && (r.fycFinal || 0) !== 0)
+                const agKey = (r.agentName && r.hasAgentName !== false)
                     ? cleanPersonName(r.agentName).toUpperCase()
                     : '';
 
@@ -4573,29 +4938,73 @@
                 mCell.fyp += (r.fypFinal || 0);
                 mCell.case1 += (r.fycFinalCase1 || 0);
                 if (r.hasCase1Row !== false) mCell.policyRows += 1;
-                if (agKey) mCell.agentsSet.add(agKey);
+                if (agKey) {
+                    mCell.agentFycMap.set(agKey, (mCell.agentFycMap.get(agKey) || 0) + (r.fycFinal || 0));
+                }
 
                 dEntry.totalFyc += (r.fycFinal || 0);
                 dEntry.totalFyp += (r.fypFinal || 0);
                 dEntry.totalCase1 += (r.fycFinalCase1 || 0);
                 if (r.hasCase1Row !== false) dEntry.totalPolicyRows += 1;
-                if (agKey) dEntry.totalAgentsSet.add(`${r.issueYear || 2026}-${m}|${agKey}`);
+            });
+
+            // Finalize each month cell's activeAgentsCount (only agents with net monthly FYCC != 0)
+            districtMap.forEach(dEntry => {
+                dEntry.byMonth.forEach(mCell => {
+                    let count = 0;
+                    mCell.agentFycMap.forEach(netFyc => {
+                        if (Math.abs(netFyc) > 0.001) count += 1;
+                    });
+                    mCell.activeAgentsCount = count;
+                });
             });
 
             const sortedMonths = Array.from(monthsSet).sort((a, b) => a - b);
-            const getCellMetricVal = (cellObj) => {
+            const activeYearsArr = viewMode === 'monthly'
+                ? [parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10)]
+                : (selectedFilters.IssueYear && selectedFilters.IssueYear.size > 0 ? Array.from(selectedFilters.IssueYear) : [2026]);
+
+            const getDistrictHcRows = (distName) => {
+                const distKey = canonicalDistrictLeaderKey(distName);
+                return headcountRows.filter(hc => canonicalDistrictLeaderKey(hc.rawTeam || hc.team) === distKey);
+            };
+
+            const getCellMetricVal = (dEntry, m, cellObj) => {
+                if (metricKey === 'headcount') {
+                    const offInforce = getOfficialDistrictInforce(dEntry.district, activeYearsArr[0], m);
+                    if (offInforce !== null) return offInforce;
+                    const hcList = getDistrictHcRows(dEntry.district);
+                    return hcList.filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]) > 0).length;
+                }
+                if (metricKey === 'activeRatio') {
+                    const offMm = getOfficialDistrictManMonth(dEntry.district, activeYearsArr[0], m);
+                    const mm = (offMm !== null) ? offMm : getDistrictHcRows(dEntry.district).reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]), 0);
+                    const act = cellObj ? cellObj.activeAgentsCount : 0;
+                    return mm > 0 ? (act / mm) * 100 : 0;
+                }
                 if (!cellObj) return 0;
                 if (metricKey === 'fyc') return cellObj.fyc;
                 if (metricKey === 'fyp') return cellObj.fyp;
                 if (metricKey === 'case1') return cellObj.case1;
                 if (metricKey === 'policyCount') return cellObj.policyRows;
-                if (metricKey === 'casePerActive') return cellObj.agentsSet.size > 0 ? (cellObj.case1 / cellObj.agentsSet.size) : 0;
+                if (metricKey === 'casePerActive') return cellObj.activeAgentsCount > 0 ? (cellObj.case1 / cellObj.activeAgentsCount) : 0;
                 if (metricKey === 'caseSize') return cellObj.case1 > 0 ? (cellObj.fyc / cellObj.case1) : 0;
-                return cellObj.agentsSet.size;
+                return cellObj.activeAgentsCount;
             };
             const getDistrictTotalVal = (dEntry) => {
                 let distMonthlySummedAgents = 0;
-                dEntry.byMonth.forEach(cObj => { distMonthlySummedAgents += cObj.agentsSet.size; });
+                dEntry.byMonth.forEach(cObj => { distMonthlySummedAgents += cObj.activeAgentsCount; });
+                if (metricKey === 'headcount') {
+                    const offInforce = getOfficialDistrictPeriodInforce(dEntry.district, activeYearsArr[0], sortedMonths);
+                    if (offInforce !== null) return offInforce;
+                    const hcList = getDistrictHcRows(dEntry.district);
+                    return hcList.filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths) > 0).length;
+                }
+                if (metricKey === 'activeRatio') {
+                    const offMm = getOfficialDistrictPeriodManMonth(dEntry.district, activeYearsArr[0], sortedMonths);
+                    const mm = (offMm !== null) ? offMm : getDistrictHcRows(dEntry.district).reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
+                    return mm > 0 ? (distMonthlySummedAgents / mm) * 100 : 0;
+                }
                 if (metricKey === 'fyc') return dEntry.totalFyc;
                 if (metricKey === 'fyp') return dEntry.totalFyp;
                 if (metricKey === 'case1') return dEntry.totalCase1;
@@ -4606,6 +5015,61 @@
             };
 
             const sortedDistricts = Array.from(districtMap.values()).sort((a, b) => getDistrictTotalVal(b) - getDistrictTotalVal(a));
+            const allMatchedHcList = sortedDistricts.flatMap(dEntry => getDistrictHcRows(dEntry.district).filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths) > 0));
+            const grandTotalMm = sortedDistricts.reduce((sum, dEntry) => {
+                const offMm = getOfficialDistrictPeriodManMonth(dEntry.district, activeYearsArr[0], sortedMonths);
+                if (offMm !== null) return sum + offMm;
+                return sum + getDistrictHcRows(dEntry.district).reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
+            }, 0);
+            const overallActiveRatio = grandTotalMm > 0 ? (totalMonthlySummedActiveAgents / grandTotalMm) * 100 : 0;
+            const overallCasePerActive = totalMonthlySummedActiveAgents > 0 ? (totalCase1 / totalMonthlySummedActiveAgents).toFixed(1) : '0.0';
+            const overallCaseSize = totalCase1 > 0 ? (totalFYC / totalCase1) : 0;
+
+            const kpi1Label = document.getElementById('modalKpi1Label');
+            const kpi2Label = document.getElementById('modalKpi2Label');
+            const kpi3Label = document.getElementById('modalKpi3Label');
+
+            document.getElementById('modalTitle').innerText = meta.title;
+            document.getElementById('modalSubtitle').innerText = `${meta.formula} | ${periodDesc}`;
+
+            if (metricKey === 'activeRatio') {
+                if (kpi1Label) kpi1Label.innerText = 'Active Ratio (活躍率)';
+                if (kpi2Label) kpi2Label.innerText = '活躍顧問人數 (Active Agent)';
+                if (kpi3Label) kpi3Label.innerText = '總在職月數 (Total Man-Month)';
+                document.getElementById('modalKpiFYC').innerText = `${overallActiveRatio.toFixed(1)}%`;
+                document.getElementById('modalKpiFYP').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人次`;
+                const avgHc = sortedMonths.length > 0 ? (grandTotalMm / sortedMonths.length).toFixed(1) : '0';
+                document.getElementById('modalKpiCases').innerText = `${grandTotalMm.toLocaleString()} MM (平均 ${avgHc} 人/月)`;
+            } else if (metricKey === 'headcount') {
+                if (kpi1Label) kpi1Label.innerText = '在職顧問人數 (Headcount)';
+                if (kpi2Label) kpi2Label.innerText = '總在職月數 (Total Man-Month)';
+                if (kpi3Label) kpi3Label.innerText = '平均每月在職人數';
+                document.getElementById('modalKpiFYC').innerText = `${allMatchedHcList.length.toLocaleString()} 人`;
+                document.getElementById('modalKpiFYP').innerText = `${grandTotalMm.toLocaleString()} MM`;
+                const avgHc = sortedMonths.length > 0 ? (grandTotalMm / sortedMonths.length).toFixed(1) : '0';
+                document.getElementById('modalKpiCases').innerText = `${avgHc} 人/月`;
+            } else if (metricKey === 'casePerActive') {
+                if (kpi1Label) kpi1Label.innerText = 'Case per Active Agent';
+                if (kpi2Label) kpi2Label.innerText = 'Total Case (總保單件數)';
+                if (kpi3Label) kpi3Label.innerText = '活躍顧問人數 (Active Agent)';
+                document.getElementById('modalKpiFYC').innerText = `${overallCasePerActive}`;
+                document.getElementById('modalKpiFYP').innerText = `${Number(totalCase1 || 0).toFixed(1)} 件`;
+                document.getElementById('modalKpiCases').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人次`;
+            } else if (metricKey === 'caseSize') {
+                if (kpi1Label) kpi1Label.innerText = 'Case Size (平均件均保費)';
+                if (kpi2Label) kpi2Label.innerText = 'Total FYC Final';
+                if (kpi3Label) kpi3Label.innerText = 'Total Case (總保單件數)';
+                document.getElementById('modalKpiFYC').innerText = `$${Math.round(overallCaseSize).toLocaleString()}`;
+                document.getElementById('modalKpiFYP').innerText = `$${Math.round(totalFYC).toLocaleString()}`;
+                document.getElementById('modalKpiCases').innerText = `${Number(totalCase1 || 0).toFixed(1)} 件`;
+            } else {
+                if (kpi1Label) kpi1Label.innerText = 'Total FYC Final / FYP Final';
+                if (kpi2Label) kpi2Label.innerText = 'Total Case (YTD CASE)';
+                if (kpi3Label) kpi3Label.innerText = '活躍顧問人數 (YTD ACTIVE AGENT)';
+                document.getElementById('modalKpiFYC').innerText = `$${Math.round(totalFYC).toLocaleString()} / $${Math.round(totalFYP).toLocaleString()}`;
+                document.getElementById('modalKpiFYP').innerText = `${Number(totalCase1 || 0).toFixed(1)}`;
+                document.getElementById('modalKpiCases').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人 (Case/Active: ${overallCasePerActive})`;
+            }
 
             const rosterSection = document.getElementById('modalRosterSection');
             const rosterTitle = document.getElementById('modalRosterTitle');
@@ -4623,11 +5087,12 @@
                 }
 
                 const monthHeadersHtml = sortedMonths.map(m => `<th class="p-2 text-right whitespace-nowrap">${m}月</th>`).join('');
+                const totalColTitle = metricKey === 'headcount' ? 'YTD Headcount (總 Man-Month)' : 'District 合計';
                 rosterThead.innerHTML = `
                     <tr class="bg-indigo-50/80 text-indigo-950 font-bold border-b border-indigo-100">
                         <th class="p-2 whitespace-nowrap">District</th>
                         ${monthHeadersHtml}
-                        <th class="p-2 text-right bg-indigo-100/70 whitespace-nowrap">District 合計</th>
+                        <th class="p-2 text-right bg-indigo-100/70 whitespace-nowrap">${totalColTitle}</th>
                     </tr>
                 `;
 
@@ -4635,17 +5100,37 @@
                     rosterBody.innerHTML = `<tr><td colspan="${sortedMonths.length + 2}" class="p-4 text-center text-slate-400">當前篩選條件下無數據</td></tr>`;
                 } else {
                     const districtRowsHtml = sortedDistricts.map(dEntry => {
+                        let distMonthlySummedAgents = 0;
+                        dEntry.byMonth.forEach(cObj => { distMonthlySummedAgents += cObj.activeAgentsCount; });
                         const cellsHtml = sortedMonths.map(m => {
                             const cObj = dEntry.byMonth.get(m);
-                            const val = getCellMetricVal(cObj);
+                            if (metricKey === 'activeRatio') {
+                                const act = cObj ? cObj.activeAgentsCount : 0;
+                                const hcList = getDistrictHcRows(dEntry.district);
+                                const mm = hcList.reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]), 0);
+                                const ratio = mm > 0 ? (act / mm) * 100 : 0;
+                                if (mm === 0 && act === 0) return `<td class="p-2 text-right font-mono text-slate-400 whitespace-nowrap">-</td>`;
+                                return `<td class="p-2 text-right font-mono whitespace-nowrap"><div class="font-bold text-emerald-800">${ratio.toFixed(1)}%</div><div class="text-[10px] text-slate-400 font-sans font-normal">${act}人/${mm}MM</div></td>`;
+                            }
+                            const val = getCellMetricVal(dEntry, m, cObj);
                             return `<td class="p-2 text-right font-mono text-slate-700 whitespace-nowrap">${val > 0 ? meta.format(val) : '-'}</td>`;
                         }).join('');
                         const distTotal = getDistrictTotalVal(dEntry);
+                        let distTotalDisplay = meta.format(distTotal);
+                        if (metricKey === 'headcount') {
+                            const hcList = getDistrictHcRows(dEntry.district);
+                            const mmTotal = hcList.reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
+                            distTotalDisplay = `${distTotal} 人 (${mmTotal} MM)`;
+                        } else if (metricKey === 'activeRatio') {
+                            const hcList = getDistrictHcRows(dEntry.district);
+                            const mmTotal = hcList.reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
+                            distTotalDisplay = `<div class="font-black text-emerald-800">${meta.format(distTotal)}</div><div class="text-[10px] text-slate-500 font-sans font-normal">${distMonthlySummedAgents}人次 / ${mmTotal}MM</div>`;
+                        }
                         return `
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="p-2 font-bold text-slate-900 whitespace-nowrap">${escapeHtml(dEntry.district)}</td>
                                 ${cellsHtml}
-                                <td class="p-2 text-right font-black text-indigo-700 bg-indigo-50/40 whitespace-nowrap">${meta.format(distTotal)}</td>
+                                <td class="p-2 text-right font-black text-indigo-700 bg-indigo-50/40 whitespace-nowrap">${distTotalDisplay}</td>
                             </tr>
                         `;
                     }).join('');
@@ -4658,30 +5143,43 @@
                         const mCase1 = mRows.reduce((s, r) => s + (r.fycFinalCase1 || 0), 0);
                         const mPolRows = mRows.filter(r => r.hasCase1Row !== false).length;
                         const mActiveAg = countMonthlyActiveAgentsWithFycc(mRows);
+                        const mMm = allMatchedHcList.reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]), 0);
                         let mTotal = 0;
-                        if (metricKey === 'fyc') mTotal = mFyc;
+                        if (metricKey === 'headcount') mTotal = mMm;
+                        else if (metricKey === 'activeRatio') mTotal = mMm > 0 ? (mActiveAg / mMm) * 100 : 0;
+                        else if (metricKey === 'fyc') mTotal = mFyc;
                         else if (metricKey === 'fyp') mTotal = mFyp;
                         else if (metricKey === 'case1') mTotal = mCase1;
                         else if (metricKey === 'policyCount') mTotal = mPolRows;
                         else if (metricKey === 'casePerActive') mTotal = mActiveAg > 0 ? (mCase1 / mActiveAg) : 0;
                         else if (metricKey === 'caseSize') mTotal = mCase1 > 0 ? (mFyc / mCase1) : 0;
                         else mTotal = mActiveAg;
+                        if (metricKey === 'activeRatio') {
+                            return `<td class="p-2 text-right font-extrabold text-slate-900 bg-slate-100/80 whitespace-nowrap"><div class="font-black text-emerald-800">${meta.format(mTotal)}</div><div class="text-[10px] text-slate-500 font-sans font-normal">${mActiveAg}人 / ${mMm}MM</div></td>`;
+                        }
                         return `<td class="p-2 text-right font-extrabold text-slate-900 bg-slate-100/80 whitespace-nowrap">${meta.format(mTotal)}</td>`;
                     }).join('');
 
-                    const grandTotalVal = metricKey === 'fyc' ? totalFYC
+                    const grandTotalVal = metricKey === 'headcount' ? allMatchedHcList.length
+                        : metricKey === 'activeRatio' ? (grandTotalMm > 0 ? (totalMonthlySummedActiveAgents / grandTotalMm) * 100 : 0)
+                        : metricKey === 'fyc' ? totalFYC
                         : metricKey === 'fyp' ? totalFYP
                         : metricKey === 'case1' ? totalCase1
                         : metricKey === 'policyCount' ? totalPolicyRows
                         : metricKey === 'casePerActive' ? (totalMonthlySummedActiveAgents > 0 ? (totalCase1 / totalMonthlySummedActiveAgents) : 0)
                         : metricKey === 'caseSize' ? (totalCase1 > 0 ? (totalFYC / totalCase1) : 0)
                         : totalMonthlySummedActiveAgents;
+                    const grandTotalDisplay = metricKey === 'headcount'
+                        ? `${allMatchedHcList.length} 人 (${grandTotalMm} MM)`
+                        : metricKey === 'activeRatio'
+                        ? `<div class="font-black text-indigo-900">${meta.format(grandTotalVal)}</div><div class="text-[10px] text-indigo-700 font-sans font-normal">${totalMonthlySummedActiveAgents}人次 / ${grandTotalMm}MM</div>`
+                        : meta.format(grandTotalVal);
 
                     rosterBody.innerHTML = districtRowsHtml + `
                         <tr class="border-t-2 border-indigo-200 bg-slate-100/90 font-black">
                             <td class="p-2 text-slate-900 whitespace-nowrap">全部 District 總計</td>
                             ${monthTotalsHtml}
-                            <td class="p-2 text-right text-indigo-900 bg-indigo-100 whitespace-nowrap">${meta.format(grandTotalVal)}</td>
+                            <td class="p-2 text-right text-indigo-900 bg-indigo-100 whitespace-nowrap">${grandTotalDisplay}</td>
                         </tr>
                     `;
                 }
@@ -4721,6 +5219,20 @@
             const agentMap = {};
             const aliasToAgentMapKey = new Map();
 
+            const hasAllTokensWithMultiplicity = (longerTokens, shorterTokens) => {
+                if (longerTokens.length < shorterTokens.length) return false;
+                const distinctShorter = new Set(shorterTokens);
+                if (distinctShorter.size < 2 && longerTokens.length > 1) return false;
+                const counts = new Map();
+                for (const t of longerTokens) counts.set(t, (counts.get(t) || 0) + 1);
+                for (const t of shorterTokens) {
+                    const c = counts.get(t) || 0;
+                    if (c <= 0) return false;
+                    counts.set(t, c - 1);
+                }
+                return true;
+            };
+
             const isSamePersonName = (nameA, nameB) => {
                 if (!nameA || !nameB) return false;
                 if (nameA === nameB) return true;
@@ -4744,7 +5256,7 @@
                         } else {
                             const shorter = tokensA.length <= tokensB.length ? tokensA : tokensB;
                             const longer = tokensA.length <= tokensB.length ? tokensB : tokensA;
-                            if (!(shorter.length < 2 && longer.length > 1) && shorter.every(t => longer.includes(t))) {
+                            if (hasAllTokensWithMultiplicity(longer, shorter)) {
                                 res = true;
                             } else if (infoA.eng.length >= 3 && infoB.eng.length >= 3 && infoA.eng[0] === infoB.eng[0] && infoA.eng[1] === infoB.eng[1] && infoA.eng[2] === infoB.eng[2]) {
                                 res = true;
@@ -4863,16 +5375,12 @@
                     const termD = new Date(termDate);
                     endYM = Math.min(endYM, termD.getFullYear() * 12 + (termD.getMonth() + 1));
                 }
-                const effectiveStartYM = Math.max(minPeriodYM, startYM);
-                if (endYM >= effectiveStartYM) {
-                    if (sortedPeriodYMs.length > 0) {
-                        const activeInTenure = sortedPeriodYMs.filter(ym => ym >= startYM && ym <= endYM).length;
-                        const spanMonths = endYM - effectiveStartYM + 1;
-                        return Math.max(1, Math.max(activeInTenure, spanMonths));
-                    }
-                    return Math.max(1, endYM - effectiveStartYM + 1);
+                if (endYM < startYM) return 0;
+                if (sortedPeriodYMs.length > 0) {
+                    return sortedPeriodYMs.filter(ym => ym >= startYM && ym <= endYM).length;
                 }
-                return 0;
+                const effectiveStartYM = Math.max(minPeriodYM, startYM);
+                return endYM >= effectiveStartYM ? (endYM - effectiveStartYM + 1) : 0;
             };
 
             const calculateAgentManMonth = (agentObj) => {
@@ -5352,26 +5860,24 @@
                         if (!allowedSelf && !allowedViaUpline) return;
 
                         const mm = hc.manMonth > 0 ? hc.manMonth : calculateManMonthFromDates(hc.productionStartDate, hc.terminationDate);
-                        if (mm > 0) {
-                            const knownLeaders = getPersonKnownLeaders(fullName);
-                            const effectiveLeaderName = (selfDistrict && matchesSelectedLeader(selfDistrict))
-                                ? selfDistrict
-                                : (knownLeaders.find(l => matchesSelectedLeader(l)) ||
-                                   (uplineEntry && uplineEntry.leaderName) ||
-                                   (matchesSelectedLeader(hc.team) ? (normalizeDistrictLeaderName(hc.team) || hc.team) : ''));
+                        const knownLeaders = getPersonKnownLeaders(fullName);
+                        const effectiveLeaderName = (selfDistrict && matchesSelectedLeader(selfDistrict))
+                            ? selfDistrict
+                            : (knownLeaders.find(l => matchesSelectedLeader(l)) ||
+                               (uplineEntry && uplineEntry.leaderName) ||
+                               (matchesSelectedLeader(hc.team) ? (normalizeDistrictLeaderName(hc.team) || hc.team) : ''));
 
-                            memberRosterMap.set(key, {
-                                name: fullName,
-                                rank: getManagerRank(fullName),
-                                leaderName: effectiveLeaderName,
-                                uplineManager: uplineFull,
-                                totalFYC: 0,
-                                ddrFYCC: 0,
-                                extraDdrFYCC: 0,
-                                manMonth: mm
-                            });
-                            rosterChanged = true;
-                        }
+                        memberRosterMap.set(key, {
+                            name: fullName,
+                            rank: getManagerRank(fullName),
+                            leaderName: effectiveLeaderName,
+                            uplineManager: uplineFull,
+                            totalFYC: 0,
+                            ddrFYCC: 0,
+                            extraDdrFYCC: 0,
+                            manMonth: mm
+                        });
+                        rosterChanged = true;
                     }
                 });
 
@@ -5484,14 +5990,17 @@
                 const visited = new Set([manager.name.toUpperCase()]);
                 let queue = [manager.name];
 
-                const managerDistrictLeader = normalizeDistrictLeaderName(manager.name) || normalizeDistrictLeaderName(manager.leaderName);
+                const managerSelfTopDistrict = normalizeDistrictLeaderName(manager.name);
+                const managerDistrictLeader = managerSelfTopDistrict || normalizeDistrictLeaderName(manager.leaderName);
 
                 while (queue.length > 0) {
                     const currentLeaderName = queue.shift();
                     rosterEntries.forEach(candidate => {
                         const candKey = candidate.name.toUpperCase();
                         if (visited.has(candKey)) return;
-                        if (candidate.uplineManager && isSamePersonName(candidate.uplineManager, currentLeaderName)) {
+                        const isDirectDownline = candidate.uplineManager && isSamePersonName(candidate.uplineManager, currentLeaderName);
+                        const isSameTopDistrictMember = Boolean(managerSelfTopDistrict && normalizeDistrictLeaderName(candidate.leaderName) === managerSelfTopDistrict);
+                        if (isDirectDownline || isSameTopDistrictMember) {
                             // Do not merge a separate top-level District Leader (e.g. JERRY LO / LO CHAK WAI vs PAGGIE LAW / LAW SUK KING) into another District Leader's team
                             const candSelfDistrict = normalizeDistrictLeaderName(candidate.name);
                             if (candSelfDistrict && managerDistrictLeader && candSelfDistrict !== managerDistrictLeader) {
@@ -6194,7 +6703,7 @@
                     t3Displayed.map((item, idx) => [idx + 1, item.agentName, item.leaderName, Number((item.totalCase1 || 0).toFixed(1))])
                 );
                 pushSection(
-                    '【表格 4】TOP NEW RECRUIT (4 OR ABOVE)',
+                    `【表格 4】TOP NEW RECRUIT (${table4Threshold} OR ABOVE · ${table4RecruitYear === 'ALL' ? '全部年份' : table4RecruitYear + '年'})`,
                     ['排名', '主管 / ARA 姓名', 'Team', '新招募人數'],
                     t4Displayed.map((item, idx) => [idx + 1, item.name, Array.from(item.teams || []).join(', '), item.recruitsCount])
                 );
@@ -6376,6 +6885,7 @@
         let monthlyCheckedGroups = new Set(DEFAULT_MONTHLY_GROUP_KEYS);
         let monthlyExcludedAgents = new Set();     // Individual agents unchecked despite group checked
         let monthlyExtraIncludedAgents = new Set(); // Individual agents checked despite group unchecked
+        let monthlySelectedMonths = new Set([9]);  // Multi-select months for Monthly Performance view
         let monthlySearchQuery = '';
         let monthlyInitialized = false;
 
@@ -6519,7 +7029,6 @@
         function initMonthlyPerformanceOptions() {
             // 1. Populate Issue Year select from allSheetData + [2026, 2025, 2024]
             const yearSelect = document.getElementById('monthlyIssueYearSelect');
-            const monthSelect = document.getElementById('monthlyIssueMonthSelect');
             const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
 
             const dataYears = [...new Set(allSheetData.map(r => r.issueYear).filter(y => y >= 2000 && y <= 2100))];
@@ -6533,11 +7042,14 @@
             // Find latest Issue Month in defaultYear that has rows for default checked groups
             const defaultYearRows = allSheetData.filter(r => r.issueYear === defaultYear && DEFAULT_MONTHLY_GROUP_KEYS.includes(getRowMonthlyGroupKey(r)));
             const availableMonths = [...new Set((defaultYearRows.length > 0 ? defaultYearRows : allSheetData).map(r => r.issueMonth).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
-            const latestMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 8;
+            const latestMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 9;
 
-            if (monthSelect) {
-                monthSelect.value = String(latestMonth);
+            if (monthlySelectedMonths.size === 0) {
+                monthlySelectedMonths = new Set([latestMonth]);
             }
+            syncMonthlyMonthCheckboxes();
+            updateMonthlyMonthDropdownUI();
+
             if (quarterSelect) {
                 quarterSelect.value = getQuarterFromMonth(latestMonth);
             }
@@ -6828,14 +7340,125 @@
             handleMonthlySubmission(true);
         }
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            const wrapper = document.getElementById('monthlyAgentDropdownWrapper');
-            const menu = document.getElementById('monthlyAgentDropdownMenu');
-            const icon = document.getElementById('monthlyAgentDropdownIcon');
-            if (wrapper && menu && !menu.classList.contains('hidden') && !wrapper.contains(e.target)) {
+        // Month Dropdown Handlers
+        function toggleMonthlyMonthDropdown(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('monthlyMonthDropdownMenu');
+            const icon = document.getElementById('monthlyMonthDropdownIcon');
+            if (!menu) return;
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (icon) icon.classList.add('rotate-180');
+            } else {
                 menu.classList.add('hidden');
                 if (icon) icon.classList.remove('rotate-180');
+            }
+        }
+
+        function closeMonthlyMonthDropdown() {
+            const menu = document.getElementById('monthlyMonthDropdownMenu');
+            const icon = document.getElementById('monthlyMonthDropdownIcon');
+            if (menu) menu.classList.add('hidden');
+            if (icon) icon.classList.remove('rotate-180');
+        }
+
+        function onMonthlyMonthCheckboxChange(monthNum, isChecked) {
+            const m = parseInt(monthNum, 10);
+            if (isChecked) {
+                monthlySelectedMonths.add(m);
+            } else {
+                monthlySelectedMonths.delete(m);
+            }
+            // Auto update quarter select if a single month or quarter matching
+            const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
+            if (quarterSelect && monthlySelectedMonths.size === 1) {
+                const singleMonth = Array.from(monthlySelectedMonths)[0];
+                quarterSelect.value = getQuarterFromMonth(singleMonth);
+            }
+            updateMonthlyMonthDropdownUI();
+            computeAndRenderMonthlyPerformances();
+        }
+
+        function setMonthlyMonthPreset(preset) {
+            if (preset === 'all') {
+                for (let m = 1; m <= 12; m++) monthlySelectedMonths.add(m);
+            } else if (preset === 'clear') {
+                monthlySelectedMonths.clear();
+            }
+            syncMonthlyMonthCheckboxes();
+            updateMonthlyMonthDropdownUI();
+            computeAndRenderMonthlyPerformances();
+        }
+
+        function setMonthlyMonthQuarterPreset(q) {
+            const qMonths = getMonthsForQuarter(q);
+            monthlySelectedMonths = new Set(qMonths);
+            const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
+            if (quarterSelect) quarterSelect.value = q;
+            syncMonthlyMonthCheckboxes();
+            updateMonthlyMonthDropdownUI();
+            computeAndRenderMonthlyPerformances();
+        }
+
+        function syncMonthlyMonthCheckboxes() {
+            for (let m = 1; m <= 12; m++) {
+                const cb = document.getElementById(`monthlyMonthCb_${m}`);
+                if (cb) {
+                    cb.checked = monthlySelectedMonths.has(m);
+                }
+            }
+        }
+
+        const MONTH_EN_SHORT = {
+            1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+            7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
+        };
+
+        function updateMonthlyMonthDropdownUI() {
+            const labelEl = document.getElementById('monthlyMonthDropdownLabel');
+            const badgeEl = document.getElementById('monthlyMonthCountBadge');
+            const sorted = Array.from(monthlySelectedMonths).sort((a, b) => a - b);
+            const size = sorted.length;
+
+            if (badgeEl) {
+                if (size === 0) badgeEl.innerText = '未選月份 (顯示全部)';
+                else if (size === 12) badgeEl.innerText = '已選全年 (12個月)';
+                else badgeEl.innerText = `已選 ${size} 個月`;
+            }
+
+            if (labelEl) {
+                if (size === 0) {
+                    labelEl.innerText = '未勾選月份 (將顯示全年)';
+                } else if (size === 12) {
+                    labelEl.innerText = '全年所有月份 (1-12月)';
+                } else if (size === 1) {
+                    const m = sorted[0];
+                    labelEl.innerText = `${m}月 (${MONTH_EN_SHORT[m] || m})`;
+                } else if (size <= 4) {
+                    labelEl.innerText = sorted.map(m => `${m}月`).join(', ');
+                } else {
+                    labelEl.innerText = `已選 ${size} 個月 (${sorted.slice(0, 3).map(m => m + '月').join(', ')}...)`;
+                }
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const agentWrapper = document.getElementById('monthlyAgentDropdownWrapper');
+            const agentMenu = document.getElementById('monthlyAgentDropdownMenu');
+            const agentIcon = document.getElementById('monthlyAgentDropdownIcon');
+            if (agentWrapper && agentMenu && !agentMenu.classList.contains('hidden') && !agentWrapper.contains(e.target)) {
+                agentMenu.classList.add('hidden');
+                if (agentIcon) agentIcon.classList.remove('rotate-180');
+            }
+
+            const monthWrapper = document.getElementById('monthlyIssueMonthWrapper');
+            const monthMenu = document.getElementById('monthlyMonthDropdownMenu');
+            const monthIcon = document.getElementById('monthlyMonthDropdownIcon');
+            if (monthWrapper && monthMenu && !monthMenu.classList.contains('hidden') && !monthWrapper.contains(e.target)) {
+                monthMenu.classList.add('hidden');
+                if (monthIcon) monthIcon.classList.remove('rotate-180');
             }
         });
 
@@ -6880,14 +7503,6 @@
         }
 
         function onMonthlyYearOrMonthChanged(changedSource) {
-            const monthSelect = document.getElementById('monthlyIssueMonthSelect');
-            const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
-            if (changedSource === 'month' && monthSelect && quarterSelect) {
-                const mVal = monthSelect.value;
-                if (mVal !== 'ALL') {
-                    quarterSelect.value = getQuarterFromMonth(mVal);
-                }
-            }
             computeAndRenderMonthlyPerformances();
         }
 
@@ -6899,6 +7514,11 @@
             monthlyCheckedGroups = new Set(DEFAULT_MONTHLY_GROUP_KEYS);
             monthlyExcludedAgents.clear();
             monthlyExtraIncludedAgents.clear();
+            monthlySelectedMonths = new Set([9]);
+            syncMonthlyMonthCheckboxes();
+            updateMonthlyMonthDropdownUI();
+            const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
+            if (quarterSelect) quarterSelect.value = 'Q3';
             onMonthlyAgentKeywordSearch('');
             initMonthlyPerformanceOptions();
             computeAndRenderMonthlyPerformances();
@@ -6909,9 +7529,11 @@
             computeAndRenderMonthlyPerformances();
             if (showNotification) {
                 const yearVal = document.getElementById('monthlyIssueYearSelect')?.value || '2026';
-                const monthVal = document.getElementById('monthlyIssueMonthSelect')?.value || '8';
                 const quarterVal = document.getElementById('monthlyIssueQuarterSelect')?.value || 'Q3';
-                const monthText = monthVal === 'ALL' ? '全年所有月份' : `${monthVal}月`;
+                const sortedMonths = Array.from(monthlySelectedMonths).sort((a, b) => a - b);
+                const monthText = (monthlySelectedMonths.size === 0 || monthlySelectedMonths.size >= 12)
+                    ? '全年所有月份'
+                    : sortedMonths.map(m => `${m}月`).join(', ');
                 showToast(`已更新 Monthly & Quarterly Performances：${yearVal}年 ${monthText} · ${quarterVal}`, 'success');
             }
         }
@@ -6930,10 +7552,8 @@
 
         function computeAndRenderMonthlyPerformances() {
             const yearVal = parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10);
-            const monthRaw = document.getElementById('monthlyIssueMonthSelect')?.value || '8';
             const quarterVal = document.getElementById('monthlyIssueQuarterSelect')?.value || 'Q3';
-            const isAllMonths = monthRaw === 'ALL';
-            const monthVal = isAllMonths ? null : parseInt(monthRaw, 10);
+            const isAllMonths = monthlySelectedMonths.size === 0 || monthlySelectedMonths.size >= 12;
             const quarterMonths = getMonthsForQuarter(quarterVal);
 
             const quarterTextMap = {
@@ -6942,7 +7562,10 @@
                 'Q3': 'Q3 (7-9月)',
                 'Q4': 'Q4 (10-12月)'
             };
-            const monthLabel = isAllMonths ? '全年 (1-12月)' : `${monthVal}月`;
+            const sortedMonths = Array.from(monthlySelectedMonths).sort((a, b) => a - b);
+            const monthLabel = isAllMonths
+                ? '全年 (1-12月)'
+                : (sortedMonths.length === 1 ? `${sortedMonths[0]}月` : `已選${sortedMonths.length}個月 (${sortedMonths.map(m => m + '月').join(', ')})`);
             const summaryBadge = document.getElementById('monthlyActiveFilterSummary');
             if (summaryBadge) {
                 summaryBadge.innerText = `${yearVal}年 ${monthLabel} · ${quarterTextMap[quarterVal] || quarterVal}`;
@@ -6954,7 +7577,7 @@
             // Monthly rows (for Tables 1, 2, 4, 5, 6, 7)
             const monthRows = isAllMonths
                 ? yearAndAgentRows
-                : yearAndAgentRows.filter(r => r.issueMonth === monthVal);
+                : yearAndAgentRows.filter(r => monthlySelectedMonths.has(r.issueMonth));
 
             // Quarterly rows (for Table 3 PLD Club & Table 7 Quarterly column)
             const quarterRows = yearAndAgentRows.filter(r => quarterMonths.includes(r.issueMonth));
