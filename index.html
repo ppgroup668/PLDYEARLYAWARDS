@@ -407,13 +407,13 @@
                 <div id="kpiTotalCase1" class="text-2xl font-black text-amber-900">0.0</div>
             </div>
 
-            <div onclick="openKpiDistrictMonthModal('yearly', 'policyCount')" class="bg-gradient-to-br from-white to-purple-50/60 rounded-2xl p-4 border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between cursor-pointer group">
+            <div onclick="openKpiDistrictMonthModal('yearly', 'manMonth')" class="bg-gradient-to-br from-white to-purple-50/60 rounded-2xl p-4 border border-purple-200/90 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between text-purple-700 text-xs font-bold mb-1">
-                    <span>總保單件數</span>
-                    <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></span>
+                    <span>Man Month (人月)</span>
+                    <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-calendar-days"></i></span>
                 </div>
                 <div id="kpiTotalPolicyCount" class="hidden"></div>
-                <div id="kpiPolicyCount" class="text-2xl font-black text-purple-900">0</div>
+                <div id="kpiPolicyCount" class="text-2xl font-black text-purple-900">0 MM</div>
             </div>
 
             <div onclick="openKpiDistrictMonthModal('yearly', 'agentCount')" class="bg-gradient-to-br from-white to-rose-50/60 rounded-2xl p-4 border border-rose-200/90 shadow-sm hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between cursor-pointer group">
@@ -598,20 +598,20 @@
                             <div class="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-0.5 text-[11px]">
                                 <span class="font-bold text-purple-900"><i class="fa-solid fa-calendar-check text-purple-600 mr-0.5"></i>年份:</span>
                                 <select id="table4YearSelect" onchange="changeTable4RecruitYear(this.value)" class="bg-white border border-purple-300 rounded px-1.5 py-0.5 text-[11px] font-bold text-purple-900 cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500">
-                                    <option value="2026" selected>2026 (自動篩選)</option>
-                                    <option value="ALL">全部年份</option>
+                                    <option value="2026" selected>2026 (預設)</option>
+                                    <option value="ALL">依上方篩選 (全部年份)</option>
                                 </select>
                             </div>
-                            <span class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">Top 5</span>
+                            <span id="table4CountBadge" class="text-[10px] bg-purple-100 text-purple-800 font-extrabold px-2 py-0.5 rounded-full">共 0 位</span>
                         </div>
                     </div>
 
-                    <div class="overflow-x-auto flex-1">
+                    <div id="table4ScrollContainer" class="overflow-x-auto max-h-[460px] overflow-y-auto flex-1">
                         <table class="w-full text-left text-xs border-collapse">
-                            <thead>
-                                <tr class="bg-purple-50/60 text-purple-900 border-b border-purple-100 font-bold uppercase">
+                            <thead class="sticky top-0 z-10">
+                                <tr class="bg-purple-50/95 text-purple-900 border-b border-purple-100 font-bold uppercase backdrop-blur-xs">
                                     <th class="p-2.5 w-8 text-center">排名</th>
-                                    <th class="p-2.5">主管 / ARA 姓名</th>
+                                    <th class="p-2.5">Upline Manager / ARA Name</th>
                                     <th class="p-2.5 text-right">新招募人數</th>
                                 </tr>
                             </thead>
@@ -791,7 +791,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span id="monthlyActiveFilterSummary" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">2026年 8月 · Q3 (7-9月)</span>
+                        <span id="monthlyActiveFilterSummary" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">當月 · 當季</span>
                         <button onclick="resetMonthlyFiltersToDefault()" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold flex items-center gap-1 transition-colors cursor-pointer">
                             <i class="fa-solid fa-rotate-left"></i> 重置預設條件
                         </button>
@@ -820,7 +820,7 @@
                             <span id="monthlyMonthCountBadge" class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.2 rounded-full">已選 1 個月</span>
                         </label>
                         <button type="button" id="monthlyMonthDropdownBtn" onclick="toggleMonthlyMonthDropdown(event)" class="w-full text-left text-xs font-bold bg-emerald-50/50 hover:bg-white border border-emerald-200 rounded-xl px-3 py-2.5 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none flex items-center justify-between gap-1 cursor-pointer">
-                            <span id="monthlyMonthDropdownLabel" class="truncate">9月 (Sep)</span>
+                            <span id="monthlyMonthDropdownLabel" class="truncate">當月</span>
                             <i id="monthlyMonthDropdownIcon" class="fa-solid fa-chevron-down text-emerald-500 text-[10px] shrink-0 transition-transform"></i>
                         </button>
 
@@ -877,7 +877,7 @@
                                     <span>8 月 (Aug)</span>
                                 </label>
                                 <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
-                                    <input type="checkbox" id="monthlyMonthCb_9" checked onchange="onMonthlyMonthCheckboxChange(9, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
+                                    <input type="checkbox" id="monthlyMonthCb_9" onchange="onMonthlyMonthCheckboxChange(9, this.checked)" class="rounded text-emerald-600 focus:ring-emerald-500">
                                     <span>9 月 (Sep)</span>
                                 </label>
                                 <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer font-medium text-slate-700">
@@ -905,7 +905,7 @@
                         <select id="monthlyIssueQuarterSelect" onchange="onMonthlyQuarterChanged()" class="w-full text-xs font-bold bg-amber-50/60 hover:bg-white border border-amber-300 rounded-xl px-3 py-2.5 text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="Q1">Q1（1-3月）</option>
                             <option value="Q2">Q2（4-6月）</option>
-                            <option value="Q3" selected>Q3（7-9月）</option>
+                            <option value="Q3">Q3（7-9月）</option>
                             <option value="Q4">Q4（10-12月）</option>
                         </select>
                     </div>
@@ -1043,12 +1043,12 @@
                     <div id="monthlyKpiTotalCase1" class="text-2xl font-black text-amber-700">0.0</div>
                 </div>
 
-                <div onclick="openKpiDistrictMonthModal('monthly', 'policyCount')" class="bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 rounded-2xl p-4 border border-purple-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
+                <div onclick="openKpiDistrictMonthModal('monthly', 'manMonth')" class="bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 rounded-2xl p-4 border border-purple-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
                     <div class="flex items-center justify-between text-purple-800 text-xs font-bold mb-1">
-                        <span id="monthlyKpiLabel4">總保單件數</span>
-                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></span>
+                        <span id="monthlyKpiLabel4">Man Month (人月)</span>
+                        <span class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors flex items-center justify-center"><i class="fa-solid fa-calendar-days"></i></span>
                     </div>
-                    <div id="monthlyKpiPolicyCount" class="text-2xl font-black text-purple-800">0</div>
+                    <div id="monthlyKpiPolicyCount" class="text-2xl font-black text-purple-800">0 MM</div>
                 </div>
 
                 <div onclick="openKpiDistrictMonthModal('monthly', 'agentCount')" class="bg-gradient-to-br from-rose-50 via-white to-pink-50/40 rounded-2xl p-4 border border-rose-200/80 shadow-sm hover:shadow-md hover:border-rose-300 transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer group">
@@ -1484,7 +1484,7 @@
         // Column Mappings for Headcount File
         const HEADCOUNT_MAPPINGS = {
             productionStartDate: ['production start date (lis)', 'production start date', 'production_start_date_(lis)', 'lis date', 'lis start date', 'join date', '入職日期', 'start date'],
-            terminationDate: ['termination date', 'term date', 'leave date', 'resign date', 'last date', '離職日期', '終止日期'],
+            terminationDate: ['termination date', 'term date', 'leave date', 'resign date', 'last date', 'mpf license de-registration date', 'mpf license de registration date', 'de-registration date', 'deregistration date', 'mpf deregistration', 'mpf license deregistration date', 'mpf de-registration', '離職日期', '終止日期'],
             manMonth: ['man month', 'man_month', 'manmonth', 'man-month', 'active months', 'tenure months', 'service months', '在職月份', '在職月數', '在職月'],
             agentGrade: ['agent grade', 'agent rank', 'agent level', 'agent title', 'staff grade', 'current grade', 'grade', 'rank', 'level', 'title', 'position', 'designation', '職級', '級別', '職稱'],
             uplineGrade: ['upline manager grade', 'upline_manager_grade', 'upline manager rank', 'upline grade', 'upline rank', 'upline level', 'upline title', 'manager grade', 'manager rank', 'leader grade', '上線職級', '主管職級'],
@@ -1760,6 +1760,18 @@
                 const colPHeader = String(headerRow[15] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
                 if (!colPHeader || colPHeader.includes('bm') || colPHeader.includes('manager') || colMap.bmName === undefined) {
                     colMap.bmName = 15; // Column P: BM or above Manager Name
+                }
+            }
+            if (maxHcCols > 21) {
+                const colVHeader = String(headerRow[21] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                if (colVHeader.includes('production') || colVHeader.includes('start date') || colMap.productionStartDate === undefined) {
+                    colMap.productionStartDate = 21; // Column V (LIS Production Start Date)
+                }
+            }
+            if (maxHcCols > 26) {
+                const colAAHeader = String(headerRow[26] || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+                if (colAAHeader.includes('de-registration') || colAAHeader.includes('deregistration') || colAAHeader.includes('termination') || colAAHeader.includes('leave') || colMap.terminationDate === undefined) {
+                    colMap.terminationDate = 26; // Column AA (MPF License De-Registration Date / Termination Date)
                 }
             }
 
@@ -2752,8 +2764,13 @@
                     );
                     if (excelEntries.length > 0) {
                         gdriveFilesCache = excelEntries;
-                        const foundPp = excelEntries.find(f => /pp\s*raw/i.test(f.title));
-                        const foundHc = excelEntries.find(f => /headcount/i.test(f.title));
+                        const foundPp = excelEntries.find(f => f.id === DEFAULT_GDRIVE_PP_FILE.id)
+                            || excelEntries.find(f => /^pp\s*raw(\.(xlsx|xls|csv))?$/i.test(f.title.trim()))
+                            || excelEntries.find(f => /pp\s*raw/i.test(f.title) && !/2025|banker/i.test(f.title));
+                        const foundHc = excelEntries.find(f => f.id === DEFAULT_GDRIVE_HC_FILE.id)
+                            || excelEntries.find(f => /headcount\s*by\s*ava/i.test(f.title))
+                            || excelEntries.find(f => /^headcount(\.(xlsx|xls|csv))?$/i.test(f.title.trim()))
+                            || excelEntries.find(f => /headcount/i.test(f.title) && !/banker|last\s*month/i.test(f.title));
                         if (foundPp) ppTarget = foundPp;
                         if (foundHc) hcTarget = foundHc;
 
@@ -2845,6 +2862,7 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            applyMonthlyDefaultPeriodToUI();
             preloadFromGoogleDrive(false);
         });
 
@@ -3210,12 +3228,13 @@
         }
 
         function buildFilterOptionsAndDefaults() {
+            const ALL_12_MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
             if (allSheetData.length === 0) {
                 filterOptions = {
                     SubmitYear: [2024, 2025, 2026],
-                    SubmitMonth: [],
+                    SubmitMonth: [...ALL_12_MONTHS],
                     IssueYear: [],
-                    IssueMonth: [],
+                    IssueMonth: [...ALL_12_MONTHS],
                     LeaderName: ['JERRY LO', 'PAGGIE LAW']
                 };
             } else {
@@ -3229,9 +3248,9 @@
                 }
                 filterOptions = {
                     SubmitYear: extractedSubmitYears.length > 0 ? [...new Set([2024, 2025, 2026, ...extractedSubmitYears])].sort((a,b)=>a-b) : [2024, 2025, 2026],
-                    SubmitMonth: [...new Set(allSheetData.map(r => r.submitMonth))].sort((a,b)=>a-b),
+                    SubmitMonth: [...new Set([...ALL_12_MONTHS, ...allSheetData.map(r => r.submitMonth)])].filter(m => m >= 1 && m <= 12).sort((a,b)=>a-b),
                     IssueYear: [...new Set(allSheetData.map(r => r.issueYear))].sort((a,b)=>a-b),
-                    IssueMonth: [...new Set(allSheetData.map(r => r.issueMonth))].sort((a,b)=>a-b),
+                    IssueMonth: [...new Set([...ALL_12_MONTHS, ...allSheetData.map(r => r.issueMonth)])].filter(m => m >= 1 && m <= 12).sort((a,b)=>a-b),
                     LeaderName: extractedLeaders.sort()
                 };
             }
@@ -3339,11 +3358,23 @@
             });
 
             const extractedTeams = [...teamsSet];
-            if (!extractedTeams.some(t => String(t).toUpperCase().includes('PAGGIE') && String(t).toUpperCase().includes('LAW'))) {
+            const existingCanonicalTeams = new Set(extractedTeams.map(t => canonicalDistrictLeaderKey(t)));
+            if (!existingCanonicalTeams.has('PAGGIE LAW')) {
                 extractedTeams.push('PAGGIE LAW');
+                existingCanonicalTeams.add('PAGGIE LAW');
             }
-            if (!extractedTeams.some(t => String(t).toUpperCase().includes('JERRY') && String(t).toUpperCase().includes('LO'))) {
+            if (!existingCanonicalTeams.has('JERRY LO')) {
                 extractedTeams.push('JERRY LO');
+                existingCanonicalTeams.add('JERRY LO');
+            }
+            if (Array.isArray(allSheetData) && allSheetData.length > 0) {
+                allSheetData.forEach(r => {
+                    const cKey = canonicalDistrictLeaderKey(r.leaderName);
+                    if (cKey && cKey !== 'UNASSIGNED LEADER' && !existingCanonicalTeams.has(cKey)) {
+                        extractedTeams.push(cKey);
+                        existingCanonicalTeams.add(cKey);
+                    }
+                });
             }
 
             headcountLisYears = [...yearsSet].sort((a,b) => a-b);
@@ -3358,6 +3389,17 @@
                 : new Set(headcountTeams);
 
             renderHeadcountFilterCheckboxes();
+            const yrSel = document.getElementById('table4YearSelect');
+            if (yrSel) {
+                const descYears = [...headcountLisYears].sort((a, b) => b - a);
+                const opts = descYears.map(y =>
+                    `<option value="${y}">${y}${y === 2026 ? ' (預設)' : ' 年'}</option>`
+                ).join('') + `<option value="ALL">依上方篩選 (全部年份)</option>`;
+                yrSel.innerHTML = opts;
+                yrSel.value = (table4RecruitYear === 'ALL' || descYears.includes(parseInt(table4RecruitYear, 10)))
+                    ? String(table4RecruitYear)
+                    : '2026';
+            }
         }
 
         function renderHeadcountFilterCheckboxes() {
@@ -3395,6 +3437,7 @@
             else selectedLisYears.delete(val);
             const badge = document.getElementById('badgeLisYear');
             if (badge) badge.innerText = `${selectedLisYears.size}/${headcountLisYears.length}`;
+            table4RecruitYear = 'ALL';
             computeTopNewRecruits();
             computeAgentRankings();
             computeAndRenderDistrictFourBoxes();
@@ -3425,6 +3468,7 @@
         function toggleLisYearAll(selectAll) {
             if (selectAll) selectedLisYears = new Set(headcountLisYears);
             else selectedLisYears.clear();
+            table4RecruitYear = 'ALL';
             renderHeadcountFilterCheckboxes();
             computeTopNewRecruits();
             computeAgentRankings();
@@ -3671,7 +3715,7 @@
 
             table4RecruitRankings = Object.values(recruitMap)
                 .filter(item => item && item.name && item.name !== 'Unassigned Manager' && item.name !== 'New Recruit' && item.recruitsCount >= table4Threshold)
-                .sort((a, b) => b.recruitsCount - a.recruitsCount);
+                .sort((a, b) => (b.recruitsCount - a.recruitsCount) || String(a.name).localeCompare(String(b.name)));
 
             // =========================================================================
             // Table 8: UPLINE MANAGER TOTAL RECRUIT (多層經理計算方法 · 全部 UPLINE MANAGER 顯示)
@@ -3887,11 +3931,12 @@
         function renderTopNewRecruitsTableCard(tbodyId, subtextId, rankingsList) {
             const tbody = document.getElementById(tbodyId);
             const subtext = document.getElementById(subtextId);
+            const countBadge = document.getElementById('table4CountBadge');
             if (!tbody) return;
 
-            const yrText = table4RecruitYear === 'ALL' ? '全部年份' : `${table4RecruitYear} 年`;
+            const yrText = table4RecruitYear === 'ALL' ? '依上方年份篩選' : `${table4RecruitYear} 年`;
             if (subtext) {
-                subtext.innerText = `${table4Threshold} OR ABOVE · 自動篩選: ${yrText}`;
+                subtext.innerText = `${table4Threshold} OR ABOVE · 篩選: ${yrText}`;
             }
 
             const thSel = document.getElementById('table4ThresholdSelect');
@@ -3906,9 +3951,14 @@
             const filteredList = yearlyAgentSearchQuery
                 ? rankingsList.filter(item =>
                     String(item.name || '').toLowerCase().includes(yearlyAgentSearchQuery) ||
-                    Array.from(item.teams || []).some(t => String(t).toLowerCase().includes(yearlyAgentSearchQuery))
+                    Array.from(item.teams || []).some(t => String(t).toLowerCase().includes(yearlyAgentSearchQuery)) ||
+                    (item.recruitsList && item.recruitsList.some(r => String(r.agentName || '').toLowerCase().includes(yearlyAgentSearchQuery)))
                 )
                 : rankingsList;
+
+            if (countBadge) {
+                countBadge.innerText = `共 ${filteredList.length} 位`;
+            }
 
             if (filteredList.length === 0) {
                 tbody.innerHTML = `
@@ -3919,18 +3969,16 @@
                 return;
             }
 
-            const top5List = yearlyAgentSearchQuery ? filteredList : filteredList.slice(0, 5);
-
-            tbody.innerHTML = top5List.map((item, idx) => {
+            tbody.innerHTML = filteredList.map((item, idx) => {
                 const teamString = Array.from(item.teams).join(', ');
                 return `
-                    <tr class="hover:bg-orange-50/60 transition-colors cursor-pointer" onclick="openRecruitDetail('${escapeJsString(item.name)}')">
+                    <tr class="hover:bg-purple-50/60 transition-colors cursor-pointer" onclick="openRecruitDetail('${escapeJsString(item.name)}')">
                         <td class="p-2.5 text-center font-black ${idx === 0 ? 'text-amber-500 font-extrabold text-sm' : idx === 1 ? 'text-stone-400 font-extrabold' : idx === 2 ? 'text-amber-700 font-extrabold' : 'text-stone-400'}">${idx + 1}</td>
                         <td class="p-2.5">
                             <div class="font-bold text-stone-900 break-words leading-snug">${escapeHtml(item.name)}</div>
-                            <div class="text-[10px] text-orange-700">${escapeHtml(teamString)}</div>
+                            <div class="text-[10px] text-purple-700 font-semibold">${escapeHtml(teamString)}</div>
                         </td>
-                        <td class="p-2.5 text-right font-black text-orange-800 text-sm whitespace-nowrap">
+                        <td class="p-2.5 text-right font-black text-purple-800 text-sm whitespace-nowrap">
                             ${item.recruitsCount} <span class="text-[10px] font-medium text-stone-500">位</span>
                         </td>
                     </tr>
@@ -4199,6 +4247,8 @@
         }
 
         function resetAllFilters() {
+            table4Threshold = 3;
+            table4RecruitYear = '2026';
             buildFilterOptionsAndDefaults();
             buildHeadcountFilters();
             applyFilters();
@@ -4307,6 +4357,10 @@
             const recruitNamesUpper = new Set(displayList.map(r => cleanPersonName(r.agentName).toUpperCase()));
             const recruitPolicies = filteredRows.filter(row => recruitNamesUpper.has(cleanPersonName(row.agentName).toUpperCase()));
             const policiesSection = document.getElementById('modalPoliciesSection');
+            const policiesTitle = document.getElementById('modalPoliciesTitle');
+            if (policiesTitle) {
+                policiesTitle.innerHTML = `<i class="fa-solid fa-list-check text-sky-600"></i> 旗下保單列表 (Policies Breakdown)`;
+            }
             if (policiesSection) {
                 if (recruitPolicies.length > 0) {
                     policiesSection.classList.remove('hidden');
@@ -4419,6 +4473,7 @@
                 year: 2026,
                 manMonthByMonth: { 1: 82, 2: 83, 3: 83, 4: 86, 5: 84, 6: 84, 7: 89, 8: 82, 9: 83 },
                 inforceAgentByMonth: { 1: 84, 2: 84, 3: 84, 4: 85, 5: 84, 6: 84, 7: 82, 8: 82, 9: 83 },
+                activeAgentsByMonth: { 1: 32, 2: 25, 3: 40, 4: 31, 5: 25, 6: 28, 7: 23, 8: 25, 9: 33 },
                 inforceAtMonthEnd: 83
             },
             'CLOVIS CHANG': {
@@ -4544,6 +4599,32 @@
             return null;
         }
 
+        function getOfficialDistrictActiveAgents(distName, year, month) {
+            const cKey = canonicalDistrictLeaderKey(distName);
+            const bench = OFFICIAL_DISTRICT_BENCHMARKS[cKey];
+            if (bench && bench.year === year && bench.activeAgentsByMonth && bench.activeAgentsByMonth[month] !== undefined) {
+                return bench.activeAgentsByMonth[month];
+            }
+            return null;
+        }
+
+        function getOfficialDistrictPeriodActiveAgents(distName, year, monthsList) {
+            const cKey = canonicalDistrictLeaderKey(distName);
+            const bench = OFFICIAL_DISTRICT_BENCHMARKS[cKey];
+            if (bench && bench.year === year && bench.activeAgentsByMonth && Array.isArray(monthsList) && monthsList.length > 0) {
+                let sum = 0;
+                let hasAny = false;
+                for (const m of monthsList) {
+                    if (bench.activeAgentsByMonth[m] !== undefined) {
+                        sum += bench.activeAgentsByMonth[m];
+                        hasAny = true;
+                    }
+                }
+                if (hasAny) return sum;
+            }
+            return null;
+        }
+
         function isHcRowActiveInSelectedPeriod(hc, selectedYears, selectedMonths) {
             if (!hc) return false;
             const yearsArr = (selectedYears && selectedYears.size > 0) ? Array.from(selectedYears) : [2026];
@@ -4551,44 +4632,144 @@
             return computeHcManMonthForSelectedMonths(hc, yearsArr, monthsArr) > 0;
         }
 
-        // Manmonth = 當月有在職的同事就算一天也計算在內
+        // 根據用戶最新規範：Man Month（人月）計算是以指定年度（如 2026 年）為基準：
+        // 1. 年度起始基準日 (Start of Year)：year-01-01
+        // 2. 計算起點 (Start Date)：
+        //    - 若同事在該年前已入職 (Production Date < year-01-01)，起點算 year-01-01
+        //    - 若同事在該年內入職 (Production Date >= year-01-01)，起點算 Production Date
+        // 3. 計算終點 (End Date)：
+        //    - 指定計算截止日期 (Target Date) 為選定月份範圍中最後一個月份的最後一天
+        //    - 未離職同事（Termination Date 為空白）：終點算至 Target Date
+        //    - 已離職同事（Termination Date 有日期）：
+        //      * 若在指定日期前離職，終點算至 Termination Date
+        //      * 若在指定日期後離職，終點算至 Target Date
+        // 4. 計算同事在選定期間內的實際上班月份加總 (當月有在職就算一天也算)
         function computeHcManMonthForSelectedMonths(hcRow, selectedYearsArr, selectedMonthsArr) {
             if (!hcRow) return 0;
             const years = (Array.isArray(selectedYearsArr) && selectedYearsArr.length > 0) ? selectedYearsArr : [2026];
             const months = (Array.isArray(selectedMonthsArr) && selectedMonthsArr.length > 0) ? selectedMonthsArr : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+            const primaryYear = years[0] || 2026;
 
-            let startYM = 0;
-            if (hcRow.productionStartDate && !isNaN(new Date(hcRow.productionStartDate).getTime())) {
-                const startD = new Date(hcRow.productionStartDate);
-                startYM = startD.getFullYear() * 12 + (startD.getMonth() + 1);
-            }
-            let endYM = 999999;
-            if (hcRow.terminationDate && !isNaN(new Date(hcRow.terminationDate).getTime())) {
-                const termD = new Date(hcRow.terminationDate);
-                endYM = termD.getFullYear() * 12 + (termD.getMonth() + 1);
-            }
+            const pDate = hcRow.productionStartDate && !isNaN(new Date(hcRow.productionStartDate).getTime())
+                ? new Date(hcRow.productionStartDate)
+                : null;
+            const tDate = hcRow.terminationDate && !isNaN(new Date(hcRow.terminationDate).getTime())
+                ? new Date(hcRow.terminationDate)
+                : null;
 
-            if (startYM === 0) {
+            if (!pDate) {
                 if (hcRow.manMonth && hcRow.manMonth > 0) {
                     return Math.min(hcRow.manMonth, months.length);
                 }
                 return 0;
             }
 
-            if (startYM > endYM) return 0;
+            // 1. 年度起始基準日 (Start of Year): 2026-01-01
+            const startOfYear = new Date(primaryYear, 0, 1);
+            // 2. 計算起點 (Start Date)
+            const effStart = pDate < startOfYear ? startOfYear : pDate;
 
-            // 當月有在職的同事就算一天也計算在內：
-            // 只要 ym >= startYM (入職年月當月起算一天也算) 且 ym <= endYM (離職年月當月就算一天也算)，該月即計 1 個 Man-Month
+            // 3. 計算終點 (End Date): 指定計算截止日期 (Target Date) 為選定月份範圍中最後一個月份的最後一天
+            const maxM = Math.max(...months);
+            const targetDate = new Date(primaryYear, maxM, 0, 23, 59, 59, 999);
+
+            // 未離職同事算至 Target Date；已離職同事若在指定日期前離職算至 Termination Date，若在指定日期後離職算至 Target Date
+            let effEnd = targetDate;
+            if (tDate) {
+                effEnd = tDate <= targetDate ? tDate : targetDate;
+            }
+
+            if (effStart > effEnd) return 0;
+
+            // 4. 檢查每個評核月份是否有在職 (當月有在職就算一天也算)
             let mmCount = 0;
             for (const yr of years) {
                 for (const m of months) {
-                    const ym = yr * 12 + m;
-                    if (ym >= startYM && ym <= endYM) {
+                    const mStart = new Date(yr, m - 1, 1, 0, 0, 0, 0);
+                    const mEnd = new Date(yr, m, 0, 23, 59, 59, 999);
+                    if (effStart <= mEnd && effEnd >= mStart) {
                         mmCount += 1;
                     }
                 }
             }
             return mmCount;
+        }
+
+        // 聚合提取多選 District 或全選時的官方基準 Inforce Headcount (支援如 JERRY LO 51 + PAGGIE LAW 83 = 134)
+        function getCombinedDistrictPeriodInforce(distKeysSet, year, monthsList, matchedHcList) {
+            const keys = Array.from(distKeysSet || []).map(canonicalDistrictLeaderKey).filter(Boolean);
+            if (keys.length === 0) {
+                return (matchedHcList || []).length;
+            }
+
+            let totalInforce = 0;
+            let anyBenchmark = false;
+            keys.forEach(k => {
+                const off = getOfficialDistrictPeriodInforce(k, year, monthsList);
+                if (off !== null) {
+                    totalInforce += off;
+                    anyBenchmark = true;
+                } else {
+                    const distHc = (matchedHcList || []).filter(hc => canonicalDistrictLeaderKey(hc.rawTeam || hc.team) === k);
+                    totalInforce += distHc.length;
+                }
+            });
+            return totalInforce > 0 ? totalInforce : (matchedHcList || []).length;
+        }
+
+        // 聚合提取多選 District 或全選時的官方基準 Man Month
+        function getCombinedDistrictPeriodManMonth(distKeysSet, year, monthsList, matchedHcList) {
+            const keys = Array.from(distKeysSet || []).map(canonicalDistrictLeaderKey).filter(Boolean);
+            if (keys.length === 0) {
+                return (matchedHcList || []).reduce((sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [year], monthsList), 0);
+            }
+
+            let totalManMonth = 0;
+            keys.forEach(k => {
+                const off = getOfficialDistrictPeriodManMonth(k, year, monthsList);
+                if (off !== null) {
+                    totalManMonth += off;
+                } else {
+                    const distHc = (matchedHcList || []).filter(hc => canonicalDistrictLeaderKey(hc.rawTeam || hc.team) === k);
+                    totalManMonth += distHc.reduce((sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [year], monthsList), 0);
+                }
+            });
+            return totalManMonth > 0 ? totalManMonth : (matchedHcList || []).reduce((sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [year], monthsList), 0);
+        }
+
+        // 聚合提取多選 District 或全選時的官方基準 Active Agents
+        function getCombinedDistrictPeriodActiveAgents(distKeysSet, year, monthsList, rawCalculatedActive) {
+            const keys = Array.from(distKeysSet || []).map(canonicalDistrictLeaderKey).filter(Boolean);
+            if (keys.length === 0) return rawCalculatedActive;
+
+            let allHaveBenchmark = true;
+            let totalActive = 0;
+            keys.forEach(k => {
+                const off = getOfficialDistrictPeriodActiveAgents(k, year, monthsList);
+                if (off !== null) {
+                    totalActive += off;
+                } else {
+                    allHaveBenchmark = false;
+                }
+            });
+            if (allHaveBenchmark && totalActive > 0) return totalActive;
+            return rawCalculatedActive;
+        }
+
+        function extractMonthlyDistrictsSet(checkedGroupsSet) {
+            const dists = new Set();
+            (checkedGroupsSet || []).forEach(gKey => {
+                if (gKey === 'GROUP:PAGGIE_LAW') dists.add('PAGGIE LAW');
+                else if (gKey === 'GROUP:JERRY_LO') dists.add('JERRY LO');
+                else if (gKey === 'GROUP:ANDY_TSE') dists.add('ANDY TSE');
+                else if (gKey.startsWith('GROUP:LEADER_')) {
+                    const lName = gKey.replace('GROUP:LEADER_', '');
+                    dists.add(canonicalDistrictLeaderKey(lName));
+                } else if (gKey.startsWith('GROUP:CALVIN_BM_')) {
+                    dists.add('CALVIN WONG');
+                }
+            });
+            return dists;
         }
 
         // 活躍顧問人數 = 根據選擇的月份, 把有FYCC (當月Net FYCC != 0) 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總, 例如1月有FYCC,2月也有FYCC 是計2個
@@ -4648,32 +4829,15 @@
                 return isHcRowActiveInSelectedPeriod(hc, new Set(selIssueYears), new Set(selIssueMonths));
             });
 
-            // Box 1: Headcount (在選定年度及月份有在職的顧問人數，當月有在職就算一天也算)
-            let yearlyHeadcountTotal = yearlyMatchedHc.length;
-            if (selectedLeaderKeys.size === 1) {
-                const singleDistKey = Array.from(selectedLeaderKeys)[0];
-                const offHc = getOfficialDistrictPeriodInforce(singleDistKey, selIssueYears[0] || 2026, selIssueMonths);
-                if (offHc) yearlyHeadcountTotal = offHc;
-            }
+            // Box 1: Headcount (支援單選或多選 District 官方基準聚合，例如 JERRY LO 51 + PAGGIE LAW 83 = 134)
+            let yearlyHeadcountTotal = getCombinedDistrictPeriodInforce(selectedLeaderKeys, selIssueYears[0] || 2026, selIssueMonths, yearlyMatchedHc);
 
             // 活躍顧問人數 (YTD ACTIVE AGENT / Active Agent): 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, 分開每個月加總
-            const yearlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(filteredRows);
+            let yearlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(filteredRows);
+            yearlyActiveAgentsCount = getCombinedDistrictPeriodActiveAgents(selectedLeaderKeys, selIssueYears[0] || 2026, selIssueMonths, yearlyActiveAgentsCount);
 
             // Box 2: Active Ratio = Active Agent / Man Month
-            let yearlyTotalManMonth = 0;
-            if (selectedLeaderKeys.size === 1) {
-                const singleDistKey = Array.from(selectedLeaderKeys)[0];
-                const offMm = getOfficialDistrictPeriodManMonth(singleDistKey, selIssueYears[0] || 2026, selIssueMonths);
-                yearlyTotalManMonth = (offMm !== null) ? offMm : yearlyMatchedHc.reduce(
-                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, selIssueYears, selIssueMonths),
-                    0
-                );
-            } else {
-                yearlyTotalManMonth = yearlyMatchedHc.reduce(
-                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, selIssueYears, selIssueMonths),
-                    0
-                );
-            }
+            let yearlyTotalManMonth = getCombinedDistrictPeriodManMonth(selectedLeaderKeys, selIssueYears[0] || 2026, selIssueMonths, yearlyMatchedHc);
             const yearlyActiveRatio = yearlyTotalManMonth > 0 ? (yearlyActiveAgentsCount / yearlyTotalManMonth) * 100 : 0;
 
             // Box 3: Case per Active Agent = YTD CASE / YTD ACTIVE AGENT
@@ -4697,10 +4861,10 @@
             // 2. MONTHLY VIEW 4 BOXES (Headcount, Active Ratio, Case per Active Agent, Case Size)
             // =================================================================
             const mYearVal = parseInt(document.getElementById('monthlyIssueYearSelect')?.value || '2026', 10);
+            const mIsAllMonths = typeof monthlySelectedMonths === 'undefined' || monthlySelectedMonths.size === 0 || monthlySelectedMonths.size >= 12;
             const selectedMonthsArr = (typeof monthlySelectedMonths !== 'undefined' && monthlySelectedMonths.size > 0)
                 ? Array.from(monthlySelectedMonths).sort((a,b) => a-b)
-                : [9];
-            const mIsAllMonths = selectedMonthsArr.length >= 12;
+                : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
             const mYearAndAgentRows = allSheetData.filter(r => r.issueYear === mYearVal && isRowMatchedByMonthlyAgentFilter(r));
             const mFilteredRows = mIsAllMonths
@@ -4721,49 +4885,24 @@
                 return monthlyCheckedGroups.has(gKey);
             });
 
-            // Check if monthly selection matches a single district with benchmark
-            let matchedSingleBenchmarkDist = '';
-            if (monthlyCheckedGroups.size === 1) {
-                const gKey = Array.from(monthlyCheckedGroups)[0];
-                if (gKey === 'GROUP:PAGGIE_LAW') matchedSingleBenchmarkDist = 'PAGGIE LAW';
-                else if (gKey === 'GROUP:JERRY_LO') matchedSingleBenchmarkDist = 'JERRY LO';
-                else if (gKey === 'GROUP:ANDY_TSE') matchedSingleBenchmarkDist = 'ANDY TSE';
-                else if (gKey.startsWith('GROUP:LEADER_')) {
-                    const lName = gKey.replace('GROUP:LEADER_', '');
-                    matchedSingleBenchmarkDist = canonicalDistrictLeaderKey(lName);
-                }
-            }
+            const monthlyDistKeys = extractMonthlyDistrictsSet(monthlyCheckedGroups);
 
-            // Box 1: Headcount
-            let monthlyHeadcountTotal = monthlyMatchedHc.length;
-            if (matchedSingleBenchmarkDist) {
-                const offHc = getOfficialDistrictPeriodInforce(matchedSingleBenchmarkDist, mYearVal, monthlyActiveMonthsList);
-                if (offHc) monthlyHeadcountTotal = offHc;
-            }
+            // Box 1: Headcount (支援單選或多選 District 官方基準聚合，例如 JERRY LO 51 + PAGGIE LAW 83 = 134)
+            let monthlyHeadcountTotal = getCombinedDistrictPeriodInforce(monthlyDistKeys, mYearVal, monthlyActiveMonthsList, monthlyMatchedHc);
 
             // Active Agent (根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, 分開每個月加總)
-            const monthlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(mFilteredRows);
+            let monthlyActiveAgentsCount = countMonthlyActiveAgentsWithFycc(mFilteredRows);
+            monthlyActiveAgentsCount = getCombinedDistrictPeriodActiveAgents(monthlyDistKeys, mYearVal, monthlyActiveMonthsList, monthlyActiveAgentsCount);
 
             // Box 2: Active Ratio = Active Agent / Man Month
-            let monthlyTotalManMonth = 0;
-            if (matchedSingleBenchmarkDist) {
-                const offMm = getOfficialDistrictPeriodManMonth(matchedSingleBenchmarkDist, mYearVal, monthlyActiveMonthsList);
-                monthlyTotalManMonth = (offMm !== null) ? offMm : monthlyMatchedHc.reduce(
-                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [mYearVal], monthlyActiveMonthsList),
-                    0
-                );
-            } else {
-                monthlyTotalManMonth = monthlyMatchedHc.reduce(
-                    (sum, hc) => sum + computeHcManMonthForSelectedMonths(hc, [mYearVal], monthlyActiveMonthsList),
-                    0
-                );
-            }
+            let monthlyTotalManMonth = getCombinedDistrictPeriodManMonth(monthlyDistKeys, mYearVal, monthlyActiveMonthsList, monthlyMatchedHc);
             const monthlyActiveRatio = monthlyTotalManMonth > 0 ? (monthlyActiveAgentsCount / monthlyTotalManMonth) * 100 : 0;
 
             // Box 3: Case per Active Agent = YTD CASE / YTD ACTIVE AGENT
             const monthlyYtdRows = mYearAndAgentRows.filter(r => (r.issueMonth || 1) <= ytdCutoffMonth);
             const monthlyYtdTotalCase1 = monthlyYtdRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
-            const monthlyYtdActiveAgents = countMonthlyActiveAgentsWithFycc(monthlyYtdRows);
+            let monthlyYtdActiveAgents = countMonthlyActiveAgentsWithFycc(monthlyYtdRows);
+            monthlyYtdActiveAgents = getCombinedDistrictPeriodActiveAgents(monthlyDistKeys, mYearVal, ytdMonthsList, monthlyYtdActiveAgents);
             const monthlyCasePerActive = monthlyYtdActiveAgents > 0 ? (monthlyYtdTotalCase1 / monthlyYtdActiveAgents) : 0;
 
             // Box 4: Case Size (全District 的FYCC 除以 CASE 的數量)
@@ -4788,10 +4927,36 @@
             const totalFYP = filteredRows.reduce((sum, r) => sum + (r.fypFinal || 0), 0);
             // 3. Total Case = 根據 Raw data 內的 Case1 數值加總, 分到 District 同 Month
             const totalCase1 = filteredRows.reduce((sum, r) => sum + (r.fycFinalCase1 || 0), 0);
-            // 4. 總保單件數 = 根據 Raw data 內的 CASE1 行數加總, 分到 District 同 Month
-            const totalCase1RowCount = filteredRows.filter(r => r.hasCase1Row !== false).length;
+
+            // 4. Man Month = 總在職月數 (根據選定月份與 District 的在職人月加總)
+            const selIssueYears = (selectedFilters.IssueYear && selectedFilters.IssueYear.size > 0)
+                ? Array.from(selectedFilters.IssueYear)
+                : [2026];
+            const selIssueMonths = (selectedFilters.IssueMonth && selectedFilters.IssueMonth.size > 0)
+                ? Array.from(selectedFilters.IssueMonth)
+                : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+            const selectedLeaderKeys = new Set(
+                Array.from(selectedFilters.LeaderName || []).map(canonicalDistrictLeaderKey).filter(Boolean)
+            );
+            const selectedHcTeamKeys = new Set(
+                Array.from(selectedHeadcountTeams || []).map(canonicalDistrictLeaderKey).filter(Boolean)
+            );
+            const yearlyMatchedHc = headcountRows.filter(hc => {
+                const hcDistKey = canonicalDistrictLeaderKey(hc.rawTeam || hc.team);
+                const matchesDist = (selectedLeaderKeys.size > 0 && selectedLeaderKeys.has(hcDistKey)) ||
+                                    (selectedHcTeamKeys.size > 0 && selectedHcTeamKeys.has(hcDistKey)) ||
+                                    (selectedHeadcountTeams && selectedHeadcountTeams.has(hc.team));
+                if (!matchesDist) return false;
+                return isHcRowActiveInSelectedPeriod(hc, new Set(selIssueYears), new Set(selIssueMonths));
+            });
+
+            // 4. Man Month = 總在職月數 (支援單選或多選 District 官方基準聚合)
+            let yearlyTotalManMonth = getCombinedDistrictPeriodManMonth(selectedLeaderKeys, selIssueYears[0] || 2026, selIssueMonths, yearlyMatchedHc);
+
             // 5. 活躍顧問人數 = 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總 (例如1月有FYCC,2月也有FYCC 是計2個)
-            const monthlySummedActiveAgents = countMonthlyActiveAgentsWithFycc(filteredRows);
+            let monthlySummedActiveAgents = countMonthlyActiveAgentsWithFycc(filteredRows);
+            monthlySummedActiveAgents = getCombinedDistrictPeriodActiveAgents(selectedLeaderKeys, selIssueYears[0] || 2026, selIssueMonths, monthlySummedActiveAgents);
 
             const setElemText = (id, text) => {
                 const el = document.getElementById(id);
@@ -4801,7 +4966,7 @@
             setElemText('kpiTotalFYC', `$${Math.round(totalFYC).toLocaleString()}`);
             setElemText('kpiTotalFYP', `$${Math.round(totalFYP).toLocaleString()}`);
             setElemText('kpiTotalCase1', `${Number(totalCase1 || 0).toFixed(1)}`);
-            setElemText('kpiPolicyCount', totalCase1RowCount.toLocaleString());
+            setElemText('kpiPolicyCount', `${yearlyTotalManMonth.toLocaleString()} MM`);
             setElemText('kpiAgentCount', monthlySummedActiveAgents.toLocaleString());
         }
 
@@ -4850,6 +5015,11 @@
                     title: 'Total Case — 按 District 及 Issue Month 明細',
                     formula: '根據 Raw Data 內的 Case1 (Col N) 數值加總，分到 District 同 Issue Month',
                     format: v => `${Number(v || 0).toFixed(1)}`
+                },
+                manMonth: {
+                    title: 'Man Month (總在職人月) — 按 District 及 Issue Month 明細',
+                    formula: '根據 Headcount 名冊及官方基準，計算每個 District 於各評核月份之在職顧問人月 (Man Month = 每月在職 Headcount 加總)',
+                    format: v => `${Math.round(v || 0).toLocaleString()} MM`
                 },
                 policyCount: {
                     title: '總保單件數 — 按 District 及 Issue Month 明細',
@@ -4970,10 +5140,23 @@
                     const hcList = getDistrictHcRows(dEntry.district);
                     return hcList.filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]) > 0).length;
                 }
+                if (metricKey === 'manMonth') {
+                    const offMm = getOfficialDistrictManMonth(dEntry.district, activeYearsArr[0], m);
+                    if (offMm !== null) return offMm;
+                    const hcList = getDistrictHcRows(dEntry.district);
+                    return hcList.reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]), 0);
+                }
+                if (metricKey === 'agentCount') {
+                    const offAct = getOfficialDistrictActiveAgents(dEntry.district, activeYearsArr[0], m);
+                    if (offAct !== null) return offAct;
+                    return cellObj ? cellObj.activeAgentsCount : 0;
+                }
                 if (metricKey === 'activeRatio') {
                     const offMm = getOfficialDistrictManMonth(dEntry.district, activeYearsArr[0], m);
                     const mm = (offMm !== null) ? offMm : getDistrictHcRows(dEntry.district).reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, [m]), 0);
-                    const act = cellObj ? cellObj.activeAgentsCount : 0;
+                    let act = cellObj ? cellObj.activeAgentsCount : 0;
+                    const offAct = getOfficialDistrictActiveAgents(dEntry.district, activeYearsArr[0], m);
+                    if (offAct !== null) act = offAct;
                     return mm > 0 ? (act / mm) * 100 : 0;
                 }
                 if (!cellObj) return 0;
@@ -4994,10 +5177,23 @@
                     const hcList = getDistrictHcRows(dEntry.district);
                     return hcList.filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths) > 0).length;
                 }
+                if (metricKey === 'manMonth') {
+                    const offMm = getOfficialDistrictPeriodManMonth(dEntry.district, activeYearsArr[0], sortedMonths);
+                    if (offMm !== null) return offMm;
+                    const hcList = getDistrictHcRows(dEntry.district);
+                    return hcList.reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
+                }
+                if (metricKey === 'agentCount') {
+                    const offAct = getOfficialDistrictPeriodActiveAgents(dEntry.district, activeYearsArr[0], sortedMonths);
+                    if (offAct !== null) return offAct;
+                    return distMonthlySummedAgents;
+                }
                 if (metricKey === 'activeRatio') {
                     const offMm = getOfficialDistrictPeriodManMonth(dEntry.district, activeYearsArr[0], sortedMonths);
                     const mm = (offMm !== null) ? offMm : getDistrictHcRows(dEntry.district).reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
-                    return mm > 0 ? (distMonthlySummedAgents / mm) * 100 : 0;
+                    const offAct = getOfficialDistrictPeriodActiveAgents(dEntry.district, activeYearsArr[0], sortedMonths);
+                    const actSum = (offAct !== null) ? offAct : distMonthlySummedAgents;
+                    return mm > 0 ? (actSum / mm) * 100 : 0;
                 }
                 if (metricKey === 'fyc') return dEntry.totalFyc;
                 if (metricKey === 'fyp') return dEntry.totalFyp;
@@ -5009,14 +5205,26 @@
             };
 
             const sortedDistricts = Array.from(districtMap.values()).sort((a, b) => getDistrictTotalVal(b) - getDistrictTotalVal(a));
+            const grandTotalHeadcount = sortedDistricts.reduce((sum, dEntry) => {
+                const offInforce = getOfficialDistrictPeriodInforce(dEntry.district, activeYearsArr[0], sortedMonths);
+                if (offInforce !== null) return sum + offInforce;
+                return sum + getDistrictHcRows(dEntry.district).filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths) > 0).length;
+            }, 0);
             const allMatchedHcList = sortedDistricts.flatMap(dEntry => getDistrictHcRows(dEntry.district).filter(hc => computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths) > 0));
             const grandTotalMm = sortedDistricts.reduce((sum, dEntry) => {
                 const offMm = getOfficialDistrictPeriodManMonth(dEntry.district, activeYearsArr[0], sortedMonths);
                 if (offMm !== null) return sum + offMm;
                 return sum + getDistrictHcRows(dEntry.district).reduce((s, hc) => s + computeHcManMonthForSelectedMonths(hc, activeYearsArr, sortedMonths), 0);
             }, 0);
-            const overallActiveRatio = grandTotalMm > 0 ? (totalMonthlySummedActiveAgents / grandTotalMm) * 100 : 0;
-            const overallCasePerActive = totalMonthlySummedActiveAgents > 0 ? (totalCase1 / totalMonthlySummedActiveAgents).toFixed(1) : '0.0';
+            const grandTotalActiveAgents = sortedDistricts.reduce((sum, dEntry) => {
+                const offAct = getOfficialDistrictPeriodActiveAgents(dEntry.district, activeYearsArr[0], sortedMonths);
+                if (offAct !== null) return sum + offAct;
+                let distMonthlySummedAgents = 0;
+                dEntry.byMonth.forEach(cObj => { distMonthlySummedAgents += cObj.activeAgentsCount; });
+                return sum + distMonthlySummedAgents;
+            }, 0);
+            const overallActiveRatio = grandTotalMm > 0 ? (grandTotalActiveAgents / grandTotalMm) * 100 : 0;
+            const overallCasePerActive = grandTotalActiveAgents > 0 ? (totalCase1 / grandTotalActiveAgents).toFixed(1) : '0.0';
             const overallCaseSize = totalCase1 > 0 ? (totalFYC / totalCase1) : 0;
 
             const kpi1Label = document.getElementById('modalKpi1Label');
@@ -5026,19 +5234,27 @@
             document.getElementById('modalTitle').innerText = meta.title;
             document.getElementById('modalSubtitle').innerText = `${meta.formula} | ${periodDesc}`;
 
-            if (metricKey === 'activeRatio') {
+            if (metricKey === 'manMonth') {
+                if (kpi1Label) kpi1Label.innerText = '總在職人月 (Total Man Month)';
+                if (kpi2Label) kpi2Label.innerText = '平均每月在職人數';
+                if (kpi3Label) kpi3Label.innerText = '評核月份總數';
+                document.getElementById('modalKpiFYC').innerText = `${grandTotalMm.toLocaleString()} MM`;
+                const avgHc = sortedMonths.length > 0 ? (grandTotalMm / sortedMonths.length).toFixed(1) : '0';
+                document.getElementById('modalKpiFYP').innerText = `${avgHc} 人/月`;
+                document.getElementById('modalKpiCases').innerText = `${sortedMonths.length} 個月 (${sortedMonths.map(m=>m+'月').join(', ')})`;
+            } else if (metricKey === 'activeRatio') {
                 if (kpi1Label) kpi1Label.innerText = 'Active Ratio (活躍率)';
                 if (kpi2Label) kpi2Label.innerText = '活躍顧問人數 (Active Agent)';
                 if (kpi3Label) kpi3Label.innerText = '總在職月數 (Total Man-Month)';
                 document.getElementById('modalKpiFYC').innerText = `${overallActiveRatio.toFixed(1)}%`;
-                document.getElementById('modalKpiFYP').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人次`;
+                document.getElementById('modalKpiFYP').innerText = `${grandTotalActiveAgents.toLocaleString()} 人次`;
                 const avgHc = sortedMonths.length > 0 ? (grandTotalMm / sortedMonths.length).toFixed(1) : '0';
                 document.getElementById('modalKpiCases').innerText = `${grandTotalMm.toLocaleString()} MM (平均 ${avgHc} 人/月)`;
             } else if (metricKey === 'headcount') {
                 if (kpi1Label) kpi1Label.innerText = '在職顧問人數 (Headcount)';
                 if (kpi2Label) kpi2Label.innerText = '總在職月數 (Total Man-Month)';
                 if (kpi3Label) kpi3Label.innerText = '平均每月在職人數';
-                document.getElementById('modalKpiFYC').innerText = `${allMatchedHcList.length.toLocaleString()} 人`;
+                document.getElementById('modalKpiFYC').innerText = `${grandTotalHeadcount.toLocaleString()} 人`;
                 document.getElementById('modalKpiFYP').innerText = `${grandTotalMm.toLocaleString()} MM`;
                 const avgHc = sortedMonths.length > 0 ? (grandTotalMm / sortedMonths.length).toFixed(1) : '0';
                 document.getElementById('modalKpiCases').innerText = `${avgHc} 人/月`;
@@ -5048,7 +5264,7 @@
                 if (kpi3Label) kpi3Label.innerText = '活躍顧問人數 (Active Agent)';
                 document.getElementById('modalKpiFYC').innerText = `${overallCasePerActive}`;
                 document.getElementById('modalKpiFYP').innerText = `${Number(totalCase1 || 0).toFixed(1)} 件`;
-                document.getElementById('modalKpiCases').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人次`;
+                document.getElementById('modalKpiCases').innerText = `${grandTotalActiveAgents.toLocaleString()} 人次`;
             } else if (metricKey === 'caseSize') {
                 if (kpi1Label) kpi1Label.innerText = 'Case Size (平均件均保費)';
                 if (kpi2Label) kpi2Label.innerText = 'Total FYC Final';
@@ -5062,7 +5278,7 @@
                 if (kpi3Label) kpi3Label.innerText = '活躍顧問人數 (YTD ACTIVE AGENT)';
                 document.getElementById('modalKpiFYC').innerText = `$${Math.round(totalFYC).toLocaleString()} / $${Math.round(totalFYP).toLocaleString()}`;
                 document.getElementById('modalKpiFYP').innerText = `${Number(totalCase1 || 0).toFixed(1)}`;
-                document.getElementById('modalKpiCases').innerText = `${totalMonthlySummedActiveAgents.toLocaleString()} 人 (Case/Active: ${overallCasePerActive})`;
+                document.getElementById('modalKpiCases').innerText = `${grandTotalActiveAgents.toLocaleString()} 人 (Case/Active: ${overallCasePerActive})`;
             }
 
             const rosterSection = document.getElementById('modalRosterSection');
@@ -6580,6 +6796,10 @@
             const rosterSection = document.getElementById('modalRosterSection');
             if (rosterSection) rosterSection.classList.add('hidden');
             const policiesSection = document.getElementById('modalPoliciesSection');
+            const policiesTitle = document.getElementById('modalPoliciesTitle');
+            if (policiesTitle) {
+                policiesTitle.innerHTML = `<i class="fa-solid fa-list-check text-sky-600"></i> 旗下保單列表 (Policies Breakdown)`;
+            }
             if (policiesSection) policiesSection.classList.remove('hidden');
 
             renderModalPoliciesTable(records, false);
@@ -6654,7 +6874,7 @@
                 const t2Displayed = filterAgentByQuery(table2Rankings).slice(0, limit);
                 const t3Displayed = filterAgentByQuery(table3Rankings).slice(0, limit);
                 const t4Filtered = filterRecruitByQuery(table4RecruitRankings);
-                const t4Displayed = yearlyAgentSearchQuery ? t4Filtered : t4Filtered.slice(0, 5);
+                const t4Displayed = t4Filtered;
                 const t5Filtered = filterTeamProdByQuery(table5ProductivityRankings);
                 const t5Displayed = (table5ShowAll || yearlyAgentSearchQuery) ? t5Filtered : t5Filtered.slice(0, 5);
                 const t6Displayed = table6ActiveEliteRankings.slice(0, 5);
@@ -6879,7 +7099,7 @@
         let monthlyCheckedGroups = new Set(DEFAULT_MONTHLY_GROUP_KEYS);
         let monthlyExcludedAgents = new Set();     // Individual agents unchecked despite group checked
         let monthlyExtraIncludedAgents = new Set(); // Individual agents checked despite group unchecked
-        let monthlySelectedMonths = new Set([9]);  // Multi-select months for Monthly Performance view
+        let monthlySelectedMonths = new Set([new Date().getMonth() + 1]);  // Default to current calendar month
         let monthlySearchQuery = '';
         let monthlyInitialized = false;
 
@@ -7020,33 +7240,72 @@
             return [1, 2, 3];
         }
 
-        function initMonthlyPerformanceOptions() {
-            // 1. Populate Issue Year select from allSheetData + [2026, 2025, 2024]
+        function getDefaultMonthlyYearMonthQuarter() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const quarter = getQuarterFromMonth(month);
+            return { year, month, quarter };
+        }
+
+        function applyMonthlyDefaultPeriodToUI() {
+            const { year: currentYear, month: currentMonth, quarter: currentQuarter } = getDefaultMonthlyYearMonthQuarter();
             const yearSelect = document.getElementById('monthlyIssueYearSelect');
             const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
 
-            const dataYears = [...new Set(allSheetData.map(r => r.issueYear).filter(y => y >= 2000 && y <= 2100))];
-            const allYears = [...new Set([2026, 2025, 2024, ...dataYears])].sort((a, b) => b - a);
-            const defaultYear = dataYears.length > 0 ? Math.max(...dataYears) : 2026;
-
+            const dataYears = Array.isArray(allSheetData)
+                ? [...new Set(allSheetData.map(r => r.issueYear).filter(y => y >= 2000 && y <= 2100))]
+                : [];
+            const allYears = [...new Set([currentYear, 2026, 2025, 2024, ...dataYears])].sort((a, b) => b - a);
             if (yearSelect) {
-                yearSelect.innerHTML = allYears.map(y => `<option value="${y}" ${y === defaultYear ? 'selected' : ''}>${y} 年</option>`).join('');
+                yearSelect.innerHTML = allYears.map(y => `<option value="${y}" ${y === currentYear ? 'selected' : ''}>${y} 年</option>`).join('');
+                yearSelect.value = String(currentYear);
             }
 
-            // Find latest Issue Month in defaultYear that has rows for default checked groups
-            const defaultYearRows = allSheetData.filter(r => r.issueYear === defaultYear && DEFAULT_MONTHLY_GROUP_KEYS.includes(getRowMonthlyGroupKey(r)));
-            const availableMonths = [...new Set((defaultYearRows.length > 0 ? defaultYearRows : allSheetData).map(r => r.issueMonth).filter(m => m >= 1 && m <= 12))].sort((a, b) => a - b);
-            const latestMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 9;
-
-            if (monthlySelectedMonths.size === 0) {
-                monthlySelectedMonths = new Set([latestMonth]);
-            }
+            monthlySelectedMonths = new Set([currentMonth]);
             syncMonthlyMonthCheckboxes();
             updateMonthlyMonthDropdownUI();
 
             if (quarterSelect) {
-                quarterSelect.value = getQuarterFromMonth(latestMonth);
+                quarterSelect.value = currentQuarter;
             }
+
+            const quarterTextMap = {
+                'Q1': 'Q1 (1-3月)',
+                'Q2': 'Q2 (4-6月)',
+                'Q3': 'Q3 (7-9月)',
+                'Q4': 'Q4 (10-12月)'
+            };
+            const summaryBadge = document.getElementById('monthlyActiveFilterSummary');
+            if (summaryBadge) {
+                summaryBadge.innerText = `${currentYear}年 ${currentMonth}月 · ${quarterTextMap[currentQuarter] || currentQuarter}`;
+            }
+        }
+
+        function initMonthlyPerformanceOptions() {
+            // 1. Populate Issue Year select from allSheetData + current calendar year & [2026, 2025, 2024]
+            const { year: currentYear, month: currentMonth, quarter: currentQuarter } = getDefaultMonthlyYearMonthQuarter();
+            const yearSelect = document.getElementById('monthlyIssueYearSelect');
+            const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
+
+            const dataYears = [...new Set(allSheetData.map(r => r.issueYear).filter(y => y >= 2000 && y <= 2100))];
+            const allYears = [...new Set([currentYear, 2026, 2025, 2024, ...dataYears])].sort((a, b) => b - a);
+            const prevSelectedYear = monthlyInitialized && yearSelect ? parseInt(yearSelect.value, 10) : currentYear;
+            const targetYear = allYears.includes(prevSelectedYear) ? prevSelectedYear : currentYear;
+
+            if (yearSelect) {
+                yearSelect.innerHTML = allYears.map(y => `<option value="${y}" ${y === targetYear ? 'selected' : ''}>${y} 年</option>`).join('');
+                yearSelect.value = String(targetYear);
+            }
+
+            if (!monthlyInitialized) {
+                monthlySelectedMonths = new Set([currentMonth]);
+                if (quarterSelect) {
+                    quarterSelect.value = currentQuarter;
+                }
+            }
+            syncMonthlyMonthCheckboxes();
+            updateMonthlyMonthDropdownUI();
 
             // 2. Build dynamic list of groups (5 core default groups first, then any other Calvin Wong BMs & other District Leaders)
             const dynamicGroupsMap = new Map();
@@ -7505,18 +7764,16 @@
         }
 
         function resetMonthlyFiltersToDefault() {
+            const { year: currentYear, month: currentMonth, quarter: currentQuarter } = getDefaultMonthlyYearMonthQuarter();
             monthlyCheckedGroups = new Set(DEFAULT_MONTHLY_GROUP_KEYS);
             monthlyExcludedAgents.clear();
             monthlyExtraIncludedAgents.clear();
-            monthlySelectedMonths = new Set([9]);
-            syncMonthlyMonthCheckboxes();
-            updateMonthlyMonthDropdownUI();
-            const quarterSelect = document.getElementById('monthlyIssueQuarterSelect');
-            if (quarterSelect) quarterSelect.value = 'Q3';
+            monthlyInitialized = false;
+            applyMonthlyDefaultPeriodToUI();
             onMonthlyAgentKeywordSearch('');
             initMonthlyPerformanceOptions();
             computeAndRenderMonthlyPerformances();
-            showToast('已重置為預設篩選條件（Paggie Law, Jerry Lo, Andy Tse, Calvin Wong 內的 BM: Hsui Man Lai 及 Tam Pan）', 'info');
+            showToast(`已重置為預設篩選條件：${currentYear}年 ${currentMonth}月 · ${currentQuarter}（當月及當季）`, 'info');
         }
 
         function handleMonthlySubmission(showNotification = true) {
@@ -7835,10 +8092,23 @@
             const totalMonthlyFYP = monthRows.reduce((s, r) => s + (r.fypFinal || 0), 0);
             // 3. Total Case = 根據 Raw data 內的 Case1 數值加總, 分到 District 同 Month
             const totalMonthlyCases = monthRows.reduce((s, r) => s + (r.fycFinalCase1 || 0), 0);
-            // 4. 總保單件數 = 根據 Raw data 內的 CASE1 行數加總, 分到 District 同 Month
-            const totalMonthlyPolicyRowCount = monthRows.filter(r => r.hasCase1Row !== false).length;
-            // 5. 活躍顧問人數 = 根據選擇的月份, 把有FYCC 的AGENT 都計1個數量, THEN加總數量, 要分開每個月加總
-            const activeMonthlyAgentsCount = countMonthlyActiveAgentsWithFycc(monthRows);
+            // 4. Man Month = 根據選定月份與團隊計算總在職月數
+            const monthlyDistKeys = extractMonthlyDistrictsSet(monthlyCheckedGroups);
+            const monthlyActiveMonthsList = isAllMonths ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : sortedMonths;
+            const monthlyMatchedHc = headcountRows.filter(hc => {
+                const gKey = getHcRowMonthlyGroupKey(hc);
+                const agKey = String(hc.agentName || '').toUpperCase().trim();
+                if (monthlyExcludedAgents.has(agKey)) return false;
+                if (monthlyExtraIncludedAgents.has(agKey)) return true;
+                return monthlyCheckedGroups.has(gKey);
+            });
+
+            // 4. Man Month = 根據選定月份與團隊計算總在職月數 (支援單選或多選 District 官方基準聚合)
+            let monthlyTotalManMonth = getCombinedDistrictPeriodManMonth(monthlyDistKeys, yearVal, monthlyActiveMonthsList, monthlyMatchedHc);
+
+            // 5. 活躍顧問人數 (支援單選或多選 District 官方基準聚合)
+            let activeMonthlyAgentsCount = countMonthlyActiveAgentsWithFycc(monthRows);
+            activeMonthlyAgentsCount = getCombinedDistrictPeriodActiveAgents(monthlyDistKeys, yearVal, monthlyActiveMonthsList, activeMonthlyAgentsCount);
 
             const kpi1 = document.getElementById('monthlyKpiTotalFYCC');
             const kpi2 = document.getElementById('monthlyKpiTotalFYP');
@@ -7849,7 +8119,7 @@
             if (kpi1) kpi1.innerText = `$${Math.round(totalMonthlyFYCC).toLocaleString()}`;
             if (kpi2) kpi2.innerText = `$${Math.round(totalMonthlyFYP).toLocaleString()}`;
             if (kpi3) kpi3.innerText = `${Number(totalMonthlyCases || 0).toFixed(1)}`;
-            if (kpi4) kpi4.innerText = `${totalMonthlyPolicyRowCount.toLocaleString()}`;
+            if (kpi4) kpi4.innerText = `${monthlyTotalManMonth.toLocaleString()} MM`;
             if (kpi5) kpi5.innerText = `${activeMonthlyAgentsCount.toLocaleString()}`;
 
             // Update table subtitles with active period
