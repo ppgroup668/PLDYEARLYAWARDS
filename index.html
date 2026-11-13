@@ -791,7 +791,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span id="monthlyActiveFilterSummary" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">當月 · 當季</span>
+                        <span id="monthlyActiveFilterSummary" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">上個月 · 當季</span>
                         <button onclick="resetMonthlyFiltersToDefault()" class="text-xs text-slate-500 hover:text-indigo-600 font-semibold flex items-center gap-1 transition-colors cursor-pointer">
                             <i class="fa-solid fa-rotate-left"></i> 重置預設條件
                         </button>
@@ -820,7 +820,7 @@
                             <span id="monthlyMonthCountBadge" class="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-1.5 py-0.2 rounded-full">已選 1 個月</span>
                         </label>
                         <button type="button" id="monthlyMonthDropdownBtn" onclick="toggleMonthlyMonthDropdown(event)" class="w-full text-left text-xs font-bold bg-emerald-50/50 hover:bg-white border border-emerald-200 rounded-xl px-3 py-2.5 text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none flex items-center justify-between gap-1 cursor-pointer">
-                            <span id="monthlyMonthDropdownLabel" class="truncate">當月</span>
+                            <span id="monthlyMonthDropdownLabel" class="truncate">上個月</span>
                             <i id="monthlyMonthDropdownIcon" class="fa-solid fa-chevron-down text-emerald-500 text-[10px] shrink-0 transition-transform"></i>
                         </button>
 
@@ -7099,7 +7099,7 @@
         let monthlyCheckedGroups = new Set(DEFAULT_MONTHLY_GROUP_KEYS);
         let monthlyExcludedAgents = new Set();     // Individual agents unchecked despite group checked
         let monthlyExtraIncludedAgents = new Set(); // Individual agents checked despite group unchecked
-        let monthlySelectedMonths = new Set([new Date().getMonth() + 1]);  // Default to current calendar month
+        let monthlySelectedMonths = new Set([(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() - 1, 1).getMonth() + 1; })()]);  // Default to previous calendar month
         let monthlySearchQuery = '';
         let monthlyInitialized = false;
 
@@ -7242,9 +7242,10 @@
 
         function getDefaultMonthlyYearMonthQuarter() {
             const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth() + 1;
-            const quarter = getQuarterFromMonth(month);
+            const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const year = prevMonthDate.getFullYear();
+            const month = prevMonthDate.getMonth() + 1;
+            const quarter = getQuarterFromMonth(now.getMonth() + 1);
             return { year, month, quarter };
         }
 
@@ -7773,7 +7774,7 @@
             onMonthlyAgentKeywordSearch('');
             initMonthlyPerformanceOptions();
             computeAndRenderMonthlyPerformances();
-            showToast(`已重置為預設篩選條件：${currentYear}年 ${currentMonth}月 · ${currentQuarter}（當月及當季）`, 'info');
+            showToast(`已重置為預設篩選條件：${currentYear}年 ${currentMonth}月 · ${currentQuarter}（上個月及當季）`, 'info');
         }
 
         function handleMonthlySubmission(showNotification = true) {
